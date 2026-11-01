@@ -25,7 +25,9 @@ Desafio: https://github.com/gladia-research-group/perseus/tree/speedrun. Recorde
     + drop nas densas e no SparseB, −98,2 ms (−5,8 %). O risco é a precisão (27,4 bits no SparseB);
   - softmax (`IDEIA-softmax-ponderada.md`, `subagent/softmax2/relatorio.md`):
     - normalização adiada sobre o recorde 4: teto ~−90 ms se o 3º SparseB de cada bloco sumir; precisa de ILP;
-    - camada 4 com δ2 = 4 e margem 1,0–1,1: −1 SparseB (≈ −8,4 ms), com risco de ruído e NaN;
+    - camada 4 com δ2 = 4 e margem 1,0–1,1: −1 SparseB (≈ −10 ms). Testado na CPU (`TESTE-softmax-camada4.md`): com
+      margem 1,00 o ruído fica abaixo da pior camada atual, mas um score acima de 1,15 U\* quebra a linha; a decisão
+      é a cauda dos dados (`scripts/l4_tail.py`, na sua máquina);
     - Goldschmidt re-dividido na mesma profundidade: erro 100–170× menor, que serve de folga para o resto;
   - hoisting das rotações baby (opção D do `tmodel`): −10 a −19 ms;
   - ILP com objetivo em ms (opção B): −7,6 ms.
@@ -40,6 +42,7 @@ Desafio: https://github.com/gladia-research-group/perseus/tree/speedrun. Recorde
 | `IDEIA-evalmod-par.md` | EvalMod par: matemática, tabelas de precisão e custo, como implementar |
 | `IDEIA-gelu-par.md` | GELU par: contagem real (ganho pequeno) |
 | `IDEIA-softmax-ponderada.md` | semente do exp por bandas da cadeia de quadraturas: fechada (recai no smrel) |
+| `TESTE-softmax-camada4.md` | teste da camada 4 com δ2 = 4: resultados de CPU, configs e roteiro para a máquina do usuário |
 | `subagent/softmax2/relatorio.md` | segunda opinião (Opus) sobre a softmax: erro real por camada, δ2, normalização adiada |
 | `subagent/sanity3/relatorio.md` | teste de sanidade (Opus xhigh) das ideias do ATAP: GO condicional, requisitos |
 | `subagent/audit/auditoria.md`, `subagent/sanity*/relatorio.md`, `subagent/r4/relatorio.md` | auditorias e testes de sanidade |
@@ -473,3 +476,18 @@ réplica com ruído no refresh.
   5. margem 1,1.
 
   Nada sozinho chega a 1 %. `IDEIA-softmax-ponderada.md` foi reescrita como síntese.
+
+### 2026-11-01 — teste do candidato 1 da softmax (camada 4, δ2 = 4)
+Detalhes em `TESTE-softmax-camada4.md`.
+- `scripts/sm_l4_delta2.py` reconstrói a camada 4 com as fórmulas do `fit_centred` (igual ao recorde até ~1e-15) e gera
+  candidatas com δ2 = 4.
+- **Margem 1,00:**
+  - profundidade 33 → 29, uma rodada a menos, mesmo erro do recorde;
+  - ruído do 1º refresh 140× contra 154× da pior camada atual (a 10); o proxy de KL sobe 19 %;
+  - o τ 5 recusado pelo upstream dá 447× e ×3,2;
+  - tolerância 1,15 U\* (recorde 1,56).
+- Configs em `configs/softmax_l4/`.
+- Falta:
+  - na máquina do usuário: a cauda dos dados (`scripts/l4_tail.py`, que testei com pesos aleatórios), o KL do modelo
+    de ruído, a captura e a ILP;
+  - na GPU: o A/B.
