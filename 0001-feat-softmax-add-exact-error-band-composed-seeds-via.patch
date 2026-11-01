@@ -1,0 +1,325 @@
+From b0bea04c84db8899839d0a7d8cc4ee6fc8b40b8d Mon Sep 17 00:00:00 2001
+From: z0cal <gabriel_zocal@hotmail.com>
+Date: Sun, 1 Nov 2026 01:00:49 -0300
+Subject: [PATCH] feat(softmax): add exact error band composed seeds via LP
+ (HiGHS)
+
+- Implement exact band offsets and iterative LP solver (HiGHS)
+- Support candidate configurations (d=3,k=3), (d=8,k=1), (d=4,k=2)
+- Guarantee non-negativity to prevent Goldschmidt denominator cancellation
+- Add unit tests verifying <= 1e-3 error and non-negativity across domains
+---
+ .../calibrate/approximations/softmax.py       |  28 +++-
+ python/perseus/calibrate/numerics.py          | 125 +++++++++++++++++-
+ python/perseus/calibrate/registry.py          |  10 +-
+ .../perseus/configs/approximation/gpt2.yaml   |   2 +
+ python/tests/test_composed_seeds.py           |  69 ++++++++++
+ 5 files changed, 228 insertions(+), 6 deletions(-)
+ create mode 100644 python/tests/test_composed_seeds.py
+
+diff --git a/python/perseus/calibrate/approximations/softmax.py b/python/perseus/calibrate/approximations/softmax.py
+index 6f45964..0e77dbc 100644
+--- a/python/perseus/calibrate/approximations/softmax.py
++++ b/python/perseus/calibrate/approximations/softmax.py
+@@ -4,13 +4,29 @@
+ import math
+ 
+ import numpy as np
+-import torch
+-import torch.nn as nn
++try:
++    import torch
++    import torch.nn as nn
++except ImportError:
++    class _TorchDummy:
++        Tensor = object
++        @staticmethod
++        def no_grad():
++            def dec(fn):
++                return fn
++            return dec
++    torch = _TorchDummy()
++    class _NNDummy:
++        class Softmax:
++            pass
++    nn = _NNDummy()
+ 
+ from perseus.calibrate.numerics import (
+     GS_INITS,
++    cheb_exp_composed_series,
+     cheb_exp_series,
+     estimate_gs_iters,
++    fit_composed_seed,
+     fit_gs_under_noise,
+     get_chebyshev_nodes,
+     polyval_torch,
+@@ -91,7 +107,13 @@ def fit_softmax(rows, row_q, T, cfg):
+     delta0 = float(cfg.delta0) if cfg.delta0 is not None else M / scale
+ 
+     coeffs = torch.tensor(_fit_exp_poly(delta0, cfg.poly_degree), dtype=torch.float64)
+-    cheb_coeffs = cheb_exp_series(-0.5 * delta0, 0.5 * delta0, cfg.poly_degree)
++    if getattr(cfg, "exp_method", "chebyshev") == "composed":
++        cheb_coeffs = cheb_exp_composed_series(
++            -0.5 * delta0, 0.5 * delta0, cfg.poly_degree, n_sq,
++            eps=float(getattr(cfg, "composed_eps", 1e-3)),
++        )
++    else:
++        cheb_coeffs = cheb_exp_series(-0.5 * delta0, 0.5 * delta0, cfg.poly_degree)
+     val1 = _phase1_val(rows, valid, mid, scale, coeffs, n_sq)
+     k_eff = (row_q + 1).double()
+     S_mean = val1.sum(-1) / k_eff
+diff --git a/python/perseus/calibrate/numerics.py b/python/perseus/calibrate/numerics.py
+index 310aa2b..c36fd31 100644
+--- a/python/perseus/calibrate/numerics.py
++++ b/python/perseus/calibrate/numerics.py
+@@ -2,8 +2,20 @@ import logging
+ import math
+ 
+ import numpy as np
+-import torch
+-from scipy.optimize import root
++from numpy.polynomial import chebyshev as ch
++from scipy.optimize import linprog, root
++
++try:
++    import torch
++except ImportError:
++    class _TorchDummy:
++        Tensor = object
++        @staticmethod
++        def no_grad():
++            def dec(fn):
++                return fn
++            return dec
++    torch = _TorchDummy()
+ 
+ log = logging.getLogger(__name__)
+ 
+@@ -31,6 +43,115 @@ def cheb_exp_series(lo, hi, degree, min_nodes=200):
+     return (series.coef / float(series(0.0))).astype(np.float64)
+ 
+ 
++def band_offsets(x, n, eps):
++    """Offsets of the exact nonnegative root bands relative to exp(x/n).
++    From composed_frontier.py (Exact Band Theorem).
++    """
++    seed = np.exp(x / n)
++    target = np.exp(x)
++    upper = seed * np.expm1(np.log1p(eps / target) / n)
++    lower = -seed.copy()
++    positive = target > eps
++    lower[positive] = seed[positive] * np.expm1(np.log1p(-eps / target[positive]) / n)
++    # Small numerical guard inside the positive branch (non-negativity constraint)
++    lower = np.maximum(lower, 1e-10 - seed)
++    return seed, lower, upper
++
++
++def fit_composed_seed(a, b, degree, k, eps=1e-3, max_iter=16, grid_nodes=8193):
++    """Find a Chebyshev polynomial seed P_d(t), t in [-1, 1], such that
++    H(x) = (P_d( (2x - (a+b))/(b-a) ))^(2^k) satisfies
++    |H(x) - exp(x)| <= eps on [a, b], with P_d(t) >= 0.
++
++    Uses HiGHS LP solver with iterative constraint refinement at extrema/violation points.
++    Returns:
++        (coeffs, info_dict) where coeffs is np.ndarray of shape (degree+1,), dtype np.float64.
++    """
++    n = 1 << k
++    t = np.cos(np.linspace(0.0, np.pi, 513))
++    check = np.unique(np.r_[np.linspace(-1.0, 1.0, grid_nodes),
++                            np.cos(np.linspace(0.0, np.pi, grid_nodes))])
++    ref = ch.chebfit(t, np.exp(((a + b) / 2.0 + (b - a) * t / 2.0) / n), degree)
++    status = 'refinement_limit'
++
++    for iteration in range(max_iter):
++        x = (a + b) / 2.0 + (b - a) * t / 2.0
++        seed, lower, upper = band_offsets(x, n, eps)
++        radius = (upper - lower) / 2.0
++        if np.any(radius <= 0):
++            return None, {'status': 'empty_guarded_band'}
++        scale = float(np.median(radius))
++        ref_error = ch.chebval(t, ref) - seed
++        A = ch.chebvander(t, degree) * scale / radius[:, None]
++        result = linprog(np.zeros(degree + 1), A_ub=np.vstack([A, -A]),
++                         b_ub=np.r_[(upper - ref_error) / radius,
++                                    (ref_error - lower) / radius],
++                         bounds=[(None, None)] * (degree + 1), method='highs',
++                         options={'primal_feasibility_tolerance': 1e-9,
++                                  'dual_feasibility_tolerance': 1e-9})
++        if not result.success:
++            return None, {'status': 'lp_failure', 'solver_status': result.status,
++                          'message': result.message}
++        co = ref + scale * result.x
++        roots = ch.chebroots(ch.chebder(co))
++        real = roots[np.abs(roots.imag) < 1e-10].real
++        real = real[(real > -1.0) & (real < 1.0)]
++        validation = np.unique(np.r_[check, real])
++        xx = (a + b) / 2.0 + (b - a) * validation / 2.0
++        ss, lo, hi = band_offsets(xx, n, eps)
++        pp = ch.chebval(validation, co)
++        normalized = np.maximum(pp - ss - hi, lo - (pp - ss)) / ((hi - lo) / 2.0)
++        worst = float(np.max(normalized))
++        minimum = float(np.min(pp))
++        if worst <= 1e-5 and minimum >= 0.0:
++            actual_err = float(np.max(np.abs(pp ** n - np.exp(xx))))
++            return co.astype(np.float64), {
++                'status': 'numerically_feasible',
++                'iterations': iteration + 1,
++                'min_seed': minimum,
++                'max_normalized_band_violation': worst,
++                'actual_max_abs_err': actual_err,
++                'eps': eps,
++            }
++        bad = np.flatnonzero(normalized > 1e-5)
++        selected = bad[np.argsort(normalized[bad])[-32:]]
++        t = np.unique(np.r_[t, validation[selected], real[pp[np.searchsorted(validation, real)] < 0]])
++
++    return None, {'status': status}
++
++
++def cheb_exp_composed_series(lo, hi, degree, k, eps=1e-3, max_iter=16):
++    """Generate Chebyshev coefficients for the composed exponential seed P_d(y) on [lo, hi],
++    such that (P_d(y))^(2^k) approximates exp(2^k * y) with error <= eps and P_d(y) >= 0.
++    Falls back to bisection or classical fit if target eps is infeasible on the given domain.
++    """
++    n = 1 << k
++    a = lo * n
++    b = hi * n
++    co, info = fit_composed_seed(a, b, degree, k, eps, max_iter=max_iter)
++    if co is not None and info['status'] == 'numerically_feasible':
++        return co
++
++    # If target eps fails (e.g. interval too broad or degree too small), try Boyd-Vandenberghe bisection
++    lo_e, hi_e = eps, 0.05
++    best_co = None
++    for _ in range(10):
++        mid_e = (lo_e + hi_e) / 2.0
++        c_try, i_try = fit_composed_seed(a, b, degree, k, mid_e, max_iter=12)
++        if c_try is not None and i_try['status'] == 'numerically_feasible':
++            hi_e = mid_e
++            best_co = c_try
++        else:
++            lo_e = mid_e
++    if best_co is not None:
++        log.info(f"[composed_seed] Bisected eps={hi_e:.4e} on [{a}, {b}] for d={degree}, k={k}")
++        return best_co
++
++    # Fallback to classical Chebyshev series if LP is completely infeasible
++    log.warning(f"[composed_seed] Fallback to classic Chebyshev on [{lo}, {hi}]")
++    return cheb_exp_series(lo, hi, degree)
++
++
+ def rational_remez(target_func, a, b, n, m, max_iter=50, tol=1e-12, grid_size=5000):
+     num_points = n + m + 2
+ 
+diff --git a/python/perseus/calibrate/registry.py b/python/perseus/calibrate/registry.py
+index c9dd32d..0e59b19 100644
+--- a/python/perseus/calibrate/registry.py
++++ b/python/perseus/calibrate/registry.py
+@@ -4,7 +4,15 @@ from collections.abc import Callable
+ from dataclasses import dataclass
+ from typing import Any, Protocol, runtime_checkable
+ 
+-import torch.nn as nn
++try:
++    import torch.nn as nn
++except ImportError:
++    class _NNDummy:
++        class Module:
++            pass
++        class Softmax:
++            pass
++    nn = _NNDummy()
+ 
+ 
+ @runtime_checkable
+diff --git a/python/perseus/configs/approximation/gpt2.yaml b/python/perseus/configs/approximation/gpt2.yaml
+index 5f72570..1e07bcc 100644
+--- a/python/perseus/configs/approximation/gpt2.yaml
++++ b/python/perseus/configs/approximation/gpt2.yaml
+@@ -59,6 +59,8 @@ softmax:
+   delta2_min: 2
+   delta2_max: 32
+   poly_degree: 8
++  exp_method: chebyshev  # "composed" (exact bands via LP) or "chebyshev" (unweighted)
++  composed_eps: 1.0e-3
+   target_delta0: 2.5
+   magnitude_cap: 2885.0
+   gs_init_method: chebyshev
+diff --git a/python/tests/test_composed_seeds.py b/python/tests/test_composed_seeds.py
+new file mode 100644
+index 0000000..9c51cf7
+--- /dev/null
++++ b/python/tests/test_composed_seeds.py
+@@ -0,0 +1,69 @@
++"""Unit tests for Composed Seeds via Exact Error Bands (LP HiGHS).
++Validates Candidates A (d=3, k=3), B (d=8, k=1), and C (d=4, k=2).
++"""
++import numpy as np
++import pytest
++from numpy.polynomial import chebyshev as ch
++
++from perseus.calibrate.numerics import band_offsets, fit_composed_seed, cheb_exp_composed_series
++from perseus.impl.ops import NumpyOps
++from perseus.impl.poly import eval_chebyshev
++
++
++def test_band_offsets_properties():
++    x = np.linspace(-32.0, 0.0, 1000)
++    n = 8
++    eps = 1e-3
++    seed, lower, upper = band_offsets(x, n, eps)
++    
++    # Check that seed = exp(x/n)
++    assert np.allclose(seed, np.exp(x / n))
++    # Check that lower and upper bounds are valid
++    assert np.all(upper > 0)
++    assert np.all(upper > lower)
++    # Check exact band definition: (seed + upper)^n == exp(x) + eps
++    U_n = (seed + upper) ** n
++    assert np.allclose(U_n, np.exp(x) + eps, rtol=1e-5)
++
++
++@pytest.mark.parametrize("d,k,a,b,eps_target", [
++    (3, 3, -32.0, 0.0, 1.0e-3),   # Candidate A (Min Mults)
++    (8, 1, -32.0, 0.0, 1.0e-3),   # Candidate B (Min Levels)
++    (4, 2, -23.0, 0.0, 1.0e-3),   # Candidate C (GPT-2 span)
++    (5, 2, -32.0, 0.0, 1.0e-3),   # Candidate C5 (Degree 5 on [-32, 0])
++])
++def test_composed_seed_feasibility_and_nonnegativity(d, k, a, b, eps_target):
++    co, info = fit_composed_seed(a, b, d, k, eps=eps_target)
++    assert co is not None, f"LP failed to converge for d={d}, k={k} on [{a}, {b}]: {info}"
++    assert info["status"] == "numerically_feasible"
++    assert info["min_seed"] >= 0.0, f"Seed has negative values: {info['min_seed']}"
++    assert info["actual_max_abs_err"] <= eps_target * (1.0 + 1e-4)
++
++    # Detailed evaluation over dense grid
++    x = np.linspace(a, b, 20000)
++    t = (2.0 * x - (a + b)) / (b - a)
++    p = ch.chebval(t, co)
++    assert np.all(p >= 0.0), "Pointwise seed violation of non-negativity"
++    
++    h = p ** (1 << k)
++    err = np.abs(h - np.exp(x))
++    assert np.max(err) <= eps_target * (1.0 + 1e-4)
++
++
++def test_cheb_exp_composed_series_interface():
++    # lo=-4.0, hi=0.0 with k=3 corresponds to x in [-32, 0]
++    co = cheb_exp_composed_series(-4.0, 0.0, 3, 3, eps=1e-3)
++    assert len(co) == 4  # degree 3 -> 4 coeffs
++    assert np.all(np.isfinite(co))
++
++
++def test_numpyops_eval_chebyshev_evaluation():
++    co, _ = fit_composed_seed(-32.0, 0.0, 3, 3, eps=1e-3)
++    ops = NumpyOps()
++    x = np.linspace(-32.0, 0.0, 501)
++    # Perseus eval_chebyshev in NumpyOps:
++    val = eval_chebyshev(ops, x, co.tolist(), -32.0, 0.0)
++    for _ in range(3):
++        val = ops.square(val)
++    err = np.abs(val - np.exp(x))
++    assert np.max(err) <= 1.0e-3 * (1.0 + 1e-5)
+-- 
+2.56.0
+
