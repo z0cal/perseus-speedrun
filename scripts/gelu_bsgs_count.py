@@ -3,7 +3,7 @@ upstream d97a6f7: babies T_2..T_{m-1}, giants T_m..T_{2^(L-1)}, IMPL_DEAD_OPS pr
 split q(T) T_k + r(T), leaves as scalar sums), for the GELU series of a config, against the EVEN-in-z form
 (T_2j(x) = T_j(z), z = 2x^2 - 1: one square, then a series of half the degree; Trefethen ATAP ch. 3).
 
-Depth model (same as subagent/depth_trace.py): ct*ct product / square = max + 1, leaf scalar sum = max + 1, adds free,
+Depth model (same as subagent/ganhos-rapidos/depth_trace.py): ct*ct product / square = max + 1, leaf scalar sum = max + 1, adds free,
 the affine map is free on [-1, 1] (alpha = 1, beta = 0: the GELU configs use cheb_a = -1, cheb_b = 1).
 Pure Python, no Perseus import. usage: python -I gelu_bsgs_count.py CONFIGS_JSON
 """

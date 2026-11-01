@@ -8,7 +8,7 @@ As linhas de scores são sintéticas, com kc ∈ {2, 4, 8, 16} e seis tipos: uni
 com μ ∈ [−8, 2]), plana perto da referência, topo e fundo. Para as camadas centradas, a referência fica em u = 0. Cada
 métrica é o máximo sobre os tipos e os kc. O V é aleatório, N(0, 1) com 64 colunas, e dout = ‖Δ(p·V)‖/√64.
 
-Não houve captura, ILP, KL do modelo nem GPU. Scripts e logs estão em `/tmp/claude-0/-home-user-perseus-speedrun/36615c21-3150-568c-8729-63c307d6d65d/scratchpad/softmax2/`. O harness
+Não houve captura, ILP, KL do modelo nem GPU. Scripts e logs estão em `subagent/softmax2/scripts/`. O harness
 (`sm2.py`) bate com o `softmax_ref` byte a byte, e a réplica com injeção de ruído (`noise.py`) dá diferença 0.
 
 ## 0. Resumo e ranking
@@ -270,7 +270,7 @@ mantém a base, e **empate mantém a base**). As regras mudam por completo com a
 2. **"o que limita a softmax é a regra do δ2 (ruído do refresh SparseB)":** em parte. A regra usa U\*, mas o ruído
    escala com δ2·e^{1,25·U\*/δ2}. Ela permite amplificação de até ~1256 no limiar do δ2 = 4, contra ≤ 451 hoje.
 3. **"k1 = 0: 5 produtos":** são 7 (`bsgs([1.0]*(d+1))` subconta). O smrel tira 0 produtos, não 2. A coluna de produtos
-   da `IDEIA-softmax-ponderada.md` (e de `sm_seed_weighted.cost`) está otimista em 1–2.
+   da `docs/ideias/softmax.md` (e de `sm_seed_weighted.cost`) está otimista em 1–2.
 4. **"sem quadratura (−2 níveis por camada centrada)":** só vale com folga na camada 4. Nas camadas 5–7 o equivalente é
    (14, 1), também −2. Nas outras, o k1 = 0 só passa com o Goldschmidt re-dividido, e perde para o recorde fora da faixa
    (abaixo de clip_lo).
@@ -296,7 +296,7 @@ mantém a base, e **empate mantém a base**). As regras mudam por completo com a
 
 ## Arquivos
 
-Todos em `/tmp/claude-0/-home-user-perseus-speedrun/36615c21-3150-568c-8729-63c307d6d65d/scratchpad/softmax2/`. Rodar com
+Todos em `subagent/softmax2/scripts/`. Rodar com
 `PYTHONPATH=<clone>/python:.` e o python do venv:
 
 | arquivo | o que faz |

@@ -19,13 +19,13 @@ Desafio: https://github.com/gladia-research-group/perseus/tree/speedrun. Recorde
   - Semente CGF, T1/Newton na LN, f∘arcsin (RBOOT), GELU par (−30 produtos/token, ~0,2 %).
 - **Próximas ideias, por ganho estimado:**
   - EvalMod par z11 nas rotas densas com +1 raise drop, mais o par z13 no SparseB: −60,3 ms/token (−3,6 %) no modelo
-    calibrado, sem replanejar (`ATAP-ganhos.md`, `tmodel/even_sites.py`). O teste de sanidade
+    calibrado, sem replanejar (`docs/ATAP-ganhos.md`, `tmodel/even_sites.py`). O teste de sanidade
     (`subagent/sanity3/relatorio.md`) deu GO condicional e listou os requisitos de implementação;
   - SparseB com a tabela K16 que já existe (`FIDESLIB_BTS_SPARSE_B_K=16`): −31,2 ms sem código novo; com o par z11 K16
     + drop nas densas e no SparseB, −98,2 ms (−5,8 %). O risco é a precisão (27,4 bits no SparseB);
-  - softmax (`IDEIA-softmax-ponderada.md`, `subagent/softmax2/relatorio.md`):
+  - softmax (`docs/ideias/softmax.md`, `subagent/softmax2/relatorio.md`):
     - normalização adiada sobre o recorde 4: teto ~−90 ms se o 3º SparseB de cada bloco sumir; precisa de ILP;
-    - camada 4 com δ2 = 4 e margem 1,0–1,1: −1 SparseB (≈ −10 ms). Testado na CPU (`TESTE-softmax-camada4.md`): com
+    - camada 4 com δ2 = 4 e margem 1,0–1,1: −1 SparseB (≈ −10 ms). Testado na CPU (`docs/testes/softmax-camada4.md`): com
       margem 1,00 o ruído fica abaixo da pior camada atual, mas um score acima de 1,15 U\* quebra a linha; a decisão
       é a cauda dos dados (`scripts/l4_tail.py`, na sua máquina);
     - Goldschmidt re-dividido na mesma profundidade: erro 100–170× menor, que serve de folga para o resto;
@@ -38,27 +38,39 @@ Desafio: https://github.com/gladia-research-group/perseus/tree/speedrun. Recorde
 |---|---|
 | `HANDOFF-2026-10-30.md` | passagem mais recente: GPU, ferramentas, restrições da máquina |
 | `tmodel/RELATORIO-2026-10-30.md` | modelo de tempo calibrado na GPU, opções A–E, A/B do ×1,019 |
-| `ATAP-ganhos.md` | ideias do Trefethen (ATAP) com contagens e prioridades |
-| `IDEIA-evalmod-par.md` | EvalMod par: matemática, tabelas de precisão e custo, como implementar |
-| `IDEIA-gelu-par.md` | GELU par: contagem real (ganho pequeno) |
-| `IDEIA-softmax-ponderada.md` | semente do exp por bandas da cadeia de quadraturas: fechada (recai no smrel) |
-| `TESTE-softmax-camada4.md` | teste da camada 4 com δ2 = 4: resultados de CPU, configs e roteiro para a máquina do usuário |
+| `docs/ATAP-ganhos.md` | ideias do Trefethen (ATAP) com contagens e prioridades |
+| `docs/ideias/evalmod-par.md` | EvalMod par: matemática, tabelas de precisão e custo, como implementar |
+| `docs/ideias/gelu-par.md` | GELU par: contagem real (ganho pequeno) |
+| `docs/ideias/softmax.md` | softmax do recorde 4: estrutura, erro real por camada, 4 candidatos (δ2 da camada 4, normalização adiada, …) |
+| `docs/testes/softmax-camada4.md` | teste da camada 4 com δ2 = 4: resultados de CPU, configs e roteiro para a máquina do usuário |
 | `subagent/softmax2/relatorio.md` | segunda opinião (Opus) sobre a softmax: erro real por camada, δ2, normalização adiada |
 | `subagent/sanity3/relatorio.md` | teste de sanidade (Opus xhigh) das ideias do ATAP: GO condicional, requisitos |
 | `subagent/audit/auditoria.md`, `subagent/sanity*/relatorio.md`, `subagent/r4/relatorio.md` | auditorias e testes de sanidade |
-| `subagent/ganhos-rapidos.md` | smrel, gelubs, normalização adiada (recorde 3) |
+| `subagent/ganhos-rapidos/ganhos-rapidos.md` | smrel, gelubs, normalização adiada (recorde 3) |
 
-### Código e artefatos
+### Estrutura do repo
 
-| arquivo | conteúdo |
+```
+README.md, HANDOFF-2026-10-30.md   ponto de entrada e passagem
+docs/                ATAP-ganhos.md; ideias/ (evalmod-par, gelu-par, softmax); testes/ (softmax-camada4)
+artefatos/           bundles e patches do Perseus (recorde 3 e ln-defer); a entrada do x1,019 está em gpu/
+configs/             cand_rc3 e cand_dfr13_cm (recorde 3, referência dos scripts de auditoria); softmax_l4/ (teste)
+fits/                coeficientes do EvalMod (d27, par, K16/K24)
+plans/               planos do recorde 3: fin_rc3b_m_cm (o válido), gpt2_decode_em9{,_cm} (receita em9)
+scripts/             ajustes, varreduras, KL, planos; gelu_bsgs_count, sm_seed_*, sm_l4_delta2, l4_tail
+tmodel/              modelo de tempo calibrado na GPU; em/ (listas de ops do EvalMod), even_sites.py, emcost_even.rs
+gpu/                 scripts da GPU (run_gpu*.sh, ab/) e resultados dos A/B da Runpod
+subagent/            relatórios dos subagentes, cada um com seus scripts e logs:
+  ganhos-rapidos/    smrel, gelubs, normalização adiada (recorde 3)
+  audit/, sanity/, sanity2/, sanity3/, r4/, softmax2/
+```
+
+| artefato | conteúdo |
 |---|---|
-| `gpu/perseus-tmodel-entry.bundle` | branch `tmodel-gpu` 34e8db7, a entrada do A/B ×1,019 (sobre o recorde 4) |
-| `perseus-lndefer-entry.bundle` | branch `ln-defer` 83b8d55 (recorde 4 + em9/d27sb + LN adiada) |
-| `perseus-evalmod-switch.bundle`, `0001-EvalMod-degree-27-tables-behind-FIDESLIB_BTS_EVALMOD.patch` | switch do EvalMod sobre o recorde 3 (d8a7643) |
-| `perseus-evalmod-d27.bundle`, `0001-EvalMod-degree-27-series-…patch` | primeira versão do d27 (recorde 3) e o branch `defer-norm` (0b32814) |
-| `fits/` | coeficientes do EvalMod: `full_d27_r4.json` (dense em9), `k24_full_d27_r4.json` (SparseB), `even_*.json` (par) |
-| `plans/` | planos do recorde 3: `fin_rc3b_m_cm` (110/token, o válido), `gpt2_decode_em9{,_cm}` (fonte da receita em9 de `final_plan.sh` / `plan_count.sh`) |
-| `scripts/`, `subagent/`, `tmodel/`, `gpu/` | ferramentas; ver `HANDOFF-2026-10-30.md` e os relatórios |
+| `gpu/perseus-tmodel-entry.bundle` | branch `tmodel-gpu` 34e8db7, a entrada do A/B ×1,019 (sobre o recorde 4); base para o EvalMod par |
+| `artefatos/perseus-lndefer-entry.bundle` | branch `ln-defer` 83b8d55 (recorde 4 + em9/d27sb + LN adiada) |
+| `artefatos/perseus-evalmod-switch.bundle`, `artefatos/0001-EvalMod-degree-27-tables-behind-FIDESLIB_BTS_EVALMOD.patch` | switch do EvalMod sobre o recorde 3 (d8a7643) |
+| `artefatos/perseus-evalmod-d27.bundle`, `artefatos/0001-EvalMod-degree-27-series-with-4-double-angles-9-leve.patch` | primeira versão do d27 (recorde 3) e o branch `defer-norm` (0b32814) |
 
 `work/` (clones do Perseus, capturas, ILPs) não é versionado: os caminhos `work/...` citados abaixo só existem na
 máquina local. Para reproduzir os planos sem GPU: `sudo pacman -S cuda`; no clone, `uv venv .venv --python 3.12`,
@@ -93,7 +105,7 @@ valendo:
   - cortar o grau da GELU explode o KL: as camadas 2 e 11 têm xmax 82/70 por outliers, e grau 127 → KL 2e-2;
   - a LayerNorm no grau 15 não tira bootstrap;
   - a alavanca era a softmax (40 de 101 refreshes): divisão l1/l2 por camada mais a faixa da rodada 0 calibrada;
-  - subagente (`subagent/ganhos-rapidos.md`): exp com minimax **relativo** (smrel), graus da GELU 1 nível mais rasos
+  - subagente (`subagent/ganhos-rapidos/ganhos-rapidos.md`): exp com minimax **relativo** (smrel), graus da GELU 1 nível mais rasos
     (gelubs) e normalização adiada da última rodada da softmax (branch `defer-norm`, `SoftmaxCfg.defer_norm` por
     camada). Normalização adiada na camada 11 deixa o CutMax inviável ("sine bent past its first zero"): adiar só nas
     camadas 1 e 3.
@@ -216,8 +228,8 @@ R6 da auditoria revisto: o ×1004 / ×168 da captura fundida é `v_28` de `blk5.
 máximo fundido dele é o mesmo da captura do recorde (`kc16m`: 1,51), ou seja, crescimento posição 0 → 16 posições
 que o recorde também tem. Não vem de l2 = 0.
 
-Código: `perseus-evalmod-switch.bundle` (a3dff85..evalmod-d27 = 67717aa, d270f7a, d8a7643) e
-`0001-EvalMod-degree-27-tables-behind-FIDESLIB_BTS_EVALMOD.patch`. O bundle antigo ficou como estava.
+Código: `artefatos/perseus-evalmod-switch.bundle` (a3dff85..evalmod-d27 = 67717aa, d270f7a, d8a7643) e
+`artefatos/0001-EvalMod-degree-27-tables-behind-FIDESLIB_BTS_EVALMOD.patch`. O bundle antigo ficou como estava.
 
 ### 2026-10-28 — teste de sanidade (subagente cético): as 6 alegações CONFIRMADAS
 Relatório: `subagent/sanity/relatorio.md`.
@@ -319,7 +331,7 @@ Relatório: `subagent/sanity/relatorio.md`.
 - Commits locais no `ln-defer` (sobre r4-em9 fc19e09): 7e497ca (d27sb + campos LN_DEFER; teste `field_table`
   atualizado 260→262 / 352→354), 98e0769 (pc-bench modmul), 44858c8 (plano `lnd_fin_e3_em9_cm` + grafos
   `lnd_on_e3{,m}` + `speedrun/server.py` DECODE_PLAN). `check_pr.py --base origin/speedrun`: passa.
-  Bundle: `perseus-lndefer-entry.bundle` (origin/speedrun d97a6f7..ln-defer 44858c8, 2 MB).
+  Bundle: `artefatos/perseus-lndefer-entry.bundle` (origin/speedrun d97a6f7..ln-defer 44858c8, 2 MB).
 - `gpu/run_gpu.sh` (NÃO testado, sem GPU aqui): setup do zero (clone + bundle + worktrees cliente 89bc830 / lean
   24d4b3f / recorde d97a6f7, venvs, export dos pesos), `bts` (pc-bench dense shipped × d27: precisão e ms), `decode`
   (6 pares recorde/entrada intercalados pelo harness + score.py + pico de memória), `prefill` (1 par: tem de rodar).
@@ -401,15 +413,15 @@ Relatório completo: `tmodel/RELATORIO-2026-10-30.md`. Resumo:
 | par z13+4DA | 44,4 | 11 | 23 | 472 / 896 / 304 |
 
 ⇒ par z11 tem EvalMod MENOR que o recorde (previsão −10…−17 % só no EvalMod) e precisão maior. Ele deve ser usado com
-+1 raise drop, para pousar como o recorde 4; com os planos em9 o pouso sobe e as ops encarecem ~+52 ms (`ATAP-ganhos.md`). SparseB K=24: par z13+4DA 9 níveis = 30–33 bits (d27 geral: 28,2; recorde 35,2). Falta: o pré-passo
++1 raise drop, para pousar como o recorde 4; com os planos em9 o pouso sobe e as ops encarecem ~+52 ms (`docs/ATAP-ganhos.md`). SparseB K=24: par z13+4DA 9 níveis = 30–33 bits (d27 geral: 28,2; recorde 35,2). Falta: o pré-passo
 em `build_evalmod` + variante `EvalMod`, KL e `pc-bench bts` na GPU (o time_model errou no d27: medir antes).
 
 
 ### 2026-11-01 — revisão das ideias do Trefethen (ATAP) e limpeza dos `.md`
-Detalhes em `ATAP-ganhos.md`. Nada rodou em GPU.
+Detalhes em `docs/ATAP-ganhos.md`. Nada rodou em GPU.
 - **GELU par:** o BSGS atual já pula os termos ímpares (`IMPL_DEAD_OPS`). O ganho real é 210 → 180 produtos
   ct×ct/token (~−4 ms), não −170 produtos. A contagem é do novo `scripts/gelu_bsgs_count.py`, que reimplementa o BSGS
-  do upstream sem importar o Perseus. `IDEIA-gelu-par.md` foi reescrita.
+  do upstream sem importar o Perseus. `docs/ideias/gelu-par.md` foi reescrita.
 - **EvalMod par:** usar o nível livre num raise drop, para manter os pousos e o plano do recorde 4. A varredura de
   séries pares de grau baixo com 5–6 DA não achou nenhuma que bata o recorde em 9 níveis.
 - **EvalMod par no modelo calibrado** (com o código do upstream, autorizado):
@@ -427,7 +439,7 @@ Detalhes em `ATAP-ganhos.md`. Nada rodou em GPU.
   está na linha. Com o erro de forma da cadeia simulada como alvo (`scripts/sm_seed_*.py`), uma semente sem
   quadratura não alcança o recorde; com uma quadratura a menos, o critério misto dá grau 10–13 contra 14 do smrel.
   O (d=3, k=3) da proposta tem erro relativo 8,9e-2. O teste de sanidade mostrou que esse alvo é 35 a 185× mais estrito
-  que o erro real do recorde (fator por linha do Goldschmidt): **em aberto**. `IDEIA-softmax-ponderada.md` foi
+  que o erro real do recorde (fator por linha do Goldschmidt): **em aberto**. `docs/ideias/softmax.md` foi
   reescrita.
 - Removidos por obsoletos:
   - `HANDOFF.md` (recorde 3, tarefas feitas);
@@ -450,7 +462,7 @@ Relatório: `subagent/sanity3/relatorio.md`.
   - a softmax volta a ficar em aberto: o alvo da busca era 35 a 185× mais estrito que o erro real do recorde.
 - **Requisitos de implementação:** base `tmodel-gpu`, `levels() = 9`, `FIDESLIB_BTS_RAISE_DROP=0:1,512:2`, +1 nos
   `raise_drop` densos e 512 (nunca nos SPRU), variante 6, e o flag do pré-passo em todos os builders. Lista completa em
-  `ATAP-ganhos.md`, seção 1.
+  `docs/ATAP-ganhos.md`, seção 1.
 - **Achado:** `FIDESLIB_BTS_SPARSE_B_K=16` já existe (usado no Prefill recorde 3) e dá −31,2 ms no SparseB sem código
   novo; com o par z11 K16 + drop nas densas e no SparseB, −98,2 ms (−5,8 %). Precisa de `bts-prec` e KL (27,4 bits).
 - **Ordem sugerida na GPU:** `pc-bench bts` (ms e `bts-prec` real/complexo) para par z11 + drop, par z13 K24 + drop e
@@ -475,10 +487,10 @@ réplica com ruído no refresh.
   4. semente pelo critério misto (≈ −17 a −19 níveis, ≈ 0 ms);
   5. margem 1,1.
 
-  Nada sozinho chega a 1 %. `IDEIA-softmax-ponderada.md` foi reescrita como síntese.
+  Nada sozinho chega a 1 %. `docs/ideias/softmax.md` foi reescrita como síntese.
 
 ### 2026-11-01 — teste do candidato 1 da softmax (camada 4, δ2 = 4)
-Detalhes em `TESTE-softmax-camada4.md`.
+Detalhes em `docs/testes/softmax-camada4.md`.
 - `scripts/sm_l4_delta2.py` reconstrói a camada 4 com as fórmulas do `fit_centred` (igual ao recorde até ~1e-15) e gera
   candidatas com δ2 = 4.
 - **Margem 1,00:**
@@ -491,3 +503,20 @@ Detalhes em `TESTE-softmax-camada4.md`.
   - na máquina do usuário: a cauda dos dados (`scripts/l4_tail.py`, que testei com pesos aleatórios), o KL do modelo
     de ruído, a captura e a ILP;
   - na GPU: o A/B.
+
+### 2026-11-01 — limpeza e reorganização do repo
+- **Notas:** `ATAP-ganhos.md`, `IDEIA-*` e `TESTE-*` foram para `docs/` (`docs/ATAP-ganhos.md`, `docs/ideias/`,
+  `docs/testes/`). A `IDEIA-softmax-ponderada.md` virou `docs/ideias/softmax.md`, porque o conteúdo mudou.
+- **Artefatos:** os bundles e patches da raiz foram para `artefatos/`.
+- **Subagentes:** os scripts e logs soltos no topo de `subagent/` (o material do `ganhos-rapidos`) foram para
+  `subagent/ganhos-rapidos/`, com os logs em `logs/` e os caminhos internos ajustados. Os scripts dos relatórios
+  `softmax2` e `sanity3`, que estavam só no diretório temporário da sessão, agora estão em
+  `subagent/{softmax2,sanity3}/scripts/`. O clone do Perseus entra pela variável `UP`.
+- **Removidos** (saídas regeneráveis de linhas fechadas; tudo segue no histórico do git):
+  - os dumps de programas e grafos do teste de sanidade 2 (`subagent/sanity2/{prep_*,full16_*,progs_cmp}`, ~97 MB);
+  - as 40 configs candidatas do recorde 3 (`configs/r3_cands`, 29 MB, nada as referenciava);
+  - `tmodel/cgf_rows.npz` (13 MB, saída do `cgf_seed.py`);
+  - um `.bak` do `make_cutmax_plan_norm.sh`.
+
+  O checkout do repo passou de ~173 MB para ~22 MB.
+- As referências nos `.md` e nos scripts foram atualizadas para os caminhos novos.

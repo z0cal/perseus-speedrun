@@ -28,3 +28,7 @@ env/
 # System / OS
 .DS_Store
 Thumbs.db
+
+# Generated outputs (regenerable)
+*.bak
+tmodel/cgf_rows.npz

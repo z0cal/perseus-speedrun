@@ -1,10 +1,10 @@
 # Teste de sanidade 3: EvalMod par, GELU par e softmax centrada (2026-11-01)
 
 Revisão independente das alegações da sessão `claude/busy-hypatia-qp8dm8` (4 commits sobre 269d6c9). Rodou tudo na CPU,
-sem GPU. Usei o upstream d97a6f7 (clone no scratchpad) e o branch `tmodel-gpu` 34e8db7, buscado do
+sem GPU. Usei o upstream d97a6f7 (clone num diretório temporário da sessão) e o branch `tmodel-gpu` 34e8db7, buscado do
 `gpu/perseus-tmodel-entry.bundle` para o clone como `refs/remotes/sanity3/tmodel-gpu`. Não fiz commit, push nem edição
 no repo; só escrevi este arquivo. Scripts auxiliares em
-`/tmp/claude-0/-home-user-perseus-speedrun/36615c21-3150-568c-8729-63c307d6d65d/scratchpad/sanity3/` (abaixo `$S`).
+`subagent/sanity3/scripts/` (abaixo `$S`).
 
 ## Veredito geral: **GO condicional** para implementar `EvalMod::Even` e levar à GPU
 
@@ -64,10 +64,10 @@ etapa e `bts-prec` nos modos real e complexo. Ressalvas:
   saem de `fit_even` com `T[:,0] *= 0,5`, ou seja, na mesma convenção.
 
 **Avaliação numérica independente.**
-- `$S/emchain.py` porta para Python o `long_division` e o `PsPlan` do `pc_core::cheb`. Porta também a semântica de
+- `subagent/sanity3/scripts/emchain.py` porta para Python o `long_division` e o `PsPlan` do `pc_core::cheb`. Porta também a semântica de
   valores de `build_chebyshev_m2`, `build_chebyshev_general` e `inner_ps`, incluindo o quirk do `wsum` de s2. Os ângulos
   duplos usam os escalares de `build_double_angle`.
-- Rodei `$S/run_prec.py` com o venv. A tabela dá bits = −log2 max|saída − sin(2πu)/2π| em u = I + δ, |I| ≤ K − 1,
+- Rodei `subagent/sanity3/scripts/run_prec.py` com o venv. A tabela dá bits = −log2 max|saída − sin(2πu)/2π| em u = I + δ, |I| ≤ K − 1,
   |δ| ≤ eps:
 
 ```
@@ -92,7 +92,7 @@ O porte do PS reproduz o `em_even.err_even` (33,7–34,2 para o z11). Valores na
 | **par z11 K16** | **33,7–34,2 bits** | 34–35 (o README diz 34,1–35,3); otimista em ~0,5–1 bit |
 
 **Ruído.**
-- `$S/run_noise.py` injeta ruído gaussiano σ após cada produto ct×ct e na entrada.
+- `subagent/sanity3/scripts/run_noise.py` injeta ruído gaussiano σ após cada produto ct×ct e na entrada.
 - Com σ = 2^-45, a amplificação rms/σ dos produtos é ~110 para shipped, d27 e z11 (K16), e ~170–200 para shipped,
   d27 e z13 (K24).
 - O pré-passo não piora o condicionamento.
@@ -100,14 +100,14 @@ O porte do PS reproduz o `em_even.err_even` (33,7–34,2 para o z11). Valores na
 **eps 2^-6 do fit K24.**
 - O `plan/btserr.py` do upstream põe a mensagem na banda [0,003, 0,03]·2^CF, então |δ| ≲ 2^-5. Nessa faixa o
   z13 K24 e6 dá ≥ 32,3 bits. É compatível.
-- Na cauda |I| = K, o z13 K24 e6 cai para 2^-20,6 em I = −24, contra 2^-38,5 do recorde (`$S/edge.py`). O comentário
+- Na cauda |I| = K, o z13 K24 e6 cai para 2^-20,6 em I = −24, contra 2^-38,5 do recorde (`subagent/sanity3/scripts/edge.py`). O comentário
   de `sparse_b.rs` diz que o inteiro após o fold tem a distribuição da rota densa (|I| < 16), então isso não deveria
   ocorrer. Mesmo assim, é um ponto para o `bts-prec`.
 - O z11 K16 em I = ±16 fica em 2^-27 / 2^-34,6, melhor que o recorde (2^-24,7 / 2^-25,0).
 
 ## 2. Listas de ops: CONFIRMADA
 
-`$S/cmp.py` regera todas as listas com o binário do upstream:
+`subagent/sanity3/scripts/cmp.py` regera todas as listas com o binário do upstream:
 - comando:
   `CHAIN=n32a4 TOP=t emcost_even [D27_K16 full_d27_r4 4 0 D27_K24 k24_full_d27_r4 4 0 Even_z11_K16 … 4 16 Even_z13_K16 … 4 16 Even_z13_K24 even_k24_z13_r4_e6 4 24]`;
 - comparação: `oplist`, `relin` e `levels` contra `tmodel/em/n32a4_t*.jsonl` e `even_n32a4_t*.jsonl`;
@@ -123,7 +123,7 @@ O porte do PS reproduz o `em_even.err_even` (33,7–34,2 para o z11). Valores na
 **Nota de convenção:**
 - O censo usa entrada nl = 2. Na rota densa, porém, a entrada real é nl = 1: `dense.rs` reescala após cada estágio da
   CtS, e o log do `bts_prec` mostra "em in top 45, nl 1".
-- Com nl = 1 (`$S/nl1_*`, exemplo `sanity3_emcost_nl` no clone):
+- Com nl = 1 (`subagent/sanity3/scripts/nl1_*`, exemplo `sanity3_emcost_nl` no clone):
   - recorde @42: 11 relins (381), 16 rescales;
   - z11 @40: 10 relins (334), 14 rescales.
 - Os "15 vs 18" incluem 1–2 rescales de entrada a 43 limbs que não existem no runtime.
@@ -151,7 +151,7 @@ O porte do PS reproduz o `em_even.err_even` (33,7–34,2 para o z11). Valores na
 - **SparseB:** o EvalMod é precificado em 48 − 2d com lista nl = 2. O runtime usa
   `em_in = FMeta{top: raise_top = 50 − 2d, nl: 2}` (`sparse_b.rs::tops`), ou seja, 1 nível acima.
 - **Densas:** o modelo usa a lista nl = 2 em 42 − 2d; o real é nl = 1 em 42 − 2d.
-- Efeito nos deltas por cadeia (`$S/em_ms.py`):
+- Efeito nos deltas por cadeia (`subagent/sanity3/scripts/em_ms.py`):
   - densas: −0,589 (modelo) contra −0,592 ms (real), sem efeito;
   - SparseB z13: −0,470 contra −0,582 ms, então o A' seria ~−27 ms em vez de −22,6.
 - Real = 1 cadeia e complexo = 2 faz sentido. O pc-bench (StC-first, real = false, K = 1) dá EvalMod 8,20 ms com as
@@ -167,7 +167,7 @@ O porte do PS reproduz o `em_even.err_even` (33,7–34,2 para o z11). Valores na
 - Com +1, as densas vão até 4, dentro de `FIDESLIB_BTS_RAISE_DROPS=1,2,3,4,5`. O SparseB vai até 6 e precisa do 6,
   como faz o `sbd27.py`.
 - O número de variantes não cresce: {0, 1, 2, 3} vira {1, 2, 3, 4}.
-- O `IDEIA-evalmod-par.md` não diz, mas a implementação também precisa disto:
+- O `docs/ideias/evalmod-par.md` não diz, mas a implementação também precisa disto:
   1. `EvalMod::Even` com `levels() = 9` no `shift_evalmod`/`evalmod_landing_shift`, que só existe no branch
      `tmodel-gpu` (d97a6f7 não tem);
   2. `FIDESLIB_BTS_RAISE_DROP=0:1,512:2`. Sem isso, os 12 deliberados K/V/token (pouso capturado 26) não acham rota
@@ -177,7 +177,7 @@ O porte do PS reproduz o `em_even.err_even` (33,7–34,2 para o z11). Valores na
      (`dense.rs`, `sparse_b.rs::tops`/`em_bytes`/`new`, `sparse_classic.rs`, `pc-tools`).
 
 **(e) O que o modelo não vê.**
-- **Decomposição do E** (`$S/decomp.py`; real, drop 0: −0,813 ms/refresh):
+- **Decomposição do E** (`subagent/sanity3/scripts/decomp.py`; real, drop 0: −0,813 ms/refresh):
   - −0,589 ms é do EvalMod (−12 % pela série, mais −4 % pelo topo 2 limbs abaixo);
   - −0,224 ms é do raise e da CtS 2 limbs abaixo, ou seja, **−9,4 ms/token só do drop**.
   - O efeito do drop só foi validado no SparseB (`sbd27d1`, ×1,007).
@@ -191,7 +191,7 @@ O porte do PS reproduz o `em_even.err_even` (33,7–34,2 para o z11). Valores na
 **Achado lateral (não alegado).**
 - `FIDESLIB_BTS_SPARSE_B_K=16` existe em d97a6f7. O Prefill record 3 (`BabyStepPrefill`) já o usa, declarado como
   "approximation change", e `sparse_b.rs` diz que o inteiro após o fold tem a distribuição densa.
-- Com `$S/even_sites_x.py`, mesmo modelo:
+- Com `subagent/sanity3/scripts/even_sites_x.py`, mesmo modelo:
   - tabela K16 enviada no SparseB, sem drop e sem código: **−31,2 ms**;
   - par z11 K16 + 1 drop no SparseB: −60,4 ms;
   - densas z11 + SparseB z11 K16, +1 drop: **−98,2 ms (−5,8 %)**, com uma tabela só.
@@ -200,9 +200,9 @@ O porte do PS reproduz o `em_even.err_even` (33,7–34,2 para o z11). Valores na
 ## 4. GELU: CONFIRMADA
 
 - `python3 -I scripts/gelu_bsgs_count.py <cfg r4>`: atual 210, par em z no mesmo nível 180. A tabela por camada é
-  igual à do `ATAP-ganhos.md`.
+  igual à do `docs/ATAP-ganhos.md`.
 - `PYTHONPATH=<clone>/python venv tmodel/gelu_count.py <cfg>`, com o `poly.py` real: 210 / 179.
-- `subagent/depth_trace.py` adaptado (`$S/depth_trace_r4.py`, `poly.py` do clone, config kc16r_cm): 210 em x.
+- `subagent/ganhos-rapidos/depth_trace.py` adaptado (`subagent/sanity3/scripts/depth_trace_r4.py`, `poly.py` do clone, config kc16r_cm): 210 em x.
   Os graus aparados (62/94/254/60) e as profundidades (7/7/9/6) conferem.
 - **179 contra 180:** com o m padrão, a camada 7 (grau 60) sai a 7 níveis em z contra 6 hoje. O 179 perde 1 nível; o
   180 (m escolhido, (6, 13)) é o número "sem perder nível".
@@ -225,7 +225,7 @@ O porte do PS reproduz o `em_even.err_even` (33,7–34,2 para o z11). Valores na
   - recorde, max|Δp| simulado: camada 0 2,3e-5, camada 2 9,9e-6, camada 9 6,0e-6, camada 5 2,3e-6;
   - k1 = 0: nenhum d ≤ 15 alcança;
   - k1 − 1: d = 11, 10, 11 e 13, ou seja, grau 10–13.
-- **A cadeia simulada é exata na forma.** `$S/sm_cmp.py` compara `sm_seed_sim.chain` com `examples/gpt2/ref.py::softmax_ref`
+- **A cadeia simulada é exata na forma.** `subagent/sanity3/scripts/sm_cmp.py` compara `sm_seed_sim.chain` com `examples/gpt2/ref.py::softmax_ref`
   do upstream, a emulação em claro do `softmax_thor`, com `SM_CHEB_GS=1` e `SM_GS_FIRST=1` como no recorde:
   - depois de renormalizar as linhas, max|p_ref − p_sim| = 2e-15 nas camadas 0 e 5;
   - **porém** o `softmax_ref` cru tem max|p − p_exato| = **8,2e-4 (camada 0) e 4,3e-4 (camada 5)**, com Σp ∈ [0,99918, 1,00082].
@@ -277,12 +277,12 @@ O porte do PS reproduz o `em_even.err_even` (33,7–34,2 para o z11). Valores na
 
 ## Arquivos desta revisão
 
-`$S` = `/tmp/claude-0/-home-user-perseus-speedrun/36615c21-3150-568c-8729-63c307d6d65d/scratchpad/sanity3`
+`$S` = `subagent/sanity3/scripts`
 
 | arquivo | conteúdo |
 |---|---|
-| `$S/emchain.py` | emulador do EvalMod: PS portado do `pc_core::cheb` e do `pc_shadow::evalmod`, com injeção de ruído |
-| `$S/run_prec.py`, `$S/run_noise.py`, `$S/edge.py` | precisão por eps, ruído, inteiros de borda |
-| `$S/cmp.py`, `$S/em_ms.py`, `$S/decomp.py`, `$S/even_sites_x.py` | listas, convenção nl/topo, decomposição, cenários extras |
-| `$S/sm_cmp.py`, `$S/sm_seed_search.out`, `$S/depth_trace_r4.py` | softmax contra `softmax_ref`, saída da busca, GELU com o `poly.py` real |
+| `subagent/sanity3/scripts/emchain.py` | emulador do EvalMod: PS portado do `pc_core::cheb` e do `pc_shadow::evalmod`, com injeção de ruído |
+| `subagent/sanity3/scripts/run_prec.py`, `subagent/sanity3/scripts/run_noise.py`, `subagent/sanity3/scripts/edge.py` | precisão por eps, ruído, inteiros de borda |
+| `subagent/sanity3/scripts/cmp.py`, `subagent/sanity3/scripts/em_ms.py`, `subagent/sanity3/scripts/decomp.py`, `subagent/sanity3/scripts/even_sites_x.py` | listas, convenção nl/topo, decomposição, cenários extras |
+| `subagent/sanity3/scripts/sm_cmp.py`, `subagent/sanity3/scripts/sm_seed_search.out`, `subagent/sanity3/scripts/depth_trace_r4.py` | softmax contra `softmax_ref`, saída da busca, GELU com o `poly.py` real |
 | `<clone>/crates/pc-shadow/examples/sanity3_emcost_nl.rs` | `emcost_even` com `NL` selecionável (no clone do scratchpad) |

@@ -7,7 +7,7 @@ widened x SAFE at both ends, and its top at least 1.05 x the divisor of a query 
 exp((clip_hi - mid) / 2^l2): every query inside the score range converges, whatever the data. That structural top is
 what makes l2 = 0 expensive where the range is wide (it does not shrink with the data). The counts are
 impl.smcheb.design's (kc 1..16, last target TGT). Levels: l1 - r + sum(counts) + l2, r = min(1, l1) the squaring
-smrel=0 (subagent/search2.py) removes afterwards, so the split is chosen for the config it ends in.
+smrel=0 (subagent/ganhos-rapidos/search2.py) removes afterwards, so the split is chosen for the config it ends in.
 
 Calibration: owt_windows "calib" (document starts + random offsets of pool [0, 1M), >= 16384 windows, the audit's
 stress windows out); never the dev prompts.
