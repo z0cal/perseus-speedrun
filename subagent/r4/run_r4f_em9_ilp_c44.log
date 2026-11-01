@@ -1,0 +1,21 @@
+[17:26:46] blocks (em9, ilp)
+[17:26:46] stage 12 alone at 34/d1, exit cap 44
+[plan] out=bootstrap_placements/r4f_em9_ilp_b12c44 bts_level=26 max_level=48 unit=2 table_measured=True err_target=0.01
+[plan] [block_12] (entry=34/d1)
+[plan] erased 6 reactive auto_bootstrap(s); 0 deliberate fixed point(s) kept
+[plan] hint_veto_steps: 2 hint site(s) vetoed
+[plan] feasible after 2 cut pass(es); 2 refresh(es) placed
+[ilp] optimum in 23.1s, tie-break optimal in 140.3s
+[ilp] optimal: cost 2 (bound 2.0) vs min-cut 2.0; 2 placed, 0 hint(s) fire; 82957 integer vars, 163.4s
+[plan] shared_realize: 13 shared-operand realize anchor(s), bootstraps 2 -> 2
+[plan] prune: 1 redundant refresh(es) removed
+[plan] raise_drop (search): 0 refreshes (placed + fired hints) raise below the chain top; ; skipped {'no_slack': 1}
+[plan] cf clamp: 0 of 1 typed sites at cf_max=20 (1 pinned; 0 miss err_target=0.01)
+[plan]  P4: 2201 branch(es) fed an over-budget op but were never cuttable (non-binding operands the min-cut cannot see). Largest |m|: v_2292(388), v_2293(388), v_2290(386), v_2291(386), v_2288(386), v_2289(386)
+[plan] placed_input_level_hist 40:1
+[plan] placements=1 hints=0/2 deliberate=0 total=1
+[plan] CF {'20': 1}  out-levels {'16': 1}  pred rel_err median=8.88e-06 p90=8.88e-06
+[plan] planned 1 blocks, 1 bootstraps, cf clamp 0/1 -> ./bootstrap_placements/r4f_em9_ilp_b12c44
+bootstrap_placements/r4f_em9_ilp_b12c44/block_12_placement.json placements: 1
+stage 12 alone: 1 exit 46 2
+stage 12 exits at 46/d2, past the cap 46

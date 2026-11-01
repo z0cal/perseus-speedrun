@@ -1,0 +1,2 @@
+quality: 12 requests, mean KL 7.62e-06 (bar 0.001, p 1.6e-26), argmax agreement 100.0%: PASS
+speed: 3 pairs, entry 2.357 s vs record 2.373 s, x1.007 (delta 1.0%, p 0.0073): not a record

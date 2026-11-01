@@ -1,0 +1,29 @@
+### compile_check entry (14 stages)
+block_0: bts=7 ops=1097 checks=1064 errors=0
+block_1: bts=8 ops=1155 checks=1114 errors=0
+block_2: bts=8 ops=1321 checks=1279 errors=0
+block_3: bts=8 ops=1155 checks=1114 errors=0
+block_4: bts=8 ops=1168 checks=1132 errors=0
+block_5: bts=8 ops=1111 checks=1077 errors=0
+block_6: bts=7 ops=1109 checks=1077 errors=0
+block_7: bts=7 ops=1110 checks=1077 errors=0
+block_8: bts=8 ops=1115 checks=1081 errors=0
+block_9: bts=7 ops=1112 checks=1080 errors=0
+block_10: bts=8 ops=1181 checks=1142 errors=0
+block_11: bts=10 ops=1393 checks=1340 errors=0
+block_12: bts=1 ops=2306 checks=2294 errors=0
+block_13: bts=13 ops=493 checks=436 errors=0
+total check errors 0  (1 s)
+### compile_check record (14 stages)
+total check errors 0  (1 s)
+### route_mix entry
+record: blocks 0-12 101 refreshes, per route {0: 36, 1: 25, 512: 40}, (route, kind) {(0, 'deliberate'): 12, (0, 'hint'): 5, (0, 'placement'): 19, (1, 'hint'): 8, (1, 'placement'): 17, (512, 'placement'): 40}; stage 13 13
+plan: blocks 0-12 95 refreshes, per route {0: 36, 1: 25, 512: 34}, (route, kind) {(0, 'deliberate'): 12, (0, 'hint'): 14, (0, 'placement'): 10, (1, 'hint'): 10, (1, 'placement'): 15, (512, 'placement'): 34}; stage 13 13
+deliberate refreshes off the record's route: 0
+route_mix_exit=0
+### time_model
+bootstrap_placements/gpt2_decode_python_n32a4_kc16r_cm: 114 refreshes/token, errors 0, mix {'1': 32, '512': 40, 'stcf': 42}, raise drops {('1', 1): 1, ('1', 2): 3, ('1', 3): 12, ('1', 6): 1, ('1', 12): 7, ('512', 1): 11, ('512', 2): 3, ('512', 3): 13, ('512', 4): 10, ('512', 5): 3, ('stcf', 1): 2, ('stcf', 2): 1, ('stcf', 3): 2}
+   bootstrap ms (route_table x lean ratios) 1429.9; dense-EvalMod refreshes 42
+bootstrap_placements/lnd_fin_e3_em9_cm: 108 refreshes/token, errors 0, mix {'1': 32, '512': 34, 'stcf': 42}, raise drops {('1', 1): 2, ('1', 2): 1, ('1', 3): 10, ('1', 4): 3, ('1', 5): 3, ('1', 11): 4, ('512', 1): 12, ('512', 2): 7, ('512', 3): 7, ('512', 4): 5, ('512', 5): 3, ('stcf', 1): 2, ('stcf', 3): 5}
+   bootstrap ms (route_table x lean ratios) 1344.3; dense-EvalMod refreshes 42
+lean per-route ms: {'stcf': 14.31, 'dense': 17.19, '512': 14.26, '1': 8.08}

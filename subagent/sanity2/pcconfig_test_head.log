@@ -1,0 +1,31 @@
+    Finished `release` profile [optimized + debuginfo] target(s) in 0.01s
+     Running unittests src/lib.rs (target/release/deps/pc_config-eeb121ba479f63cf)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/legacy.rs (target/release/deps/legacy-43f0c689883c3036)
+
+running 5 tests
+test float_spellings_are_one_value ... ok
+test dotted_access_and_errors ... ok
+test field_table ... ok
+test presets_place_every_name ... ok
+test shipped_stamps_round_trip ... FAILED
+
+failures:
+
+---- shipped_stamps_round_trip stdout ----
+
+thread 'shipped_stamps_round_trip' (352566) panicked at crates/pc-config/tests/legacy.rs:167:13:
+/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/crates/pc-config/../../bootstrap_placements/gpt2_prefill128_n32a4_pfbh_cm/PLAN_CMD.txt: no field for ["PLAN_PCMM_PREDIV_CAP"]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    shipped_stamps_round_trip
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.64s
+
+error: test failed, to rerun pass `-p pc-config --test legacy`

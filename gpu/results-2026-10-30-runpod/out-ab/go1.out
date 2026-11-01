@@ -1,0 +1,74 @@
+[2026-10-30 02:59:18] preflight
+NVIDIA RTX PRO 6000 Blackwell Workstation Edition, 97887 MiB, 595.91.07
+[2026-10-30 02:59:18] preflight: NOSANDBOX=1, the A/B outside the harness's sandbox (gpu/ab/sandbox.sh): NOT harness runs
+[2026-10-30 02:59:18] preflight ok (A/B): NVIDIA RTX PRO 6000 Blackwell Workstation Edition, 97887 MiB, 595.91.07, nvcc 13.0
+[2026-10-30 02:59:18] setup in /root/perseus-entry
+info: downloading installer
+info: profile set to default
+info: default host tuple is x86_64-unknown-linux-gnu
+info: skipping toolchain installation
+
+
+Rust is installed now. Great!
+
+To get started you may need to restart your current shell.
+This would reload your PATH environment variable to include
+Cargo's bin directory ($HOME/.cargo/bin).
+
+To configure your current shell, you need to source the
+corresponding env file under $HOME/.cargo.
+
+Consider running the right command for your shell (note the leading DOT):
+. "$HOME/.cargo/env" # For sh/ash/dash/pdksh/bash
+cargo:rerun-if-env-changed=CC_x86_64-unknown-linux-gnu
+CC_x86_64-unknown-linux-gnu = None
+cargo:rerun-if-env-changed=CC_x86_64_unknown_linux_gnu
+CC_x86_64_unknown_linux_gnu = None
+cargo:rerun-if-env-changed=HOST_CC
+HOST_CC = None
+cargo:rerun-if-env-changed=CC
+CC = None
+cargo:rerun-if-env-changed=CC_ENABLE_DEBUG_OUTPUT
+cargo:rerun-if-env-changed=CRATE_CC_NO_DEFAULTS
+CRATE_CC_NO_DEFAULTS = None
+cargo:rerun-if-env-changed=CFLAGS
+CFLAGS = None
+cargo:rerun-if-env-changed=HOST_CFLAGS
+HOST_CFLAGS = None
+cargo:rerun-if-env-changed=CFLAGS_x86_64_unknown_linux_gnu
+CFLAGS_x86_64_unknown_linux_gnu = None
+cargo:rerun-if-env-changed=CFLAGS_x86_64-unknown-linux-gnu
+CFLAGS_x86_64-unknown-linux-gnu = None
+[2026-10-30 02:59:35] entry at 83b8d55, on record 4
+[2026-10-30 02:59:44] build .
+[2026-10-30 03:00:55] build ../perseus-client
+[2026-10-30 03:01:49] build ../perseus-lean-client
+[2026-10-30 03:02:48] build ../perseus-record
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/148 [00:00<?, ?it/s]Loading weights: 100%|██████████| 148/148 [00:00<00:00, 7487.66it/s]
+Zipped -> .cache/models/openai-community/gpt2/classic/weights.bin.zip (148 tensors)
+Wrote -> .cache/models/openai-community/gpt2/classic/client.npz
+[2026-10-30 03:04:22] A/B runner at /root/perseus-entry/ab/speedrun (sandbox stand-in, NOT the harness's isolation)
+[2026-10-30 03:04:22] setup done
+[2026-10-30 03:04:22] step setup done; results in /root/perseus-entry/out-ab
+warning: unused import: `PrimeConst`
+ --> crates/pc-kernels/src/ring.rs:3:55
+  |
+3 | use crate::args::{BconvArgs, EwArgs, Launch, NttArgs, PrimeConst};
+  |                                                       ^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `std::ffi::c_void`
+ --> crates/pc-kernels/src/ring.rs:5:5
+  |
+5 | use std::ffi::c_void;
+  |     ^^^^^^^^^^^^^^^^
+
+[2026-10-30 03:04:44] pc-bench dense, EvalMod shipped
+[2026-10-30 03:04:58] pc-bench dense, EvalMod d27
+[2026-10-30 03:05:13] bts done: compare /root/perseus-entry/out-ab/bts_prec_dense_{shipped,d27}.log before going on
+[2026-10-30 03:05:13] step bts done; results in /root/perseus-entry/out-ab
+[2026-10-30 03:05:13] smoke: one Decode-8 entry run
+[2026-10-30 03:08:18] smoke ok: /root/perseus-entry/out-ab/runs/20261030-030514-9540/run.json
+[2026-10-30 03:08:18] step smoke done; results in /root/perseus-entry/out-ab

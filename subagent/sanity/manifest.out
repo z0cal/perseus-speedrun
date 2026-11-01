@@ -1,0 +1,8 @@
+== bootstrap_placements/fin_rc3b_m_cm
+session bts.evalmod: 'd27'
+compile with config=: errors 0
+key_manifest ok (regs=64, 1s): 124 keys, contract c530fc80b818f119, spru {'h': 64, 'n': 2, 'cs_level': 0, 'cs_nf': 1.7282673784127488e+16}
+== bootstrap_placements/gpt2_decode_python_n32_kc16_cm
+session bts.evalmod: None
+compile with config=: errors 0
+key_manifest ok (regs=64, 1s): 124 keys, contract 4069713ff8a49620, spru {'h': 64, 'n': 2, 'cs_level': 0, 'cs_nf': 1.7282673784127488e+16}

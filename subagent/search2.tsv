@@ -1,0 +1,21 @@
+sa_s6t2 smsplit=4:0.01:6		2.184e-06	5.435e-05	-	mincut	10s
+sa_s6t2w2 smsplit=4:0.01:6 smwide=2:14		2.184e-06	5.435e-05	-	mincut	8s
+sa_s6t2	smsplit=4:0.01:6	2.673e-06	5.673e-05	-	mincut	8s
+sa_s6t2w2	smsplit=4:0.01:6 smwide=2:14	3.075e-04	4.857e-03	-	mincut	8s
+sa_s6t2r0	smsplit=4:0.01:6 smrel=0	2.676e-06	5.692e-05	-	mincut	7s
+sa_s6t2r1.8	smsplit=4:0.01:6 smrel=1.8	2.661e-06	5.610e-05	-	mincut	8s
+sa_s6t2r3	smsplit=4:0.01:6 smrel=3	3.897e-06	5.116e-05	-	mincut	8s
+sa_s6t2r2.0	smsplit=4:0.01:6 smrel=2.0	2.662e-06	5.592e-05	-	mincut	7s
+sa_s6t2	smsplit=4:0.01:6	0.000e+00	0.000e+00	96	mincut	22s
+sa_s6t2b	smsplit=4:0.01:6	0.000e+00	0.000e+00	96	mincut	28s
+sa_s6t2r0	smsplit=4:0.01:6 smrel=0	0.000e+00	0.000e+00	96	mincut	35s
+sa_s6t2r2.0	smsplit=4:0.01:6 smrel=2.0	0.000e+00	0.000e+00	95	mincut	36s
+sa_s6t2r3	smsplit=4:0.01:6 smrel=3	0.000e+00	0.000e+00	95	mincut	36s
+sa_s6t2gb	smsplit=4:0.01:6 gelubs	4.069e-06	9.515e-05	-	mincut	8s
+sa_s6t2gt	smsplit=4:0.01:6 gelutr	4.660e-06	1.119e-04	-	mincut	8s
+sa_s6t2gb94	smsplit=4:0.01:6 gelubs gelu94=60	1.836e-04	1.583e-03	-	mincut	8s
+sa_s6t2gb	smsplit=4:0.01:6 gelubs	0.000e+00	0.000e+00	95	mincut	34s
+sa_s6t2r3gb	smsplit=4:0.01:6 smrel=3 gelubs	5.069e-06	7.750e-05	-	mincut	9s
+sa_s6t2r3gb	smsplit=4:0.01:6 smrel=3 gelubs	0.000e+00	0.000e+00	94	mincut	34s
+sa_s6t2r0gb	smsplit=4:0.01:6 smrel=0 gelubs	4.072e-06	9.531e-05	-	mincut	8s
+sa_s6t2r0gb	smsplit=4:0.01:6 smrel=0 gelubs	0.000e+00	0.000e+00	95	mincut	33s

@@ -1,0 +1,22 @@
+/root/perseus-entry/perseus-record/python/perseus/impl/fakecap.py:460: RuntimeWarning: overflow encountered in multiply
+  return self._unary(a, a.vec * a.vec, self.shadow.square(a.meta), T.t_square(a.tag), "square", product=True)
+/root/perseus-entry/perseus-record/python/perseus/impl/fakecap.py:453: RuntimeWarning: invalid value encountered in multiply
+  return self._binary(a, a.vec * b.vec, self.shadow.mult_pt(a.meta, b.meta()), T.t_mult(a.tag, b.tag),
+/root/perseus-entry/perseus-record/python/perseus/impl/fakecap.py:441: RuntimeWarning: invalid value encountered in subtract
+  return self._binary(a, a.vec - b.vec, self.shadow.sub(a.meta, b.meta), tag, "sub_ct", nb, b.level,
+/root/perseus-entry/perseus-record/python/perseus/impl/fakecap.py:558: RuntimeWarning: invalid value encountered in multiply
+  return self._unary(a, a.vec * 1j, self.shadow.mult_i(a.meta), T.t_mult_i(a.tag), "mult_i", when="named")
+/root/perseus-entry/perseus-record/python/perseus/impl/fakecap.py:424: RuntimeWarning: invalid value encountered in add
+  return self._binary(a, a.vec + b.vec, self.shadow.add(a.meta, b.meta), tag, "add", nb, b.level)
+/root/perseus-entry/perseus-record/python/perseus/impl/fakecap.py:450: RuntimeWarning: overflow encountered in multiply
+  return self._binary(a, a.vec * b.vec, self.shadow.mult(a.meta, b.meta), T.t_mult(a.tag, b.tag), "mult",
+[server] prepared (record + compile) 19.0 s; key request: 124 switching keys
+/root/perseus-entry/perseus-record/python/perseus/impl/fakecap.py:450: RuntimeWarning: invalid value encountered in multiply
+  return self._binary(a, a.vec * b.vec, self.shadow.mult(a.meta, b.meta), T.t_mult(a.tag, b.tag), "mult",
+/root/perseus-entry/perseus-record/python/perseus/impl/fakecap.py:456: RuntimeWarning: invalid value encountered in multiply
+  return self._binary(a, a.vec * c, self.shadow.mult_scalar(a.meta, c), T.t_mult_scalar(a.tag, c), "mult",
+/root/perseus-entry/perseus-record/python/perseus/impl/fakecap.py:460: RuntimeWarning: invalid value encountered in multiply
+  return self._unary(a, a.vec * a.vec, self.shadow.square(a.meta), T.t_square(a.tag), "square", product=True)
+[planned] 14 programs from token 2's stream, 132 dynamic steps, 420 registers, 4382 plaintexts; rotation keys 87 (plan_rot_steps.json None); session setup 11.4 s (keygen 3.4), total 29.0 s
+[planned] context 64.8 MB, ks_work 1664.0 MB, bconv_work 128.0 MB, scratch 512.0 MB, ct_pool 512.0 MB, ks.plans 3.7 MB, keys 6778.9 MB, ks.groups 0.0 MB, ks.regen_a 128.0 MB, ops 68.0 MB, rescale 257.4 MB, pt_store 12536.8 MB, encode 3.5 MB, encrypt 32.0 MB, bts.dense 6187.0 MB, bts.stc_first 3348.0 MB, bts.sparse 0.0 MB, bts.sparse 841.7 MB, bts.route 0.0 MB, bts.sparse 809.7 MB, bts.sparse 777.7 MB, bts.sparse 745.7 MB, bts.sparse 713.7 MB, bts.spru 670.0 MB, bts.work 1024.0 MB, replay.slab 3616.0 MB, replay.regs 4795.0 MB, replay.groups 0.8 MB, replay.side 2432.0 MB, ops 68.0 MB, rescale 257.4 MB, slack 256.0 MB, total 49231.9 MB
+[planned] 16 positions precomputed in 18.8 s: 3933 plaintext slots for 4382 keys, 94 staged per position

@@ -1,0 +1,51 @@
+block_0: errors A=0 B=0; bts A=7 B=7; ops A=1097 B=1097; differing fields: ['bts_site_levels', 'inputs', 'pt_refs'] save(): DIFFER (7cba689f2d9fec41 898de6800d1507ec)
+    bts_site_levels: A=[['v_89', 44, 2, 36, 2], ['v_253', 44, 2, 24, 2], ['v_374', 40, 2, 22, 2], ['v_421', 46, 2, 24, 2], ['v_496', 44, 2, 24, 2], ['v_658', 46, 2, 24, 2], ['v_905', 46, 2, 30, 2]]
+                     B=[['v_89', 42, 2, 36, 2], ['v_253', 44, 2, 24, 2], ['v_374', 40, 2, 22, 2], ['v_421', 46, 2, 24, 2], ['v_496', 44, 2, 24, 2], ['v_658', 46, 2, 24, 2], ['v_905', 46, 2, 30, 2]]
+    inputs: A=[['anon_4', 26, 1, 0.0]]
+            B=[['anon_1', 24, 1, 0.0]]
+    pt_refs: A=[['pt_1', 26, 1, 'cached'], ['pt_2', 28, 1, 'cached'], ['pt_3', 38, 1, 'cached'], ['pt_4', 42, 1, 'at_use'], ['pt_5', 42, 1, 'at_use'], ['pt_6', 42, 1, 'at_use'], ['pt_7', 42, 1, 'at_use'], ['pt_8', 42, 1, 'at_use'], ['pt_9', 42, 1, 'at_use'], ['pt_10', 42, 1, 'at_use'], ['pt_11', 42, 1, 'at_use'], 
+             B=[['pt_1', 24, 1, 'cached'], ['pt_2', 26, 1, 'cached'], ['pt_3', 38, 1, 'cached'], ['pt_4', 42, 1, 'at_use'], ['pt_5', 42, 1, 'at_use'], ['pt_6', 42, 1, 'at_use'], ['pt_7', 42, 1, 'at_use'], ['pt_8', 42, 1, 'at_use'], ['pt_9', 42, 1, 'at_use'], ['pt_10', 42, 1, 'at_use'], ['pt_11', 42, 1, 'at_use'], 
+block_1: errors A=0 B=0; bts A=8 B=8; ops A=1155 B=1155; differing fields: ['inputs', 'pt_refs'] save(): DIFFER (5eb1606006718520 46e79167ab38f566)
+    inputs: A=[['anon_674', 34, 1, 0.0]]
+            B=[['anon_671', 34, 1, 0.0]]
+    pt_refs: A=[['pt_1', 34, 1, 'cached'], ['pt_2', 36, 1, 'cached'], ['pt_3', 36, 1, 'cached'], ['pt_4', 40, 1, 'at_use'], ['pt_5', 40, 1, 'at_use'], ['pt_6', 40, 1, 'at_use'], ['pt_7', 40, 1, 'at_use'], ['pt_8', 40, 1, 'at_use'], ['pt_9', 40, 1, 'at_use'], ['pt_10', 40, 1, 'at_use'], ['pt_11', 40, 1, 'at_use'], 
+             B=[['pt_1', 34, 1, 'cached'], ['pt_2', 36, 1, 'cached'], ['pt_3', 36, 1, 'cached'], ['pt_4', 40, 1, 'at_use'], ['pt_5', 40, 1, 'at_use'], ['pt_6', 40, 1, 'at_use'], ['pt_7', 40, 1, 'at_use'], ['pt_8', 40, 1, 'at_use'], ['pt_9', 40, 1, 'at_use'], ['pt_10', 40, 1, 'at_use'], ['pt_11', 40, 1, 'at_use'], 
+block_2: errors A=0 B=0; bts A=8 B=8; ops A=1321 B=1321; differing fields: ['inputs'] save(): DIFFER (4e301cbf725df243 4d5c22a1b9d64c63)
+    inputs: A=[['anon_1372', 28, 1, 0.0]]
+            B=[['anon_1369', 28, 1, 0.0]]
+block_3: errors A=0 B=0; bts A=8 B=8; ops A=1155 B=1155; differing fields: ['inputs'] save(): DIFFER (1d471d29c2f905ee fce07eb95e17845d)
+    inputs: A=[['anon_2175', 34, 1, 0.0]]
+            B=[['anon_2172', 34, 1, 0.0]]
+block_4: errors A=0 B=0; bts A=8 B=8; ops A=1168 B=1168; differing fields: ['inputs', 'pt_refs'] save(): DIFFER (de1fecc00347f596 5dc9b626490f7656)
+    inputs: A=[['anon_2874', 26, 1, 0.0]]
+            B=[['anon_2871', 26, 1, 0.0]]
+    pt_refs: A=[['pt_1', 26, 1, 'cached'], ['pt_2', 28, 1, 'cached'], ['pt_3', 38, 1, 'cached'], ['pt_4', 42, 1, 'at_use'], ['pt_5', 42, 1, 'at_use'], ['pt_6', 42, 1, 'at_use'], ['pt_7', 42, 1, 'at_use'], ['pt_8', 42, 1, 'at_use'], ['pt_9', 42, 1, 'at_use'], ['pt_10', 42, 1, 'at_use'], ['pt_11', 42, 1, 'at_use'], 
+             B=[['pt_1', 26, 1, 'cached'], ['pt_2', 28, 1, 'cached'], ['pt_3', 38, 1, 'cached'], ['pt_4', 42, 1, 'at_use'], ['pt_5', 42, 1, 'at_use'], ['pt_6', 42, 1, 'at_use'], ['pt_7', 42, 1, 'at_use'], ['pt_8', 42, 1, 'at_use'], ['pt_9', 42, 1, 'at_use'], ['pt_10', 42, 1, 'at_use'], ['pt_11', 42, 1, 'at_use'], 
+block_5: errors A=0 B=0; bts A=8 B=8; ops A=1111 B=1111; differing fields: ['inputs'] save(): DIFFER (6cc4465601ab5e6a d9d91d4ecf496149)
+    inputs: A=[['anon_3599', 34, 1, 0.0]]
+            B=[['anon_3596', 34, 1, 0.0]]
+block_6: errors A=0 B=0; bts A=7 B=7; ops A=1109 B=1109; differing fields: ['inputs'] save(): DIFFER (deb0740ac13b62fa 7cef2828c4630c44)
+    inputs: A=[['anon_4279', 34, 1, 0.0]]
+            B=[['anon_4276', 34, 1, 0.0]]
+block_7: errors A=0 B=0; bts A=7 B=7; ops A=1110 B=1110; differing fields: ['inputs'] save(): DIFFER (fa1b06c9ccee5a24 c7a7ea25f523bb25)
+    inputs: A=[['anon_4959', 28, 1, 0.0]]
+            B=[['anon_4956', 28, 1, 0.0]]
+block_8: errors A=0 B=0; bts A=8 B=8; ops A=1115 B=1115; differing fields: ['inputs'] save(): DIFFER (28507ebedb489877 75e68ff8f688036e)
+    inputs: A=[['anon_5639', 34, 1, 0.0]]
+            B=[['anon_5636', 34, 1, 0.0]]
+block_9: errors A=0 B=0; bts A=7 B=7; ops A=1112 B=1112; differing fields: ['inputs'] save(): DIFFER (efd8d3236c974bc6 5f2991a7856fcc0b)
+    inputs: A=[['anon_6323', 34, 1, 0.0]]
+            B=[['anon_6320', 34, 1, 0.0]]
+block_10: errors A=0 B=0; bts A=8 B=8; ops A=1181 B=1181; differing fields: ['inputs'] save(): DIFFER (dcc55ff45e53f9c2 6ced40f9c7848c83)
+    inputs: A=[['anon_7004', 28, 1, 0.0]]
+            B=[['anon_7001', 28, 1, 0.0]]
+block_11: errors A=0 B=0; bts A=10 B=10; ops A=1393 B=1393; differing fields: ['inputs'] save(): DIFFER (5bd60d031ace4cb1 51854f61cb44d8eb)
+    inputs: A=[['anon_7721', 34, 1, 0.0]]
+            B=[['anon_7718', 34, 1, 0.0]]
+block_12: errors A=0 B=0; bts A=1 B=1; ops A=2306 B=2306; differing fields: ['inputs'] save(): DIFFER (d78d84b67bcc62ce 4e8c069bc15845f1)
+    inputs: A=[['anon_8586', 34, 1, 0.0]]
+            B=[['anon_8583', 34, 1, 0.0]]
+block_13: errors A=0 B=0; bts A=13 B=13; ops A=493 B=493; differing fields: ['inputs'] save(): DIFFER (17c2ee3eb7d8d6ff 16dfefc583c51418)
+    inputs: A=[['anon_9702', 44, 2, 0.0]]
+            B=[['anon_9699', 44, 2, 0.0]]
+{'same': 0, 'diff': 14}

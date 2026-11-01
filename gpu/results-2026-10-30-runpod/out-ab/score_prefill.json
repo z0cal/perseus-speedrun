@@ -1,0 +1,21 @@
+{
+ "track": "prefill",
+ "quality": {
+  "requests": 8,
+  "kl_mean": 2.6828460879780054e-05,
+  "kl_max": 0.00012779572872900278,
+  "kl_bar": 0.01,
+  "p": 2.051870013755598e-18,
+  "argmax_agreement": 1.0,
+  "pass": true
+ },
+ "speed": {
+  "pairs": 2,
+  "entry_s": 9.330396385805216,
+  "record_s": 9.327822930936236,
+  "speedup": 0.9997242217893049,
+  "delta": 0.01,
+  "p": 0.6268195050636282,
+  "new_record": false
+ }
+}

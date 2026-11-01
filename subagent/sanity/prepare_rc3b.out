@@ -1,0 +1,6 @@
+/home/zocal/pesquisa/perseus-speedrun/work/perseus/python/perseus/impl/fakecap.py:451: RuntimeWarning: overflow encountered in multiply
+  return self._binary(a, a.vec * b.vec, self.shadow.mult(a.meta, b.meta), T.t_mult(a.tag, b.tag), "mult",
+/home/zocal/pesquisa/perseus-speedrun/work/perseus/python/perseus/impl/fakecap.py:442: RuntimeWarning: invalid value encountered in subtract
+  return self._binary(a, a.vec - b.vec, self.shadow.sub(a.meta, b.meta), tag, "sub_ct", nb, b.level,
+/home/zocal/pesquisa/perseus-speedrun/work/perseus/python/perseus/impl/fakecap.py:559: RuntimeWarning: invalid value encountered in multiply
+  return self._unary(a, a.vec * 1j, self.shadow.mult_i(a.meta), T.t_mult_i(a.tag), "mult_i", when="named")

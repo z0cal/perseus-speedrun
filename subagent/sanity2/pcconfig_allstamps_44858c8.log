@@ -1,0 +1,8 @@
+FAIL gpt2_prefill128_n32a4_pfbh/PLAN_CMD.txt: no field for ["PLAN_PCMM_PREDIV_CAP"]
+FAIL gpt2_prefill128_n32a4_pfbh_cm/PLAN_CMD.txt: no field for ["PLAN_PCMM_PREDIV_CAP"]
+FAIL gpt2_prefill128_n32a4_pfbhrd/PLAN_CMD.txt: no field for ["PLAN_PCMM_PREDIV_CAP"]
+FAIL gpt2_prefill128_n32a4_pfbhrd_cm/PLAN_CMD.txt: no field for ["PLAN_PCMM_PREDIV_CAP"]
+ENTRY PLAN_CMD map: checked
+ENTRY PLAN_CMD map: checked
+[sanity2] 1456 files, 968 maps ok, 4 maps failing
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.86s

@@ -1,0 +1,5 @@
+evalmod=None: key_manifest ok in 1s, 124 keys, contract b9232c06e1bf09e8
+evalmod='d27': key_manifest ok in 1s, 124 keys, contract 4a9667fed9e27865
+evalmod='d27sb': key_manifest ok in 1s, 124 keys, contract aad523f8136f9710
+evalmod='bogus': ConfigError: config bts.evalmod: Some("bogus"): shipped | d27 | d27sb
+key lists equal across None/d27/d27sb: True

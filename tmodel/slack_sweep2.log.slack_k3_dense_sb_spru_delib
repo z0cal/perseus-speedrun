@@ -1,0 +1,209 @@
+[plan] out=bootstrap_placements/slack_k3_dense_sb_spru_delib bts_level=22 max_level=48 unit=2 table_measured=True err_target=0.01
+[plan] [block_0] (capture-derived)
+[plan] erased 32 reactive auto_bootstrap(s); 1 deliberate fixed point(s) kept
+[plan] feasible after 3 cut pass(es); 5 refresh(es) placed
+[ilp] optimum in 6.2s, tie-break optimal in 5.4s
+[ilp] optimal: cost 6 (bound 6.0001) vs min-cut 7.0001; 4 placed, 2 hint(s) fire; 19009 integer vars, 11.6s
+[plan] shared_realize: 44 shared-operand realize anchor(s), bootstraps 6 -> 6
+[plan] prune: 0 redundant refresh(es) removed
+[plan] raise_drop (search): 3 refreshes (placed + fired hints) raise below the chain top; v_89:13 v_374:2 v_658:6; skipped {'no_slack': 3}
+[plan] cf clamp: 0 of 6 typed sites at cf_max=20 (0 pinned; 0 miss err_target=0.01)
+[plan]  P4: 8 branch(es) fed an over-budget op but were never cuttable (non-binding operands the min-cut cannot see). Largest |m|: v_836(1), v_839(1), v_903(0.62), v_902(0.62), v_884(0.0192), v_869(0.0034)
+[plan] placed_input_level_hist 38:1 44:1 46:1 48:1
+[plan] placements=4 hints=2/6 deliberate=1 total=7
+[plan] CF {'5': 2, '10': 1, '12': 1, '13': 1, '14': 1}  out-levels {'20': 1, '22': 3, '24': 1, '36': 1}  pred rel_err median=1.39e-05 p90=0.00191
+[plan] [block_1] (entry=22/d1)
+[plan] erased 22 reactive auto_bootstrap(s); 1 deliberate fixed point(s) kept
+[plan] feasible after 3 cut pass(es); 4 refresh(es) placed
+[ilp] optimum in 9.7s, tie-break optimal in 4.5s
+[ilp] optimal: cost 6 (bound 6.0001) vs min-cut 7.0001; 3 placed, 3 hint(s) fire; 18680 integer vars, 14.2s
+[plan] shared_realize: 42 shared-operand realize anchor(s), bootstraps 6 -> 6
+[plan] prune: 0 redundant refresh(es) removed
+[plan] raise_drop (search): 3 refreshes (placed + fired hints) raise below the chain top; v_87:13 v_372:4 v_658:8; skipped {'no_slack': 3}
+[plan] cf clamp: 0 of 6 typed sites at cf_max=20 (0 pinned; 0 miss err_target=0.01)
+[plan]  P4: 13 branch(es) fed an over-budget op but were never cuttable (non-binding operands the min-cut cannot see). Largest |m|: v_851(1), v_854(1), v_857(1), v_951(0.733), v_953(0.733), v_952(0.733)
+[plan] placed_input_level_hist 38:1 44:1 48:1
+[plan] placements=3 hints=3/6 deliberate=1 total=7
+[plan] CF {'5': 1, '6': 1, '12': 4}  out-levels {'20': 1, '22': 2, '26': 1, '28': 1, '36': 1}  pred rel_err median=1.45e-05 p90=0.0014
+[plan] [block_2] (entry=24/d1)
+[plan] erased 25 reactive auto_bootstrap(s); 1 deliberate fixed point(s) kept
+[plan] feasible after 3 cut pass(es); 4 refresh(es) placed
+[plan] feasible after 3 cut pass(es); 5 refresh(es) placed
+[plan] vetoed 1 hint(s) predicted to fire past absolute level 48; the cut covers them instead
+[ilp] optimum in 6.4s, tie-break optimal in 5.5s
+[ilp] optimal: cost 6 (bound 6.0001) vs min-cut 7.0001; 5 placed, 1 hint(s) fire; 19002 integer vars, 11.9s
+[plan] shared_realize: 50 shared-operand realize anchor(s), bootstraps 6 -> 6
+[plan] prune: 0 redundant refresh(es) removed
+[plan] raise_drop (search): 3 refreshes (placed + fired hints) raise below the chain top; v_87:13 v_370:1 v_587:6; skipped {'no_slack': 3}
+[plan] cf clamp: 0 of 6 typed sites at cf_max=20 (0 pinned; 0 miss err_target=0.01)
+[plan]  P4: 195 branch(es) fed an over-budget op but were never cuttable (non-binding operands the min-cut cannot see). Largest |m|: v_1277(2.34e+03), v_1276(2.34e+03), v_1275(1.88e+03), v_1274(952), v_1272(950), v_1273(950)
+[plan] placed_input_level_hist 38:1 46:3 48:1
+[plan] placements=5 hints=1/6 deliberate=1 total=7
+[plan] CF {'5': 1, '7': 1, '9': 1, '11': 1, '18': 2}  out-levels {'20': 1, '22': 4, '36': 1}  pred rel_err median=1.43e-05 p90=0.00237
+[plan] [block_3] (entry=22/d1)
+[plan] erased 15 reactive auto_bootstrap(s); 1 deliberate fixed point(s) kept
+[plan] feasible after 4 cut pass(es); 5 refresh(es) placed
+[ilp] optimum in 4.8s, tie-break optimal in 4.1s
+[ilp] optimal: cost 6 (bound 6.0001) vs min-cut 8.0001; 3 placed, 3 hint(s) fire; 18914 integer vars, 8.9s
+[plan] shared_realize: 41 shared-operand realize anchor(s), bootstraps 6 -> 6
+[plan] prune: 0 redundant refresh(es) removed
+[plan] raise_drop (search): 3 refreshes (placed + fired hints) raise below the chain top; v_89:13 v_366:3 v_658:8; skipped {'no_slack': 3}
+[plan] cf clamp: 0 of 6 typed sites at cf_max=20 (0 pinned; 0 miss err_target=0.01)
+[plan]  P4: 13 branch(es) fed an over-budget op but were never cuttable (non-binding operands the min-cut cannot see). Largest |m|: v_851(1), v_854(1), v_857(1), v_952(0.648), v_953(0.648), v_951(0.648)
+[plan] placed_input_level_hist 38:1 44:1 48:1
+[plan] placements=3 hints=3/6 deliberate=1 total=7
+[plan] CF {'4': 1, '5': 1, '8': 2, '10': 1, '11': 1}  out-levels {'20': 1, '22': 2, '26': 2, '36': 1}  pred rel_err median=1.4e-05 p90=0.00192
+[plan] [block_4] (entry=24/d1)
+[plan] erased 15 reactive auto_bootstrap(s); 1 deliberate fixed point(s) kept
+[plan] feasible after 4 cut pass(es); 5 refresh(es) placed
+[ilp] optimum in 5.4s, tie-break optimal in 4.9s
+[ilp] optimal: cost 7 (bound 7.0001) vs min-cut 8.0001; 4 placed, 3 hint(s) fire; 20887 integer vars, 10.3s
+[plan] shared_realize: 39 shared-operand realize anchor(s), bootstraps 7 -> 7
+[plan] prune: 0 redundant refresh(es) removed
+[plan] raise_drop (search): 5 refreshes (placed + fired hints) raise below the chain top; v_95:13 v_379:4 v_421:1 v_632:1 v_726:9; skipped {'no_slack': 1, 'shipped_order': 1}
+[plan] cf clamp: 0 of 7 typed sites at cf_max=20 (0 pinned; 0 miss err_target=0.01)
+[plan]  P4: 8 branch(es) fed an over-budget op but were never cuttable (non-binding operands the min-cut cannot see). Largest |m|: v_904(1), v_907(1), v_970(0.525), v_971(0.525), v_952(0.0167), v_937(0.000948)
+[plan] placed_input_level_hist 40:1 44:1 48:2
+[plan] placements=4 hints=3/6 deliberate=1 total=8
+[plan] CF {'2': 1, '4': 1, '5': 2, '8': 2, '10': 1}  out-levels {'20': 1, '22': 1, '24': 1, '28': 3, '36': 1}  pred rel_err median=9.43e-06 p90=0.00151
+[plan] [block_5] (entry=30/d1)
+[plan] erased 13 reactive auto_bootstrap(s); 1 deliberate fixed point(s) kept
+[plan] feasible after 3 cut pass(es); 5 refresh(es) placed
+[plan] feasible after 5 cut pass(es); 6 refresh(es) placed
+[plan] vetoed 1 hint(s) predicted to fire past absolute level 48; the cut covers them instead
+[ilp] optimum in 8.5s, tie-break optimal in 37.4s
+[ilp] optimal: cost 6 (bound 6.0001) vs min-cut 8.0001; 5 placed, 1 hint(s) fire; 19832 integer vars, 45.9s
+[plan] shared_realize: 42 shared-operand realize anchor(s), bootstraps 6 -> 6
+[plan] prune: 0 redundant refresh(es) removed
+[plan] raise_drop (search): 3 refreshes (placed + fired hints) raise below the chain top; v_16:6 v_375:2 v_671:6; skipped {'no_slack': 3}
+[plan] cf clamp: 0 of 6 typed sites at cf_max=20 (0 pinned; 0 miss err_target=0.01)
+[plan]  P4: 12 branch(es) fed an over-budget op but were never cuttable (non-binding operands the min-cut cannot see). Largest |m|: v_1075(100), v_849(1), v_852(1), v_915(0.341), v_916(0.341), v_669(0.134)
+[plan] placed_input_level_hist 36:1 40:1 44:1 46:1 48:1
+[plan] placements=5 hints=1/6 deliberate=1 total=7
+[plan] CF {'4': 1, '7': 1, '8': 1, '10': 1, '18': 1, '19': 1}  out-levels {'20': 1, '22': 4, '24': 1}  pred rel_err median=1.57e-05 p90=0.00219
+[plan] [block_6] (entry=22/d1)
+[plan] erased 13 reactive auto_bootstrap(s); 1 deliberate fixed point(s) kept
+[plan] feasible after 3 cut pass(es); 4 refresh(es) placed
+[ilp] optimum in 6.1s, tie-break optimal in 5.5s
+[ilp] optimal: cost 6 (bound 6.0001) vs min-cut 7.0001; 3 placed, 3 hint(s) fire; 19263 integer vars, 11.6s
+[plan] shared_realize: 36 shared-operand realize anchor(s), bootstraps 6 -> 6
+[plan] prune: 0 redundant refresh(es) removed
+[plan] raise_drop (search): 4 refreshes (placed + fired hints) raise below the chain top; v_97:13 v_375:2 v_422:1 v_671:8; skipped {'no_slack': 2}
+[plan] cf clamp: 0 of 6 typed sites at cf_max=20 (0 pinned; 0 miss err_target=0.01)
+[plan]  P4: 8 branch(es) fed an over-budget op but were never cuttable (non-binding operands the min-cut cannot see). Largest |m|: v_849(1), v_852(1), v_915(0.36), v_916(0.36), v_897(0.0145), v_882(0.000477)
+[plan] placed_input_level_hist 40:1 44:1 48:1
+[plan] placements=3 hints=3/6 deliberate=1 total=7
+[plan] CF {'5': 2, '8': 2, '9': 1, '10': 1}  out-levels {'22': 3, '24': 1, '26': 1, '36': 1}  pred rel_err median=1.29e-05 p90=0.00174
+[plan] [block_7] (entry=24/d1)
+[plan] erased 12 reactive auto_bootstrap(s); 1 deliberate fixed point(s) kept
+[plan] feasible after 3 cut pass(es); 5 refresh(es) placed
+[ilp] optimum in 10.7s, tie-break optimal in 92.3s
+[ilp] optimal: cost 6 (bound 6.0) vs min-cut 7.0001; 5 placed, 1 hint(s) fire; 19610 integer vars, 103.0s
+[plan] shared_realize: 44 shared-operand realize anchor(s), bootstraps 6 -> 6
+[plan] prune: 0 redundant refresh(es) removed
+[plan] raise_drop (search): 5 refreshes (placed + fired hints) raise below the chain top; v_99:13 v_377:3 v_420:4 v_458:4 v_594:6; skipped {'no_slack': 1}
+[plan] cf clamp: 0 of 6 typed sites at cf_max=20 (0 pinned; 0 miss err_target=0.01)
+[plan]  P4: 5 branch(es) fed an over-budget op but were never cuttable (non-binding operands the min-cut cannot see). Largest |m|: v_851(1), v_854(1), v_916(0.434), v_897(0.0149), v_882(0.000534)
+[plan] placed_input_level_hist 40:2 42:1 46:1 48:1
+[plan] placements=5 hints=1/6 deliberate=1 total=7
+[plan] CF {'4': 1, '5': 2, '6': 1, '10': 1, '18': 1}  out-levels {'22': 2, '26': 1, '28': 2, '36': 1}  pred rel_err median=1.21e-05 p90=0.00172
+[plan] [block_8] (entry=38/d1)
+[plan] erased 13 reactive auto_bootstrap(s); 1 deliberate fixed point(s) kept
+[plan] feasible after 3 cut pass(es); 5 refresh(es) placed
+[plan] feasible after 4 cut pass(es); 5 refresh(es) placed
+[plan] vetoed 1 hint(s) predicted to fire past absolute level 48; the cut covers them instead
+[ilp] optimum in 6.6s, tie-break optimal in 4.3s
+[ilp] optimal: cost 7 (bound 7.0001) vs min-cut 8.0001; 5 placed, 2 hint(s) fire; 18917 integer vars, 10.9s
+[plan] shared_realize: 36 shared-operand realize anchor(s), bootstraps 7 -> 7
+[plan] prune: 0 redundant refresh(es) removed
+[plan] raise_drop (search): 5 refreshes (placed + fired hints) raise below the chain top; v_8:4 v_16:6 v_371:1 v_422:1 v_675:8; skipped {'no_slack': 2}
+[plan] cf clamp: 0 of 7 typed sites at cf_max=20 (0 pinned; 0 miss err_target=0.01)
+[plan]  P4: 155 branch(es) fed an over-budget op but were never cuttable (non-binding operands the min-cut cannot see). Largest |m|: v_1080(3.03e+03), v_1079(30.7), v_849(2), v_852(2), v_855(2), v_620(2)
+[plan] placed_input_level_hist 38:1 40:1 42:1 46:1 48:1
+[plan] placements=5 hints=2/6 deliberate=1 total=8
+[plan] CF {'5': 1, '8': 1, '9': 1, '10': 2, '18': 1, '19': 1}  out-levels {'22': 5, '26': 1, '28': 1}  pred rel_err median=6.99e-06 p90=0.00212
+[plan] [block_9] (entry=24/d1)
+[plan] erased 12 reactive auto_bootstrap(s); 1 deliberate fixed point(s) kept
+[plan] feasible after 3 cut pass(es); 4 refresh(es) placed
+[ilp] optimum in 7.4s, tie-break optimal in 4.6s
+[ilp] optimal: cost 6 (bound 6.0001) vs min-cut 7.0001; 3 placed, 3 hint(s) fire; 19642 integer vars, 12.0s
+[plan] shared_realize: 36 shared-operand realize anchor(s), bootstraps 6 -> 6
+[plan] prune: 0 redundant refresh(es) removed
+[plan] raise_drop (search): 5 refreshes (placed + fired hints) raise below the chain top; v_99:13 v_379:3 v_423:1 v_575:1 v_674:9; skipped {'shipped_order': 1}
+[plan] cf clamp: 0 of 6 typed sites at cf_max=20 (0 pinned; 0 miss err_target=0.01)
+[plan]  P4: 8 branch(es) fed an over-budget op but were never cuttable (non-binding operands the min-cut cannot see). Largest |m|: v_852(1), v_855(1), v_919(0.487), v_918(0.487), v_900(0.0182), v_885(0.00166)
+[plan] placed_input_level_hist 40:1 44:1 48:1
+[plan] placements=3 hints=3/6 deliberate=1 total=7
+[plan] CF {'2': 2, '5': 1, '10': 2, '11': 1}  out-levels {'22': 1, '24': 1, '26': 1, '28': 2, '36': 1}  pred rel_err median=7.58e-06 p90=0.00111
+[plan] [block_10] (entry=30/d1)
+[plan] erased 17 reactive auto_bootstrap(s); 1 deliberate fixed point(s) kept
+[plan] feasible after 2 cut pass(es); 4 refresh(es) placed
+[plan] feasible after 4 cut pass(es); 5 refresh(es) placed
+[plan] vetoed 1 hint(s) predicted to fire past absolute level 48; the cut covers them instead
+[ilp] optimum in 13.1s, tie-break optimal in 9.9s
+[ilp] optimal: cost 6 (bound 6.0001) vs min-cut 7.0001; 4 placed, 2 hint(s) fire; 20712 integer vars, 23.1s
+[plan] shared_realize: 41 shared-operand realize anchor(s), bootstraps 6 -> 6
+[plan] prune: 0 redundant refresh(es) removed
+[plan] raise_drop (search): 4 refreshes (placed + fired hints) raise below the chain top; v_16:5 v_383:4 v_423:1 v_686:8; skipped {'no_slack': 2}
+[plan] cf clamp: 0 of 6 typed sites at cf_max=20 (0 pinned; 0 miss err_target=0.01)
+[plan]  P4: 22 branch(es) fed an over-budget op but were never cuttable (non-binding operands the min-cut cannot see). Largest |m|: v_1141(3.05e+03), v_1140(90.3), v_879(1), v_882(1), v_885(1), v_980(0.282)
+[plan] placed_input_level_hist 36:1 40:1 46:1 48:1
+[plan] placements=4 hints=2/6 deliberate=1 total=7
+[plan] CF {'2': 1, '5': 1, '10': 2, '18': 1, '19': 1}  out-levels {'20': 1, '22': 3, '26': 1, '28': 1}  pred rel_err median=1.43e-05 p90=0.00209
+[plan] [block_11] (entry=24/d1)
+[plan] erased 34 reactive auto_bootstrap(s); 1 deliberate fixed point(s) kept
+[plan] feasible after 4 cut pass(es); 5 refresh(es) placed
+[ilp] optimum in 7.9s, tie-break optimal in 94.7s
+[ilp] optimal: cost 7 (bound 7.0) vs min-cut 8.0001; 6 placed, 1 hint(s) fire; 21015 integer vars, 102.6s
+[plan] shared_realize: 58 shared-operand realize anchor(s), bootstraps 7 -> 7
+[plan] prune: 0 redundant refresh(es) removed
+[plan] raise_drop (search): 5 refreshes (placed + fired hints) raise below the chain top; v_87:13 v_362:3 v_468:4 v_506:4 v_642:2; skipped {'no_slack': 2}
+[plan] cf clamp: 0 of 7 typed sites at cf_max=20 (0 pinned; 0 miss err_target=0.01)
+[plan]  P4: 62 branch(es) fed an over-budget op but were never cuttable (non-binding operands the min-cut cannot see). Largest |m|: v_545(27), v_541(19.1), v_542(19.1), v_543(19.1), v_544(19.1), v_443(5.99)
+[plan] placed_input_level_hist 40:2 42:1 46:1 48:2
+[plan] placements=6 hints=1/6 deliberate=1 total=8
+[plan] CF {'5': 3, '6': 1, '8': 1, '10': 1, '18': 1}  out-levels {'14': 1, '20': 1, '22': 1, '26': 1, '28': 2, '36': 1}  pred rel_err median=6.7e-06 p90=0.00121
+[plan] [block_12] (entry=44/d1)
+[plan] erased 6 reactive auto_bootstrap(s); 0 deliberate fixed point(s) kept
+[plan] hint_veto_steps: 2 hint site(s) vetoed
+[plan] feasible after 2 cut pass(es); 2 refresh(es) placed
+[ilp] optimum in 250.2s, tie-break optimal in 32.1s
+[ilp] optimal: cost 2 (bound 2.0) vs min-cut 2.0; 2 placed, 0 hint(s) fire; 95030 integer vars, 282.3s
+[plan] shared_realize: 13 shared-operand realize anchor(s), bootstraps 2 -> 2
+[plan] prune: 0 redundant refresh(es) removed
+[plan] raise_drop (search): 1 refreshes (placed + fired hints) raise below the chain top; v_3:5; skipped {'no_slack': 1}
+[plan] cf clamp: 0 of 2 typed sites at cf_max=20 (1 pinned; 0 miss err_target=0.01)
+[plan]  P4: 2192 branch(es) fed an over-budget op but were never cuttable (non-binding operands the min-cut cannot see). Largest |m|: v_2292(388), v_2293(388), v_2290(386), v_2291(386), v_2288(386), v_2289(386)
+[plan] placed_input_level_hist 36:1 46:1
+[plan] placements=2 hints=0/2 deliberate=0 total=2
+[plan] CF {'11': 1, '20': 1}  out-levels {'10': 1, '32': 1}  pred rel_err median=0.00127 p90=0.00127
+[plan] [block_13] (entry=40/d2)
+[plan] erased 10 reactive auto_bootstrap(s); 6 deliberate fixed point(s) kept
+[plan] feasible after 1 cut pass(es); 1 refresh(es) placed
+[plan] feasible after 6 cut pass(es); 10 refresh(es) placed
+[plan] vetoed 4 hint(s) predicted to fire past absolute level 48; the cut covers them instead
+[ilp] optimum in 1.5s, tie-break optimal in 1.3s
+[ilp] optimal: cost 8 (bound 8.0001) vs min-cut 12.0002; 6 placed, 2 hint(s) fire; 7461 integer vars, 2.8s
+[plan] shared_realize: 53 shared-operand realize anchor(s), bootstraps 8 -> 8
+[plan] prune: 0 redundant refresh(es) removed
+[plan] raise_drop (search): 7 refreshes (placed + fired hints) raise below the chain top; v_16:5 v_54:1 v_108:4 v_172:5 v_274:5 v_339:5 v_397:5; skipped {'no_slack': 1}
+[plan] cf clamp: 0 of 8 typed sites at cf_max=20 (0 pinned; 0 miss err_target=0.01)
+[plan]  P4: 6 branch(es) fed an over-budget op but were never cuttable (non-binding operands the min-cut cannot see). Largest |m|: v_365(0.435), v_364(0.416), v_309(5.1e-05), v_376(6.7e-06), v_377(1.73e-08), v_378(8.81e-10)
+[plan] placed_input_level_hist 22:2 30:2 38:1 46:1
+[plan] placements=6 hints=2/6 deliberate=6 total=14
+[plan] CF {'7': 1, '9': 2, '11': 1, '13': 1, '17': 2, '18': 1}  out-levels {'18': 1, '20': 4, '22': 1, '24': 1, '32': 1}  pred rel_err median=1.14e-05 p90=0.00147
+[plan] planned 14 blocks, 103 bootstraps, cf clamp 0/85 -> ./bootstrap_placements/slack_k3_dense_sb_spru_delib
+bootstrap_placements/slack_k3_dense_sb_spru_delib/block_0_placement.json placements: 4
+bootstrap_placements/slack_k3_dense_sb_spru_delib/block_10_placement.json placements: 4
+bootstrap_placements/slack_k3_dense_sb_spru_delib/block_11_placement.json placements: 6
+bootstrap_placements/slack_k3_dense_sb_spru_delib/block_12_placement.json placements: 2
+bootstrap_placements/slack_k3_dense_sb_spru_delib/block_13_placement.json placements: 6
+bootstrap_placements/slack_k3_dense_sb_spru_delib/block_1_placement.json placements: 3
+bootstrap_placements/slack_k3_dense_sb_spru_delib/block_2_placement.json placements: 5
+bootstrap_placements/slack_k3_dense_sb_spru_delib/block_3_placement.json placements: 3
+bootstrap_placements/slack_k3_dense_sb_spru_delib/block_4_placement.json placements: 4
+bootstrap_placements/slack_k3_dense_sb_spru_delib/block_5_placement.json placements: 5
+bootstrap_placements/slack_k3_dense_sb_spru_delib/block_6_placement.json placements: 3
+bootstrap_placements/slack_k3_dense_sb_spru_delib/block_7_placement.json placements: 5
+bootstrap_placements/slack_k3_dense_sb_spru_delib/block_8_placement.json placements: 5
+bootstrap_placements/slack_k3_dense_sb_spru_delib/block_9_placement.json placements: 3

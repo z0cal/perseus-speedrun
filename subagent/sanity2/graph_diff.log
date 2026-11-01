@@ -1,0 +1,67 @@
+block 0: 1099 (d27 twin) vs 1083 (capture); op counts that differ (d27, capture): {'auto_bootstrap': (35, 19)}; names with the same op/step in both: 1074/1083
+   hints: d27 twin 6 (1 fired), capture 6 (3 fired); deliberate d27 1 capture 1; auto d27 35 capture 19
+   insert: d27[57:57] []  capture[57:58] [('auto_bootstrap', 'v_57_auto_bootstrapped', 'blk0.ln_1')]
+   insert: d27[72:72] []  capture[73:74] [('auto_bootstrap', 'v_72_auto_bootstrapped', 'blk0.ln_1')]
+   insert: d27[375:375] []  capture[377:378] [('auto_bootstrap', 'v_375_auto_bootstrapped', 'blk0.softmax')]
+block 1: 1171 (d27 twin) vs 1146 (capture); op counts that differ (d27, capture): {'auto_bootstrap': (57, 32)}; names with the same op/step in both: 1126/1146
+   hints: d27 twin 6 (0 fired), capture 6 (1 fired); deliberate d27 1 capture 1; auto d27 57 capture 32
+   delete: d27[21:22] [('auto_bootstrap', 'v_21_auto_bootstrapped', 'blk1.ln_1')]  capture[21:21] []
+   delete: d27[25:26] [('auto_bootstrap', 'v_24_auto_bootstrapped', 'blk1.ln_1')]  capture[24:24] []
+   insert: d27[44:44] []  capture[42:43] [('auto_bootstrap', 'v_39_auto_bootstrapped', 'blk1.ln_1')]
+block 2: 1366 (d27 twin) vs 1319 (capture); op counts that differ (d27, capture): {'auto_bootstrap': (87, 40)}; names with the same op/step in both: 1295/1319
+   hints: d27 twin 6 (0 fired), capture 6 (1 fired); deliberate d27 1 capture 1; auto d27 87 capture 40
+   insert: d27[19:19] []  capture[19:20] [('auto_bootstrap', 'v_19_auto_bootstrapped', 'blk2.ln_1')]
+   delete: d27[21:22] [('auto_bootstrap', 'v_21_auto_bootstrapped', 'blk2.ln_1')]  capture[22:22] []
+   delete: d27[25:26] [('auto_bootstrap', 'v_24_auto_bootstrapped', 'blk2.ln_1')]  capture[25:25] []
+block 3: 1172 (d27 twin) vs 1134 (capture); op counts that differ (d27, capture): {'auto_bootstrap': (58, 20)}; names with the same op/step in both: 1120/1134
+   hints: d27 twin 6 (0 fired), capture 6 (1 fired); deliberate d27 1 capture 1; auto d27 58 capture 20
+   insert: d27[19:19] []  capture[19:20] [('auto_bootstrap', 'v_19_auto_bootstrapped', 'blk3.ln_1')]
+   delete: d27[21:22] [('auto_bootstrap', 'v_21_auto_bootstrapped', 'blk3.ln_1')]  capture[22:22] []
+   delete: d27[25:26] [('auto_bootstrap', 'v_24_auto_bootstrapped', 'blk3.ln_1')]  capture[25:25] []
+block 4: 1156 (d27 twin) vs 1157 (capture); op counts that differ (d27, capture): {'auto_bootstrap': (24, 25)}; names with the same op/step in both: 1132/1157
+   hints: d27 twin 6 (2 fired), capture 6 (0 fired); deliberate d27 1 capture 1; auto d27 24 capture 25
+   insert: d27[19:19] []  capture[19:20] [('auto_bootstrap', 'v_19_auto_bootstrapped', 'blk4.ln_1')]
+   delete: d27[21:22] [('auto_bootstrap', 'v_21_auto_bootstrapped', 'blk4.ln_1')]  capture[22:22] []
+   delete: d27[25:26] [('auto_bootstrap', 'v_24_auto_bootstrapped', 'blk4.ln_1')]  capture[25:25] []
+block 5: 1084 (d27 twin) vs 1100 (capture); op counts that differ (d27, capture): {'auto_bootstrap': (7, 23)}; names with the same op/step in both: 1077/1100
+   hints: d27 twin 6 (3 fired), capture 6 (0 fired); deliberate d27 1 capture 1; auto d27 7 capture 23
+   delete: d27[3:4] [('auto_bootstrap', 'v_3_auto_bootstrapped', 'blk5.ln_1')]  capture[3:3] []
+   insert: d27[20:20] []  capture[19:20] [('auto_bootstrap', 'v_19_auto_bootstrapped', 'blk5.ln_1')]
+   delete: d27[100:101] [('auto_bootstrap', 'v_99_auto_bootstrapped', 'blk5.ln_1')]  capture[100:100] []
+block 6: 1083 (d27 twin) vs 1100 (capture); op counts that differ (d27, capture): {'auto_bootstrap': (6, 23)}; names with the same op/step in both: 1077/1100
+   hints: d27 twin 6 (3 fired), capture 6 (0 fired); deliberate d27 1 capture 1; auto d27 6 capture 23
+   delete: d27[3:4] [('auto_bootstrap', 'v_3_auto_bootstrapped', 'blk6.ln_1')]  capture[3:3] []
+   insert: d27[20:20] []  capture[19:20] [('auto_bootstrap', 'v_19_auto_bootstrapped', 'blk6.ln_1')]
+   delete: d27[100:101] [('auto_bootstrap', 'v_99_auto_bootstrapped', 'blk6.ln_1')]  capture[100:100] []
+block 7: 1084 (d27 twin) vs 1100 (capture); op counts that differ (d27, capture): {'auto_bootstrap': (7, 23)}; names with the same op/step in both: 1077/1100
+   hints: d27 twin 6 (2 fired), capture 6 (0 fired); deliberate d27 1 capture 1; auto d27 7 capture 23
+   delete: d27[3:4] [('auto_bootstrap', 'v_3_auto_bootstrapped', 'blk7.ln_1')]  capture[3:3] []
+   insert: d27[20:20] []  capture[19:20] [('auto_bootstrap', 'v_19_auto_bootstrapped', 'blk7.ln_1')]
+   delete: d27[102:103] [('auto_bootstrap', 'v_101_auto_bootstrapped', 'blk7.ln_1')]  capture[102:102] []
+block 8: 1087 (d27 twin) vs 1104 (capture); op counts that differ (d27, capture): {'auto_bootstrap': (6, 23)}; names with the same op/step in both: 1081/1104
+   hints: d27 twin 6 (3 fired), capture 6 (0 fired); deliberate d27 1 capture 1; auto d27 6 capture 23
+   delete: d27[3:4] [('auto_bootstrap', 'v_3_auto_bootstrapped', 'blk8.ln_1')]  capture[3:3] []
+   insert: d27[20:20] []  capture[19:20] [('auto_bootstrap', 'v_19_auto_bootstrapped', 'blk8.ln_1')]
+   delete: d27[100:101] [('auto_bootstrap', 'v_99_auto_bootstrapped', 'blk8.ln_1')]  capture[100:100] []
+block 9: 1087 (d27 twin) vs 1102 (capture); op counts that differ (d27, capture): {'auto_bootstrap': (7, 22)}; names with the same op/step in both: 1080/1102
+   hints: d27 twin 6 (3 fired), capture 6 (1 fired); deliberate d27 1 capture 1; auto d27 7 capture 22
+   delete: d27[3:4] [('auto_bootstrap', 'v_3_auto_bootstrapped', 'blk9.ln_1')]  capture[3:3] []
+   insert: d27[20:20] []  capture[19:20] [('auto_bootstrap', 'v_19_auto_bootstrapped', 'blk9.ln_1')]
+   delete: d27[102:103] [('auto_bootstrap', 'v_101_auto_bootstrapped', 'blk9.ln_1')]  capture[102:102] []
+block 10: 1151 (d27 twin) vs 1162 (capture); op counts that differ (d27, capture): {'auto_bootstrap': (9, 20)}; names with the same op/step in both: 1142/1162
+   hints: d27 twin 6 (3 fired), capture 6 (1 fired); deliberate d27 1 capture 1; auto d27 9 capture 20
+   delete: d27[3:4] [('auto_bootstrap', 'v_3_auto_bootstrapped', 'blk10.ln_1')]  capture[3:3] []
+   insert: d27[20:20] []  capture[19:20] [('auto_bootstrap', 'v_19_auto_bootstrapped', 'blk10.ln_1')]
+   delete: d27[72:73] [('auto_bootstrap', 'v_71_auto_bootstrapped', 'blk10.ln_1')]  capture[72:72] []
+block 11: 1356 (d27 twin) vs 1385 (capture); op counts that differ (d27, capture): {'auto_bootstrap': (16, 45)}; names with the same op/step in both: 1342/1385
+   hints: d27 twin 6 (1 fired), capture 6 (0 fired); deliberate d27 1 capture 1; auto d27 16 capture 45
+   delete: d27[3:4] [('auto_bootstrap', 'v_3_auto_bootstrapped', 'blk11.ln_1')]  capture[3:3] []
+   insert: d27[20:20] []  capture[19:20] [('auto_bootstrap', 'v_19_auto_bootstrapped', 'blk11.ln_1')]
+   insert: d27[82:82] []  capture[82:83] [('auto_bootstrap', 'v_81_auto_bootstrapped', 'blk11.ln_1')]
+block 12: 2298 (d27 twin) vs 3320 (capture); op counts that differ (d27, capture): {'auto_bootstrap': (4, 1026)}; names with the same op/step in both: 2294/3320
+   hints: d27 twin 2 (1 fired), capture 2 (0 fired); deliberate d27 0 capture 0; auto d27 4 capture 1026
+   delete: d27[3:4] [('auto_bootstrap', 'v_3_auto_bootstrapped', 'tail')]  capture[3:3] []
+   insert: d27[20:20] []  capture[19:20] [('auto_bootstrap', 'v_19_auto_bootstrapped', 'tail')]
+   insert: d27[92:92] []  capture[92:93] [('auto_bootstrap', 'v_91_auto_bootstrapped', 'tail')]
+block 13: 446 (d27 twin) vs 446 (capture); op counts that differ (d27, capture): {}; names with the same op/step in both: 446/446
+   hints: d27 twin 6 (6 fired), capture 6 (6 fired); deliberate d27 6 capture 6; auto d27 10 capture 10

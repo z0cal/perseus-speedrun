@@ -1,0 +1,19 @@
+bts.evalmod                  entry='d27'                    record=None
+model.ln_defer               entry=True                     record=None
+model.ln_defer_exit          entry=None                     record=None
+chain.preset                 entry='n32a4'                  record='n32a4'
+bts.auto_bts_level           entry=44                       record=44
+bts.em_fuse_rescale          entry=True                     record=True
+bts.stc_first                entry=2                        record=2
+quirks.fakecap_landings      entry='0:32,1:14,256:22,512:24' record='0:32,1:14,256:22,512:24'
+model.qkv_lanes              entry=True                     record=True
+bts.raise_drops              entry=['1', '2', '3', '4', '5'] record=['1', '2', '3', '4', '5']
+fields that differ entry vs record: {'bts.evalmod': (None, 'd27'), 'model.ln_defer': (None, True)}
+env.plan_runtime diff: {'LN_DEFER': (None, '1'), 'FIDESLIB_BTS_EVALMOD': (None, 'd27')}
+fakecap landings entry: old(parse)={0: (32, 2), 1: (14, 2), 256: (22, 2), 512: (24, 2)} new(_pc)={0: (30, 2), 1: (14, 2), 256: (20, 2), 512: (22, 2)}
+fakecap landings record: old(parse)={0: (32, 2), 1: (14, 2), 256: (22, 2), 512: (24, 2)} new(_pc)={0: (32, 2), 1: (14, 2), 256: (22, 2), 512: (24, 2)}
+  evalmod None -> {0: (32, 2), 1: (14, 2), 256: (22, 2), 512: (24, 2)}
+  evalmod shipped -> {0: (32, 2), 1: (14, 2), 256: (22, 2), 512: (24, 2)}
+  evalmod d27 -> {0: (30, 2), 1: (14, 2), 256: (20, 2), 512: (22, 2)}
+  evalmod d27sb -> {0: (32, 2), 1: (14, 2), 256: (20, 2), 512: (22, 2)}
+bogus evalmod rejected: shadow config bts.evalmod: config bts.evalmod: Some("bogus"): shipped | d27 | d27sb

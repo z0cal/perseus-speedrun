@@ -1,0 +1,1203 @@
+diff --git a/crates/pc-config/src/fields.rs b/crates/pc-config/src/fields.rs
+index 01edd15..eedf40d 100644
+--- a/crates/pc-config/src/fields.rs
++++ b/crates/pc-config/src/fields.rs
+@@ -26,7 +26,7 @@ section! {
+ }
+ 
+ section! {
+-    /// `bts` (31 legacy env names).
++    /// `bts` (32 legacy env names).
+     BtsSection "bts" {
+         #[doc = "`AUTO_BTS_LEVEL`. Default None. Read at impl/fakecap.py::make_session; plan/contract.py::current_contract/contract_mismatches [contract]."]
+         #[doc = "Shipped plans: capture_env all 39; runtime= 6."]
+@@ -49,6 +49,9 @@ section! {
+         #[doc = "EvalMod: a Regen relinearization and the rescale after it as one exact conversion (pc-gpu `BtsSetup::em_fuse_rescale`; default off = relinearize, then rescale)."]
+         #[doc = "Runtime switch `PC_EM_FUSE_RESCALE` [kernel]: binds no plan and no key bundle."]
+         em_fuse_rescale: Flag = "PC_EM_FUSE_RESCALE", "(unset)";
++        #[doc = "The EvalMod series of every route (pc-core `EvalMod`): unset or 'shipped' = FIDESlib's tables (10 levels), 'd27' = the degree-27 tables with 4 double angles (9 levels; every route but SPRU lands one level shallower), 'd27sb' = the degree-27 tables on the sparse routes only (SparseB, classic sparse land one level shallower; dense and StC-first as shipped)."]
++        #[doc = "Runtime switch `FIDESLIB_BTS_EVALMOD`: binds the plan (its landings), not the key bundle."]
++        evalmod: Str = "FIDESLIB_BTS_EVALMOD", "(unset)";
+         #[doc = "`FIDESLIB_GPU_ENCODE`. Default (unset). Read at examples/gpt2/env.py::ENV; examples/llama/env.py::ENV."]
+         #[doc = "Shipped plans: none."]
+         gpu_encode: Flag = "FIDESLIB_GPU_ENCODE", "(unset)";
+@@ -212,7 +215,7 @@ section! {
+ }
+ 
+ section! {
+-    /// `model` (49 legacy env names).
++    /// `model` (51 legacy env names).
+     ModelSection "model" {
+         #[doc = "`CACHE_READ_LEVEL_K`. Default None. Read at plan/contract.py::current_contract/contract_mismatches [contract]."]
+         #[doc = "Shipped plans: capture_env all 39."]
+@@ -328,6 +331,12 @@ section! {
+         #[doc = "`LN_CHEB`. Default '1' / None. Read at examples/gpt2/ref.py::norm_ref [read via _on()]; impl/ops.py::FheOps.__init__; plan/contract.py::current_contract/contract_mismatches [contract]."]
+         #[doc = "Shipped plans: capture_env 15; runtime= 15."]
+         ln_cheb: Flag = "LN_CHEB", "'1' / None";
++        #[doc = "LayerNorm deferred past q/k/v and up (perseus `impl/norm.py::norm_defer`, `weights.block_weights(ln_defer)`): the centring folds into the next matrices and 1/sigma is applied after them; needs both LayerNorms folded (GPT2_FOLD_LN1/2); default off = the shipped LayerNorm."]
++        #[doc = "Runtime switch `LN_DEFER`: binds the plan and its capture (the block graphs)."]
++        ln_defer: Flag = "LN_DEFER", "(unset)";
++        #[doc = "With LN_DEFER: the deferred residual's exit cap in units below the session limit (perseus `impl/norm.py` LN_DEFER_EXIT; default 3 = QKV_LANES' headroom)."]
++        #[doc = "Runtime switch `LN_DEFER_EXIT`: binds the plan and its capture (the block graphs)."]
++        ln_defer_exit: Int = "LN_DEFER_EXIT", "(unset)";
+         #[doc = "`MAGTAPE_BATCH`. Default '1'. Read at impl/magtape.py::Tape.__init__."]
+         #[doc = "Shipped plans: none."]
+         magtape_batch: Int = "MAGTAPE_BATCH", "'1'";
+diff --git a/crates/pc-config/tests/legacy.rs b/crates/pc-config/tests/legacy.rs
+index cb015b8..fa020c9 100644
+--- a/crates/pc-config/tests/legacy.rs
++++ b/crates/pc-config/tests/legacy.rs
+@@ -39,8 +39,9 @@ fn field_table() {
+     let pf = PlanConfig::fields();
+     println!("[config] Config {} fields, PlanConfig {} fields", cf.len(), pf.len());
+     // inventory sections 1-2, 5a/5b, 6a/6b + exec.use_graphs, exec.trace_alloc, host.n_in_flight, bts.em_fuse_rescale,
+-    // bts.lt_tails, bts.pair, bts.sparse_b_k, model.prefill.{last_query,qkv_pack,attn_bsgs,sm_hpack}, chain.preset
+-    assert_eq!(cf.len(), 259);
++    // bts.lt_tails, bts.pair, bts.sparse_b_k, bts.evalmod, model.prefill.{last_query,qkv_pack,attn_bsgs,sm_hpack}, chain.preset,
++    // model.{ln_defer,ln_defer_exit}
++    assert_eq!(cf.len(), 262);
+     // + section 7a: plan.kv_entry_level, plan.kv_entry_deg, plan.keep_placements; 8a: plan.stc_first_reroute, plan.site_cf;
+     // plan.fallback_cf, plan.argmax_mincut, plan.ilp_tiebreak, plan.raise_drop_base, plan.raise_drop_search, plan.pack_cf,
+     // plan.keep_placements_exact, plan.mag_safety_steps, plan.resume
+@@ -55,10 +56,11 @@ fn field_table() {
+         }
+     }
+     // 337 inventory names - 4 without a field (GPU guard, dropped _client, two upstream-driver inputs) + the three
+-    // perseus-core runtime switches (PC_EM_FUSE_RESCALE, PC_LT_TAILS, PC_BTS_PAIR) + PF_LAST_QUERY, PF_QKV_PACK, PF_ATTN_BSGS,
++    // perseus-core runtime switches (PC_EM_FUSE_RESCALE, PC_LT_TAILS, PC_BTS_PAIR, FIDESLIB_BTS_EVALMOD) + PF_LAST_QUERY, PF_QKV_PACK, PF_ATTN_BSGS,
+     // PF_SM_HPACK, PLAN_FALLBACK_CF, PLAN_ARGMAX_MINCUT, PLAN_ILP_TIEBREAK, PLAN_RAISE_DROP_BASE, PLAN_RAISE_SEARCH,
+-    // PLAN_PACK_CF, PLAN_KEEP_PLACEMENTS_EXACT, PLAN_MAG_SAFETY_STEPS, PLAN_RESUME, FIDESLIB_BTS_SPARSE_B_K, CHAIN_PRESET
+-    assert_eq!(envs.len(), 351);
++    // PLAN_PACK_CF, PLAN_KEEP_PLACEMENTS_EXACT, PLAN_MAG_SAFETY_STEPS, PLAN_RESUME, FIDESLIB_BTS_SPARSE_B_K, CHAIN_PRESET,
++    // LN_DEFER, LN_DEFER_EXIT
++    assert_eq!(envs.len(), 354);
+ }
+ 
+ #[test]
+diff --git a/crates/pc-config/tools/gen_fields.py b/crates/pc-config/tools/gen_fields.py
+index 737c2bf..638532f 100644
+--- a/crates/pc-config/tools/gen_fields.py
++++ b/crates/pc-config/tools/gen_fields.py
+@@ -53,7 +53,8 @@ STRUCTS = {"chain": "ChainSection", "bts": "BtsSection", "mem": "MemSection", "h
+            "model": "ModelSection", "model.prefill": "PrefillSection", "model.vit": "VitSection", "quirks": "QuirksSection",
+            "exec": "ExecSection", "exec.debug": "DebugSection", "plan": "PlanConfig"}
+ # fields with no legacy env (env name ""): what perseus-core configures that perseus hard-coded; a fifth element is the
+-# env name of a perseus-core runtime switch (settable from a plan's runtime= line like the legacy ones)
++# env name of a perseus-core runtime switch (settable from a plan's runtime= line like the legacy ones), a sixth what it
++# binds when it is more than a kernel switch
+ EXTRA = [
+     ("chain", "preset", "Str", "The CKKS chain preset the runtime and the client build (pc-core `ChainSpec::preset`: n32, "
+      "or the lean n32a4; default n32).", "CHAIN_PRESET"),
+@@ -68,6 +69,13 @@ EXTRA = [
+      "`BtsSetup::lt_tails`; default on, off = those stages regenerate every digit).", "PC_LT_TAILS"),
+     ("bts", "pair", "Flag", "Two sibling real dense StC-first refreshes of one level and degree run as one complex refresh "
+      "(pc-program K-batching pairs them, pc-gpu `BtsRoute::run_pair`; default off = each on its own).", "PC_BTS_PAIR"),
++    ("bts", "evalmod", "Str", "The EvalMod series of every route (pc-core `EvalMod`): unset or 'shipped' = FIDESlib's tables "
++     "(10 levels), 'd27' = the degree-27 tables with 4 double angles (9 levels; every route but SPRU lands one level "
++     "shallower), 'd27sb' = the degree-27 tables on the sparse routes only (SparseB, classic sparse land one level "
++     "shallower; dense and StC-first as shipped).", "FIDESLIB_BTS_EVALMOD", "binds the plan (its landings), not the key bundle"),
++    ("model", "ln_defer", "Flag", "LayerNorm deferred past q/k/v and up (perseus `impl/norm.py::norm_defer`, `weights.block_weights(ln_defer)`): "
++     "the centring folds into the next matrices and 1/sigma is applied after them; needs both LayerNorms folded (GPT2_FOLD_LN1/2); default off = the shipped LayerNorm.", "LN_DEFER", "binds the plan and its capture (the block graphs)"),
++    ("model", "ln_defer_exit", "Int", "With LN_DEFER: the deferred residual's exit cap in units below the session limit (perseus `impl/norm.py` LN_DEFER_EXIT; default 3 = QKV_LANES' headroom).", "LN_DEFER_EXIT", "binds the plan and its capture (the block graphs)"),
+     ("exec", "use_graphs", "Flag", "Replay a bound block program's static segments as captured CUDA graphs after its "
+      "first run (pc-program `ReplayCfg::use_graphs`; default on, off = eager every run)."),
+     ("exec", "trace_alloc", "Flag", "Report device free memory and arena use around every planned token (the "
+@@ -101,6 +109,9 @@ def rows():
+ 
+ def doc_lines(r):
+     if r.get("extra"):
++        binds = r.get("binds")
++        if binds:
++            return [r["doc"].replace('"', "'"), f"Runtime switch `{r['name']}`: {binds}."]
+         return [r["doc"].replace('"', "'"), f"Runtime switch `{r['name']}` [kernel]: binds no plan and no key bundle." if r["name"] else "No legacy env name."]
+     if not r["name"]:
+         return [r["doc"].replace('"', "'"), "No legacy env name."]
+@@ -120,7 +131,8 @@ def main():
+         kind = MANUAL_KIND.get(r["name"]) or KIND_OF[r["type"].split("/")[0].split(" ")[0]]
+         groups[path].append((name, kind, r))
+     for path, name, kind, doc, *env in EXTRA:
+-        groups[path].append((name, kind, dict(name=env[0] if env else "", doc=doc, default="(unset)", extra=True)))
++        groups[path].append((name, kind, dict(name=env[0] if env else "", doc=doc, default="(unset)", extra=True,
++                                              binds=env[1] if len(env) > 1 else None)))
+     w = sys.stdout.write
+     w("// @generated by crates/pc-config/tools/gen_fields.py from docs/ENV_INVENTORY.md -- edit the inventory or\n"
+       "// the generator, not this file.\n")
+diff --git a/crates/pc-core/src/bts_setup.rs b/crates/pc-core/src/bts_setup.rs
+index 7dc8f8e..4772c98 100644
+--- a/crates/pc-core/src/bts_setup.rs
++++ b/crates/pc-core/src/bts_setup.rs
+@@ -138,6 +138,161 @@ pub const SPARSE_B_CHEB_K24: [f64; 21] = [
+ pub const SPARSE_B_K: f64 = 24.0;
+ pub const SPARSE_B_DA_ITS: u32 = 5;
+ 
++/// The degree-27 EvalMod series (dense/ENCAPS route, `EvalMod::D27`): whole-interval minimax of (2 pi)^(-1/16)
++/// cos(2 pi (16 y - 0.25) / 16), weighted by the first-order amplification of the double angles, followed by
++/// `D27_DA_ITS` double angles, K = 16: 9 levels instead of 10, 43.5 bits on |u| < 16 (the shipped table: 27.4). Degree
++/// 26 in fact (the last coefficient is -0, `PsPlan` drops it). OpenFHE evaluator convention (c0 not halved).
++pub const EVALMOD_CHEB_D27: [f64; 28] = [
++    3.90855681124558652e-01,
++    -3.71162910650894989e-02,
++    5.10810133815939427e-01,
++    -5.08769125848825953e-03,
++    5.60138167641663909e-01,
++    6.51553991585960141e-02,
++    -4.92725685622943887e-01,
++    -2.75286301187290736e-02,
++    1.30054006295017399e-01,
++    5.08973388866522207e-03,
++    -1.79895085307721879e-02,
++    -5.50118683807736177e-04,
++    1.56743051595426724e-03,
++    3.95634864955302966e-05,
++    -9.47941022427921008e-05,
++    -2.04268994077678499e-06,
++    4.23104955069223787e-06,
++    7.96578184648313916e-08,
++    -1.45471469219364063e-07,
++    -2.43379383340224642e-09,
++    3.97710801199866705e-09,
++    5.99153450803262745e-11,
++    -8.86204651276593044e-11,
++    -1.20786230596993937e-12,
++    1.63846497749070475e-12,
++    2.35383700712163019e-14,
++    -2.69919862866792120e-14,
++    -0.00000000000000000e+00,
++];
++/// SparseB's degree-27 series for K = 24 (`EvalMod::D27`): whole-interval minimax of (2 pi)^(-1/16) cos(2 pi (24 y -
++/// 0.25) / 16), `D27_DA_ITS` double angles: 9 levels, 28.2 bits (the shipped table: 35.2).
++pub const SPARSE_B_CHEB_K24_D27: [f64; 28] = [
++    -3.21538587848569313e-01,
++    3.08847621269544570e-02,
++    -3.88081959779990548e-01,
++    1.46625287774889406e-02,
++    -4.82856279558641466e-01,
++    -2.57052700448712930e-02,
++    -2.05937303491004281e-01,
++    -5.15304564992511219e-02,
++    5.71244407978557023e-01,
++    4.39840074272567841e-02,
++    -2.81655069311994632e-01,
++    -1.48833805347735257e-02,
++    7.10850137515337682e-02,
++    2.94518870618867791e-03,
++    -1.14079725394480355e-02,
++    -3.92867870967202797e-04,
++    1.28894490329919888e-03,
++    3.81661513695801395e-05,
++    -1.08993226337966983e-04,
++    -2.83812779550276711e-06,
++    7.18983814407743793e-06,
++    1.67321395345254438e-07,
++    -3.81409214254401084e-07,
++    -8.03026897488691191e-09,
++    1.66383531050880358e-08,
++    3.12985682661885936e-10,
++    -6.19385871968205931e-10,
++    -2.16900898405575976e-11,
++];
++/// Double-angle iterations after the degree-27 series (both K).
++pub const D27_DA_ITS: u32 = 4;
++
++/// The EvalMod series every route of a session runs (`bts.evalmod`, FIDESLIB_BTS_EVALMOD): the dense route's K = 16
++/// table and SparseB's / the classic sparse routes' K = 24 one, each with its double angles. It sets how deep a
++/// refresh lands, so it binds the plan: a plan made for one does not compile for the other.
++#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
++pub enum EvalMod {
++    /// FIDESlib's tables (`EVALMOD_CHEB`, `SPARSE_B_CHEB_K24`), 5 double angles, 10 levels.
++    #[default]
++    Shipped,
++    /// The degree-27 tables (`EVALMOD_CHEB_D27`, `SPARSE_B_CHEB_K24_D27`), 4 double angles, 9 levels.
++    D27,
++    /// `D27` on the sparse routes (SparseB, whichever K it runs, and the classic sparse ones), `Shipped` on the dense
++    /// and StC-first routes: a series per route family (`dense_route` / `sparse_route`), not one series.
++    D27Sparse,
++}
++
++impl EvalMod {
++    /// The series a `bts.evalmod` value names: unset or "shipped", "d27", or "d27sb" (d27 on the sparse routes only).
++    pub fn named(name: Option<&str>) -> Option<EvalMod> {
++        match name {
++            None | Some("") | Some("shipped") => Some(EvalMod::Shipped),
++            Some("d27") => Some(EvalMod::D27),
++            Some("d27sb") => Some(EvalMod::D27Sparse),
++            Some(_) => None,
++        }
++    }
++
++    /// The series the tools run (`pc-bench`, `pc-check`): FIDESLIB_BTS_EVALMOD from the environment, as a session
++    /// reads `bts.evalmod` from its Config.
++    pub fn from_env() -> std::result::Result<EvalMod, String> {
++        let v = std::env::var("FIDESLIB_BTS_EVALMOD").ok();
++        EvalMod::named(v.as_deref()).ok_or_else(|| format!("FIDESLIB_BTS_EVALMOD={v:?}: shipped | d27 | d27sb"))
++    }
++
++    /// The series the dense and StC-first routes run.
++    pub fn dense_route(self) -> EvalMod {
++        match self {
++            EvalMod::D27Sparse => EvalMod::Shipped,
++            em => em,
++        }
++    }
++
++    /// The series the sparse routes run (SparseB, classic sparse).
++    pub fn sparse_route(self) -> EvalMod {
++        match self {
++            EvalMod::D27Sparse => EvalMod::D27,
++            em => em,
++        }
++    }
++
++    /// The K = 16 (dense) table.
++    pub fn dense(self) -> &'static [f64] {
++        match self {
++            EvalMod::Shipped => &EVALMOD_CHEB,
++            EvalMod::D27 => &EVALMOD_CHEB_D27,
++            EvalMod::D27Sparse => panic!("EvalMod::D27Sparse is per route: dense_route() / sparse_route() first"),
++        }
++    }
++
++    /// The K = 24 (SparseB, classic sparse) table.
++    pub fn sparse_k24(self) -> &'static [f64] {
++        match self {
++            EvalMod::Shipped => &SPARSE_B_CHEB_K24,
++            EvalMod::D27 => &SPARSE_B_CHEB_K24_D27,
++            EvalMod::D27Sparse => panic!("EvalMod::D27Sparse is per route: dense_route() / sparse_route() first"),
++        }
++    }
++
++    /// Double-angle iterations after either table.
++    pub fn da_its(self) -> u32 {
++        match self {
++            EvalMod::Shipped => EVALMOD_DA_ITS,
++            EvalMod::D27 => D27_DA_ITS,
++            EvalMod::D27Sparse => panic!("EvalMod::D27Sparse is per route: dense_route() / sparse_route() first"),
++        }
++    }
++
++    /// CKKS levels the series consumes on the n32 chain, both K (pc-shadow `evalmod::build_evalmod`; checked there).
++    pub fn levels(self) -> u32 {
++        match self {
++            EvalMod::Shipped => 10,
++            EvalMod::D27 => 9,
++            EvalMod::D27Sparse => panic!("EvalMod::D27Sparse is per route: dense_route() / sparse_route() first"),
++        }
++    }
++}
++
+ /// FNV-1a 64 over the little-endian f64 bit patterns: the checksum recorded for a frozen table.
+ pub fn table_checksum(t: &[f64]) -> u64 {
+     let mut h: u64 = 0xcbf2_9ce4_8422_2325;
+diff --git a/crates/pc-gpu/src/bts/mod.rs b/crates/pc-gpu/src/bts/mod.rs
+index f129246..89294c3 100644
+--- a/crates/pc-gpu/src/bts/mod.rs
++++ b/crates/pc-gpu/src/bts/mod.rs
+@@ -170,6 +170,13 @@ impl BtsSetup {
+         }
+     }
+ 
++    /// The dense route's EvalMod series as `em` names it (`bts.evalmod`): its K = 16 table and double angles.
++    pub fn set_evalmod(&mut self, em: pc_core::bts_setup::EvalMod) {
++        let em = em.dense_route();
++        self.evalmod_coeffs = em.dense().to_vec();
++        self.evalmod_da_its = em.da_its();
++    }
++
+     /// The dense route on the n64 chain: the n32 shape with the chain's CF floor, deg = log2(q0 / 2^53)
+     /// = 7 (perseus' n64 profile's CORRECTION_FACTOR 7). The u64 words read every key in place (`Regen` everywhere
+     /// works at any word: the expander is the frozen KSKB lane).
+diff --git a/crates/pc-gpu/src/bts/sparse_b.rs b/crates/pc-gpu/src/bts/sparse_b.rs
+index 03346a4..2074aa1 100644
+--- a/crates/pc-gpu/src/bts/sparse_b.rs
++++ b/crates/pc-gpu/src/bts/sparse_b.rs
+@@ -15,7 +15,7 @@ use crate::poly::Layout;
+ use pc_core::params::Chain;
+ use pc_core::scale::ScaleTables;
+ use crate::ks::{KeyGroup, KsKeyRef, KskSource};
+-use pc_core::bts_setup::{sparse_b_diagonals, sparse_b_geometry, SparseBGeom, SPARSE_B_CHEB_K24, SPARSE_B_DA_ITS};
++use pc_core::bts_setup::{sparse_b_diagonals, sparse_b_geometry, EvalMod, SparseBGeom, SPARSE_B_CHEB_K24};
+ use pc_cuda::{Arena, Compute, Stream};
+ use pc_shadow::evalmod::PsPlan;
+ use pc_shadow::fides::FMeta;
+@@ -42,19 +42,21 @@ pub struct SparseBCfg {
+     /// K of the EvalMod series: 24 (FIDESlib's degree-20 table) or 16 (the dense route's degree-14 table); the overflow
+     /// integer after the fold has the dense route's distribution.
+     pub evalmod_k: f64,
++    /// The EvalMod series (`bts.evalmod`): which K = 24 / K = 16 tables and how many double angles.
++    pub evalmod: EvalMod,
+ }
+ 
+ impl SparseBCfg {
+     pub fn n32(slots: u32, raise_drop: u32) -> Self {
+-        SparseBCfg { slots, raise_drop, cts0_t: 12, raise_k: pc_core::bts_setup::EVALMOD_K, acc_bstep: 4, b_step: 0, k_max: 8, ks_source: KskSource::Regen, lt_tails: true, em_fuse_rescale: false, evalmod_k: pc_core::bts_setup::SPARSE_B_K }
++        SparseBCfg { slots, raise_drop, cts0_t: 12, raise_k: pc_core::bts_setup::EVALMOD_K, acc_bstep: 4, b_step: 0, k_max: 8, ks_source: KskSource::Regen, lt_tails: true, em_fuse_rescale: false, evalmod_k: pc_core::bts_setup::SPARSE_B_K, evalmod: EvalMod::Shipped }
+     }
+ 
+-    /// The EvalMod series' Paterson-Stockmeyer plan for `evalmod_k`.
++    /// The EvalMod series' Paterson-Stockmeyer plan for `evalmod_k` (its double angles: `evalmod.da_its()`).
+     pub fn em_series(&self) -> Result<PsPlan> {
+         if self.evalmod_k == pc_core::bts_setup::EVALMOD_K {
+-            Ok(PsPlan::from_coeffs(pc_core::bts_setup::evalmod_coeffs())?)
++            Ok(PsPlan::from_coeffs(self.evalmod.dense())?)
+         } else if self.evalmod_k == pc_core::bts_setup::SPARSE_B_K {
+-            ps_k24()
++            Ok(PsPlan::from_coeffs(self.evalmod.sparse_k24())?)
+         } else {
+             Err(shape("sparse_b", format!("no EvalMod series for K = {}", self.evalmod_k)))
+         }
+@@ -160,7 +162,7 @@ impl<'a, W: DevWord> SparseBPrecomp<'a, W> {
+         let geo = Self::lt_geom(&g);
+         let parts = Self::bytes_parts(chain, st, &lay, cfg)?;
+         let b: usize = parts.iter().map(|p| p.1).sum();
+-        let (_, _, nslots) = EvalModPlan::<W>::program(st, tops.1, &cfg.em_series()?, SPARSE_B_DA_ITS)?;
++        let (_, _, nslots) = EvalModPlan::<W>::program(st, tops.1, &cfg.em_series()?, cfg.evalmod.da_its())?;
+         let (em_n, em_kk) = em_work(nslots, cfg.k_max, EmMode::Real);
+         Ok((b, BtsWorkShape { k_max: cfg.k_max, g_max: geo.g, em_slots: em_n, em_kk, spare: 1 }))
+     }
+@@ -214,7 +216,7 @@ impl<'a, W: DevWord> SparseBPrecomp<'a, W> {
+ 
+     /// The EvalMod plan's tables as `EvalModPlan::new` carves them.
+     fn em_bytes(st: &ScaleTables, lay: &Layout, input: FMeta, cfg: &SparseBCfg) -> Result<usize> {
+-        EvalModPlan::<W>::table_bytes(st, lay, input, &cfg.em_series()?, SPARSE_B_DA_ITS, cfg.k_max)
++        EvalModPlan::<W>::table_bytes(st, lay, input, &cfg.em_series()?, cfg.evalmod.da_its(), cfg.k_max)
+     }
+ 
+     fn lt_geom(g: &SparseBGeom) -> LtGeom {
+@@ -228,7 +230,7 @@ impl<'a, W: DevWord> SparseBPrecomp<'a, W> {
+         let raised_nf = st.sf(top as i32)? * (cfg.cts0_t as f64).exp2();
+         let pt_nf = st.sf(top as i32)? * (-(cfg.cts0_t as f64)).exp2();
+         let em_in = FMeta { top: top as i32, nl: 2, nf: raised_nf * pt_nf };
+-        let (_, out, _) = EvalModPlan::<W>::program(st, em_in, &cfg.em_series()?, SPARSE_B_DA_ITS)?;
++        let (_, out, _) = EvalModPlan::<W>::program(st, em_in, &cfg.em_series()?, cfg.evalmod.da_its())?;
+         let stc_top = if out.nl == 2 { out.top as usize - d } else { out.top as usize };
+         Ok((top, em_in, stc_top))
+     }
+@@ -286,7 +288,7 @@ impl<'a, W: DevWord> SparseBPrecomp<'a, W> {
+         mark("cts", &mut parts);
+         let cts_acc = AccRounds::new(arena, s, n, keys, stage, r_cts)?;
+         mark("cts_acc", &mut parts);
+-        let mut em = EvalModPlan::new(arena, s, ctx, EmMode::Real, em_in, &cfg.em_series()?, SPARSE_B_DA_ITS, keys.conj()?, keys.relin()?, stage, cfg.k_max, KskSource::Regen)?;
++        let mut em = EvalModPlan::new(arena, s, ctx, EmMode::Real, em_in, &cfg.em_series()?, cfg.evalmod.da_its(), keys.conj()?, keys.relin()?, stage, cfg.k_max, KskSource::Regen)?;
+         em.fuse_rescale = cfg.em_fuse_rescale;
+         mark("em", &mut parts);
+         let sf_s = st.sf(stc_top as i32)?;
+diff --git a/crates/pc-gpu/src/bts/sparse_classic.rs b/crates/pc-gpu/src/bts/sparse_classic.rs
+index 6222572..891ac5d 100644
+--- a/crates/pc-gpu/src/bts/sparse_classic.rs
++++ b/crates/pc-gpu/src/bts/sparse_classic.rs
+@@ -86,6 +86,13 @@ impl ClassicCfg {
+             lt_regen_digits: super::cts::LT_REGEN_DIGITS,
+         }
+     }
++
++    /// The route's EvalMod series as `em` names it (`bts.evalmod`): its K = 24 table and double angles.
++    pub fn set_evalmod(&mut self, em: pc_core::bts_setup::EvalMod) {
++        let em = em.sparse_route();
++        self.evalmod_coeffs = em.sparse_k24().to_vec();
++        self.evalmod_da_its = em.da_its();
++    }
+ }
+ 
+ /// One raise-drop variant on the host, with the metadata after every stage (FIDESlib coordinates).
+@@ -655,7 +662,7 @@ mod tests {
+         let st = ScaleTables::precompute(&chain).unwrap();
+         let sh = shadow_of(&st);
+         let p = ClassicPlan::new(&chain, &ClassicCfg::n32(8192, &[0, 1])).unwrap();
+-        let want = pc_shadow::route::multi_stage_landing([3, 3], 2);
++        let want = pc_shadow::route::multi_stage_landing([3, 3], 2, pc_shadow::route::EvalMod::Shipped);
+         for v in &p.variants {
+             let raw = from_f(sh.cfg.chain, v.out);
+             let real = sh.rescale(&raw).unwrap().out;
+diff --git a/crates/pc-program/src/compile/mod.rs b/crates/pc-program/src/compile/mod.rs
+index 8952663..d097593 100644
+--- a/crates/pc-program/src/compile/mod.rs
++++ b/crates/pc-program/src/compile/mod.rs
+@@ -243,11 +243,14 @@ pub fn runtime_shadow(cfg: &Config, plan_cfg: &PlanConfig, bootstrap_level: Opti
+             quirks.0.insert(q);
+         }
+     }
++    let em = evalmod(cfg)?;
+     let mut bts = BtsConfig::n32_shipped();
+     let l = |level| Landing { level, deg: 1 };
+     // FIDESlib's realized landings at raise drop 0 (the shipped decode's 512 -> 26 is 24 + its FIDESLIB_BTS_RAISE_DROP=512:1)
+-    // (1024: the SparseB route SM_PERIODIC=2 builds past two score groups, Llama decode; same depth as 512)
++    // (1024: the SparseB route SM_PERIODIC=2 builds past two score groups, Llama decode; same depth as 512), for the
++    // shipped EvalMod series; `bts.evalmod` re-lands them (every route but SPRU's s = 1, one level per level it saves)
+     bts.landings = [(0, l(28)), (1024, l(24)), (512, l(24)), (256, l(24)), (1, l(16))].into_iter().collect();
++    bts.shift_evalmod(em, unit);
+     // the classic multi-stage sparse routes (pc-gpu `sparse_classic`): every power-of-two s SparseB does not take
+     // (s > FIDESLIB_BTS_SPARSE_B_MAX, or SparseB off), on the SPARSE_LEVEL_BUDGET precomputation (default {4, 3})
+     let budget = sparse_level_budget(cfg)?;
+@@ -256,7 +259,7 @@ pub fn runtime_shadow(cfg: &Config, plan_cfg: &PlanConfig, bootstrap_level: Opti
+     let mut s = 2;
+     while s < half {
+         if s > sb_max {
+-            bts.landings.insert(s, pc_shadow::route::multi_stage_landing(budget, unit));
++            bts.landings.insert(s, pc_shadow::route::multi_stage_landing(budget, unit, em.sparse_route()));
+         }
+         s <<= 1;
+     }
+@@ -307,6 +310,11 @@ pub fn sparse_level_budget(cfg: &Config) -> Result<[u32; 2]> {
+     }
+ }
+ 
++/// The EvalMod series a Config runs (`bts.evalmod`, FIDESLIB_BTS_EVALMOD; unset = the shipped one).
++pub fn evalmod(cfg: &Config) -> Result<pc_shadow::route::EvalMod> {
++    pc_shadow::route::EvalMod::named(cfg.bts.evalmod.as_deref()).ok_or_else(|| cfg_err("bts.evalmod", format!("{:?}: shipped | d27 | d27sb", cfg.bts.evalmod)))
++}
++
+ /// `plan_block`'s seeds (perseus plan `plan_block` / `sim_dump.py`), in absolute levels: the entry var takes the
+ /// block entry (the previous block's exit), KV-cache reads their read level, other inputs their first consumer.
+ pub fn seeds(bg: &BlockGraph, rules: &crate::plan::Rules, entry: Option<(u32, u8)>, inputs: &[String]) -> Result<HashMap<String, (u32, u8)>> {
+diff --git a/crates/pc-py/src/matmul.rs b/crates/pc-py/src/matmul.rs
+index 1bd43c8..efa497b 100644
+--- a/crates/pc-py/src/matmul.rs
++++ b/crates/pc-py/src/matmul.rs
+@@ -79,11 +79,12 @@ pub(crate) fn factors(c_unit: f64, amax: f64, bmax: f64, shift: u32, out_scale:
+ 
+ /// The stc_high shapes the service needs on the StC-first route (StcFirstSetup::high): the operands' (50, skip 1)
+ /// and SinCBoot's stage 0 for every left-operand state (`levels`: (level, deg) of the `a` operands the programs
+-/// and the probes use, with the raise drop of their finish). The landing is the StC-first route's (`BtsConfig::n32_shipped`:
+-/// a plan's runtime Shadow may not configure StC-first for its own dense sites).
+-pub(crate) fn high_shapes(chain: pc_shadow::ChainShape, cf: u32, levels: &std::collections::BTreeSet<(u32, u8, u32)>) -> PyResult<Vec<StcHighShape>> {
++/// and the probes use, with the raise drop of their finish). The landing is the StC-first route's (`BtsConfig::n32_shipped`
++/// re-landed for EvalMod series `em`: a plan's runtime Shadow may not configure StC-first for its own dense sites).
++pub(crate) fn high_shapes(chain: pc_shadow::ChainShape, cf: u32, levels: &std::collections::BTreeSet<(u32, u8, u32)>, em: pc_shadow::route::EvalMod) -> PyResult<Vec<StcHighShape>> {
+     let mut out = vec![StcHighShape { out_level: 50, skip_mask: 1 }];
+     let mut bts = pc_shadow::BtsConfig::n32_shipped();
++    bts.shift_evalmod(em, chain.unit);
+     // the route builds a variant for every drop its finishes use (session `route_needs`)
+     bts.raise_drops.extend(levels.iter().map(|x| x.2).filter(|&x| x > 0));
+     for &(l, d, drop) in levels {
+diff --git a/crates/pc-py/src/session.rs b/crates/pc-py/src/session.rs
+index 64f0ee0..dacb29e 100644
+--- a/crates/pc-py/src/session.rs
++++ b/crates/pc-py/src/session.rs
+@@ -641,12 +641,16 @@ fn key_needs(cfg: &pc_config::Config, ks: &PyKeySource, chain: &Chain, plan: &Op
+         let cts_alt = knob(cfg.bts.cts_alt_budget, 0, "bts.cts_alt_budget")? as u32;
+         // PC_LT_TAILS (default on) / PC_EM_FUSE_RESCALE (default off): pc-gpu BtsSetup::lt_tails / em_fuse_rescale
+         let (lt_tails, em_fuse) = (cfg.bts.lt_tails.unwrap_or(true), cfg.bts.em_fuse_rescale.unwrap_or(false));
++        // FIDESLIB_BTS_EVALMOD: every route's EvalMod series (d27sb: d27 on the sparse routes only; the compile's
++        // landings follow the same field)
++        let em = pc_program::compile::evalmod(cfg).map_err(|x| crate::ConfigError::new_err(x.to_string()))?;
+         for p in &ps.programs {
+             steps.extend(prog_steps(p, half));
+         }
+         steps.extend(ps.dyn_rot.iter().map(|k| k.rem_euclid(half)));
+         if rn.n_dense > 0 {
+             let mut setup = BtsSetup::n32_shipped();
++            setup.set_evalmod(em);
+             setup.raise_drops = rn.dense_drops.iter().copied().collect();
+             setup.real = rn.real;
+             // batched PCMM finishes run K-member refreshes on this route (its work buffers)
+@@ -666,7 +670,7 @@ fn key_needs(cfg: &pc_config::Config, ks: &PyKeySource, chain: &Chain, plan: &Op
+                 let mut levels = rn.ccmm_levels.clone();
+                 let land = shc.bts.dense_shipped.or_else(|| shc.bts.landings.get(&0).copied()).map(|l| l.level).unwrap_or(shc.bts.bootstrap_level);
+                 levels.insert((land, 1, 0));
+-                let shapes = crate::matmul::high_shapes(shc.chain, sfs.cf_default.unwrap_or(13), &levels)?;
++                let shapes = crate::matmul::high_shapes(shc.chain, sfs.cf_default.unwrap_or(13), &levels, em)?;
+                 sfs.high = Some(pc_gpu::bts::stc_high::StcHighSetup { shapes, slots: ps.stc_cache.max(4) });
+             }
+             let mut sp = StcFirstPlan::new(chain, &setup, &sfs).map_err(e)?;
+@@ -686,6 +690,7 @@ fn key_needs(cfg: &pc_config::Config, ks: &PyKeySource, chain: &Chain, plan: &Op
+         }
+         if !rn.plain_drops.is_empty() {
+             let mut setup = BtsSetup::n32_shipped();
++            setup.set_evalmod(em);
+             setup.raise_drops = rn.plain_drops.iter().copied().collect();
+             setup.real = rn.plain_real;
+             setup.cts_alt_budget = cts_alt;
+@@ -702,6 +707,7 @@ fn key_needs(cfg: &pc_config::Config, ks: &PyKeySource, chain: &Chain, plan: &Op
+                 c.k_max = 1;
+                 (c.lt_tails, c.em_fuse_rescale) = (lt_tails, em_fuse);
+                 c.evalmod_k = knob(cfg.bts.sparse_b_k, pc_core::bts_setup::SPARSE_B_K as i64, "bts.sparse_b_k")? as f64;
++                c.evalmod = em.sparse_route();
+                 full.extend(pc_gpu::bts::sparse_b::rot_steps(n, &c).map_err(e)?.into_iter().map(|k| k.rem_euclid(half)));
+                 sb_cfgs.push(c);
+             }
+@@ -711,6 +717,7 @@ fn key_needs(cfg: &pc_config::Config, ks: &PyKeySource, chain: &Chain, plan: &Op
+             for (&sl, drops) in &rn.classic {
+                 let mut c = pc_gpu::bts::sparse_classic::ClassicCfg::n32(sl, &drops.iter().copied().collect::<Vec<_>>());
+                 c.level_budget = budget;
++                c.set_evalmod(em);
+                 let cp = pc_gpu::bts::sparse_classic::ClassicPlan::new(chain, &c).map_err(e)?;
+                 full.extend(cp.rot_steps());
+                 cplans.push(cp);
+diff --git a/crates/pc-py/src/shadow.rs b/crates/pc-py/src/shadow.rs
+index b89db07..35474e7 100644
+--- a/crates/pc-py/src/shadow.rs
++++ b/crates/pc-py/src/shadow.rs
+@@ -58,6 +58,33 @@ pub fn chain_of(c: &Config) -> PyResult<pc_core::params::Chain> {
+     pc_core::params::Chain::generate(&spec).map_err(|e| cfg_err("chain.preset", e))
+ }
+ 
++/// The fakecap's raw landings: `quirks.fakecap_landings` (the shipped EvalMod series'), every route but SPRU's (s = 1)
++/// re-landed for series `em` (`evalmod_landing_shift`; the dense route by `em.dense_route()`, the sparse ones by
++/// `em.sparse_route()`).
++fn fakecap_landings_of(c: &Config, em: pc_shadow::route::EvalMod, unit: u32) -> PyResult<Vec<(u32, Landing)>> {
++    let spec = c.quirks.fakecap_landings.as_deref().unwrap_or("0:32,1:14,256:22,512:22");
++    let mut ls = parse_landings("quirks.fakecap_landings", spec, 2)?;
++    let (dd, ds) = (pc_shadow::route::evalmod_landing_shift(em.dense_route(), unit), pc_shadow::route::evalmod_landing_shift(em.sparse_route(), unit));
++    for (s, l) in ls.iter_mut() {
++        let d = match *s {
++            1 => continue,
++            0 => dd,
++            _ => ds,
++        };
++        l.level = l.level.checked_sub(d).ok_or_else(|| cfg_err("quirks.fakecap_landings", format!("{spec:?} under bts.evalmod")))?;
++    }
++    Ok(ls)
++}
++
++/// The capture's refresh landings a Config means (fakecap mode): route s -> (level, deg), 0 = dense.
++#[pyfunction]
++fn fakecap_landings(config: &PyConfig) -> PyResult<std::collections::BTreeMap<u32, (u32, u8)>> {
++    let c = &config.0;
++    let unit = u32_of("chain.composite_degree", c.chain.composite_degree, 2)?;
++    let em = pc_program::compile::evalmod(c).map_err(|x| cfg_err("bts.evalmod", x))?;
++    Ok(fakecap_landings_of(c, em, unit)?.into_iter().map(|(s, l)| (s, (l.level, l.deg))).collect())
++}
++
+ /// The ShadowConfig a Config means in `mode` (pc-shadow stays untouched).
+ pub fn shadow_config(c: &Config, plan: Option<&PlanConfig>, mode: &str, strict: bool) -> PyResult<ShadowConfig> {
+     let unit = u32_of("chain.composite_degree", c.chain.composite_degree, 2)?;
+@@ -86,7 +113,9 @@ pub fn shadow_config(c: &Config, plan: Option<&PlanConfig>, mode: &str, strict:
+         }
+         quirks = q;
+     }
++    let em = pc_program::compile::evalmod(c).map_err(|x| cfg_err("bts.evalmod", x))?;
+     let mut bts = BtsConfig::n32_shipped();
++    bts.shift_evalmod(em, unit);
+     bts.level_limit = u32_of("bts.auto_bts_level", c.bts.auto_bts_level, 46)?;
+     bts.k_max = u32_of("bts.k_max", c.bts.k_max, bts.k_max)?;
+     if let Some(d) = &c.bts.raise_drops {
+@@ -101,8 +130,7 @@ pub fn shadow_config(c: &Config, plan: Option<&PlanConfig>, mode: &str, strict:
+             bts.max_input_level = u32::MAX;
+         }
+         "fakecap" => {
+-            let spec = c.quirks.fakecap_landings.as_deref().unwrap_or("0:32,1:14,256:22,512:22");
+-            let ls = parse_landings("quirks.fakecap_landings", spec, 2)?;
++            let ls = fakecap_landings_of(c, em, unit)?;
+             let dense = ls.iter().find(|(s, _)| *s == 0).map(|x| x.1).ok_or_else(|| cfg_err("quirks.fakecap_landings", "no dense (0:) landing"))?;
+             let drop = u32_of("quirks.fakecap_stc_drop", c.quirks.fakecap_stc_drop, 6)?;
+             bts.landings = ls.into_iter().collect();
+@@ -388,5 +416,6 @@ impl PyShadow {
+ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
+     m.add_class::<PyShadow>()?;
+     m.add_class::<PySimNode>()?;
++    m.add_function(wrap_pyfunction!(fakecap_landings, m)?)?;
+     Ok(())
+ }
+diff --git a/crates/pc-shadow/examples/em_depth.rs b/crates/pc-shadow/examples/em_depth.rs
+new file mode 100644
+index 0000000..82ba714
+--- /dev/null
++++ b/crates/pc-shadow/examples/em_depth.rs
+@@ -0,0 +1,38 @@
++//! Levels an EvalMod series consumes on the n32 chain: `cargo run -p pc-shadow --example em_depth -- [COEFFS.json DA]`.
++//! COEFFS.json: a JSON array of Chebyshev coefficients (OpenFHE convention, c0 not halved); no argument = the K = 16
++//! and K = 24 tables of every `EvalMod` series, with their double angles. Prints the input top, the output top and
++//! their difference.
++use pc_shadow::evalmod::{build_evalmod, PsPlan};
++use pc_core::bts_setup::EvalMod;
++use pc_core::scale::ScaleTables;
++use pc_shadow::fides::FMeta;
++
++fn levels(st: &ScaleTables, coeffs: &[f64], da: i32, top: i32) -> (i32, usize) {
++    let input = FMeta { top, nl: 2, nf: st.sf(top).unwrap() * st.sf(top).unwrap() };
++    let ps = PsPlan::from_coeffs(coeffs).expect("PS plan");
++    let (prog, out) = build_evalmod(st, input, &ps, da).expect("build");
++    (top - out.top, prog.ops.len())
++}
++
++fn main() {
++    let chain = pc_core::params::Chain::generate(&pc_core::params::ChainSpec::n32()).expect("n32 chain");
++    let st = ScaleTables::precompute(&chain).expect("tables");
++    let args: Vec<String> = std::env::args().skip(1).collect();
++    let mut tables: Vec<(String, Vec<f64>, i32)> = vec![];
++    if args.len() >= 2 {
++        let c: Vec<f64> = serde_json::from_str(&std::fs::read_to_string(&args[0]).unwrap()).unwrap();
++        tables.push((args[0].clone(), c, args[1].parse().unwrap()));
++    } else {
++        for em in [EvalMod::Shipped, EvalMod::D27] {
++            let da = em.da_its() as i32;
++            tables.push((format!("{em:?} K16"), em.dense().to_vec(), da));
++            tables.push((format!("{em:?} K24"), em.sparse_k24().to_vec(), da));
++        }
++    }
++    for (name, c, da) in &tables {
++        for top in [45, 51] {
++            let (l, n) = levels(&st, c, *da, top);
++            println!("{name}: degree {} + {da} double angles, in top {top}: {l} levels, {n} ops", c.len() - 1);
++        }
++    }
++}
+diff --git a/crates/pc-shadow/src/evalmod.rs b/crates/pc-shadow/src/evalmod.rs
+index f25ead3..a564c73 100644
+--- a/crates/pc-shadow/src/evalmod.rs
++++ b/crates/pc-shadow/src/evalmod.rs
+@@ -891,6 +891,20 @@ mod general_ps_tests {
+         assert_eq!(a.metas[xa].nf.to_bits(), b.metas[xb].nf.to_bits());
+     }
+ 
++    /// Every series `EvalMod` names consumes `levels()` CKKS levels on n32, both K (the landings rest on it).
++    #[test]
++    fn evalmod_series_levels() {
++        use pc_core::bts_setup::EvalMod;
++        let st = tables();
++        for em in [EvalMod::Shipped, EvalMod::D27] {
++            for (coeffs, top) in [(em.dense(), 45), (em.sparse_k24(), 51)] {
++                let input = FMeta { top, nl: 2, nf: st.sf(top).unwrap() * st.sf(top).unwrap() };
++                let (_, out) = build_evalmod(&st, input, &PsPlan::from_coeffs(coeffs).unwrap(), em.da_its() as i32).unwrap();
++                assert_eq!((top - out.top) as u32, 2 * em.levels(), "{em:?}, {} coefficients", coeffs.len());
++            }
++        }
++    }
++
+     /// SparseB's K = 24 degree-20 series (m = 3, recursive PS) builds; depth as FIDESlib's.
+     #[test]
+     fn k24_series_builds() {
+diff --git a/crates/pc-shadow/src/route.rs b/crates/pc-shadow/src/route.rs
+index 6e1a682..d363a11 100644
+--- a/crates/pc-shadow/src/route.rs
++++ b/crates/pc-shadow/src/route.rs
+@@ -2,6 +2,7 @@
+ use crate::error::{Error, Result};
+ use crate::meta::{effective_level, ChainShape};
+ use crate::quirks::{Quirk, Quirks};
++pub use pc_core::bts_setup::EvalMod;
+ use pc_core::scale::ScaleTables;
+ use serde::{Deserialize, Serialize};
+ use std::collections::BTreeMap;
+@@ -109,6 +110,33 @@ impl BtsConfig {
+         }
+     }
+ 
++    /// `n32_shipped` for EvalMod series `em` (`evalmod_landing_shift` on the d = 2 chain).
++    pub fn n32(em: EvalMod) -> BtsConfig {
++        let mut b = Self::n32_shipped();
++        b.shift_evalmod(em, 2);
++        b
++    }
++
++    /// Re-land the routes that run EvalMod for series `em` in place of the shipped one: the bootstrap level, every
++    /// landing but SPRU's (s = 1) and the shipped-order ones move `evalmod_landing_shift(em, unit)` shallower. For
++    /// landings that are the shipped series' (the defaults); a plan's own recipe values are already its series'.
++    /// The dense (s = 0) and StC-first landings and the bootstrap level follow `em.dense_route()`, the sparse ones
++    /// (every other s) `em.sparse_route()`.
++    pub fn shift_evalmod(&mut self, em: EvalMod, unit: u32) {
++        let (dd, ds) = (evalmod_landing_shift(em.dense_route(), unit), evalmod_landing_shift(em.sparse_route(), unit));
++        self.bootstrap_level -= dd;
++        for (&s, l) in self.landings.iter_mut() {
++            match s {
++                1 => {}
++                0 => l.level -= dd,
++                _ => l.level -= ds,
++            }
++        }
++        for l in [&mut self.stc_first_fallback, &mut self.dense_shipped].into_iter().flatten() {
++            l.level -= dd;
++        }
++    }
++
+     /// The landing of a refresh of `input` on `route` (degree as listed; a refresh's own realize is part of it).
+     pub fn landing(&self, chain: ChainShape, quirks: &Quirks, route: &Route, in_level: u32, in_deg: u8) -> Result<Landing> {
+         if in_level > self.max_input_level {
+@@ -160,14 +188,24 @@ impl BtsConfig {
+ 
+ /// CKKS levels EvalMod consumes on the shipped n32 series: K = 16 degree 14 (dense) and K = 24 degree 20 (SparseB, the
+ /// classic sparse routes), each with 5 double angles (`evalmod::build_evalmod`: input -> output 20 primes on d = 2).
++/// The landings of `BtsConfig::n32_shipped` are this series'; another one (`EvalMod::levels`) re-lands them by
++/// `evalmod_landing_shift`.
+ pub const EVALMOD_LEVELS: u32 = 10;
+ 
++/// How much shallower every route that runs EvalMod lands with series `em` than with the shipped one: `unit` primes per
++/// CKKS level it saves (0 for the shipped series). SPRU (the s = 1 route, "decryption in the exponent") runs none.
++/// `em` is one route's series (`EvalMod::D27Sparse` names two: pass its `dense_route()` or `sparse_route()`).
++pub fn evalmod_landing_shift(em: EvalMod, unit: u32) -> u32 {
++    unit * (EVALMOD_LEVELS - em.levels())
++}
++
+ /// The realized landing of a multi-stage route in the shifted flow (FIDESLIB_BTS_SHIFT: the raise keeps the top
+-/// level, no adjust level): `budget` = {CtS, StC} stages, one CKKS level each, plus EvalMod, raise drop 0 (the caller
+-/// adds `raise_drop * unit`, as `BtsConfig::landing`). On n32: classic sparse routes {3, 3} at 32, the dense shipped
+-/// order {4, 3} at 34, SparseB's depth-1 transforms ({1, 1}) at 24.
+-pub fn multi_stage_landing(budget: [u32; 2], unit: u32) -> Landing {
+-    Landing { level: unit * (budget[0] + EVALMOD_LEVELS + budget[1]), deg: 1 }
++/// level, no adjust level): `budget` = {CtS, StC} stages, one CKKS level each, plus EvalMod (series `em`), raise drop 0
++/// (the caller adds `raise_drop * unit`, as `BtsConfig::landing`). On n32 with the shipped series: classic sparse
++/// routes {3, 3} at 32, the dense shipped order {4, 3} at 34, SparseB's depth-1 transforms ({1, 1}) at 24 (2 primes
++/// shallower each with `EvalMod::D27`). `em` is the route's own series (`sparse_route()` for the sparse ones).
++pub fn multi_stage_landing(budget: [u32; 2], unit: u32, em: EvalMod) -> Landing {
++    Landing { level: unit * (budget[0] + em.levels() + budget[1]), deg: 1 }
+ }
+ 
+ /// A linear-transform stage's plaintext encoding: the level it is encoded at and its scale.
+@@ -260,12 +298,23 @@ mod tests {
+     use super::*;
+ 
+     /// The formula reproduces the runtime's known landings: SparseB {1, 1} at 24, the dense shipped order {4, 3} at 34
+-    /// (`stc_first_fallback` of the n32 recipe), the classic {3, 3} sparse routes at 32.
++    /// (`stc_first_fallback` of the n32 recipe), the classic {3, 3} sparse routes at 32; the degree-27 series lands each
++    /// one level (2 primes) shallower, SPRU where it was.
+     #[test]
+     fn multi_stage_landings() {
+         let b = BtsConfig::n32_shipped();
+-        assert_eq!(multi_stage_landing([1, 1], 2), Landing { level: 24, deg: 1 });
+-        assert_eq!(Some(multi_stage_landing([4, 3], 2)), b.stc_first_fallback);
+-        assert_eq!(multi_stage_landing([3, 3], 2), Landing { level: 32, deg: 1 });
++        assert_eq!(multi_stage_landing([1, 1], 2, EvalMod::Shipped), Landing { level: 24, deg: 1 });
++        assert_eq!(Some(multi_stage_landing([4, 3], 2, EvalMod::Shipped)), b.stc_first_fallback);
++        assert_eq!(multi_stage_landing([3, 3], 2, EvalMod::Shipped), Landing { level: 32, deg: 1 });
++        assert_eq!(BtsConfig::n32(EvalMod::Shipped).landings, b.landings);
++        let d = BtsConfig::n32(EvalMod::D27);
++        assert_eq!(multi_stage_landing([1, 1], 2, EvalMod::D27), Landing { level: 22, deg: 1 });
++        assert_eq!(Some(multi_stage_landing([4, 3], 2, EvalMod::D27)), d.stc_first_fallback);
++        assert_eq!((d.bootstrap_level, d.landings[&0].level, d.landings[&512].level), (26, 26, 24));
++        assert_eq!(d.landings[&1], b.landings[&1]);
++        // d27sb: the sparse routes as D27, the dense / StC-first ones and the bootstrap level as shipped
++        let sb = BtsConfig::n32(EvalMod::D27Sparse);
++        assert_eq!((sb.bootstrap_level, sb.landings[&0], sb.stc_first_fallback), (b.bootstrap_level, b.landings[&0], b.stc_first_fallback));
++        assert_eq!((sb.landings[&512], sb.landings[&256], sb.landings[&1]), (d.landings[&512], d.landings[&256], b.landings[&1]));
+     }
+ }
+diff --git a/crates/pc-tools/src/bin/pc-bench.rs b/crates/pc-tools/src/bin/pc-bench.rs
+index 2e92dd8..25a813a 100644
+--- a/crates/pc-tools/src/bin/pc-bench.rs
++++ b/crates/pc-tools/src/bin/pc-bench.rs
+@@ -203,7 +203,11 @@ fn old_err(doc: &Option<serde_json::Value>, cf: u32, amp: f64) -> Option<f64> {
+ 
+ fn run(a: Args) -> Res<()> {
+     match a.chain.as_str() {
+-        "n32" => run_t::<W, M>(a, ChainSpec::n32(), BtsSetup::n32_shipped()),
++        "n32" => {
++            let mut setup = BtsSetup::n32_shipped();
++            setup.set_evalmod(pc_core::bts_setup::EvalMod::from_env()?);
++            run_t::<W, M>(a, ChainSpec::n32(), setup)
++        }
+         "n64" => run_t::<u64, Barrett64>(a, ChainSpec::n64(), BtsSetup::n64()),
+         c => Err(format!("--chain {c}: n32 | n64").into()),
+     }
+diff --git a/crates/pc-tools/src/bts_all.rs b/crates/pc-tools/src/bts_all.rs
+index a6d9812..851e976 100644
+--- a/crates/pc-tools/src/bts_all.rs
++++ b/crates/pc-tools/src/bts_all.rs
+@@ -254,7 +254,10 @@ fn bench_k(o: &Opts, kb: usize, out_rows: &mut Vec<Row>, mem_rows: &mut Vec<(Str
+     // dense + StC-first: one StcFirstRoute (its shipped order == DenseRoute word for word)
+     // PC_EM_FUSE_RESCALE=1: the EvalMod relinearization-rescale fusion on every route (default off, as BtsSetup)
+     let em_fuse = std::env::var("PC_EM_FUSE_RESCALE").is_ok_and(|v| v == "1");
++    // FIDESLIB_BTS_EVALMOD: every route's EvalMod series (unset = the shipped one; d27sb = d27 on the sparse routes)
++    let em = pc_core::bts_setup::EvalMod::from_env()?;
+     let mut setup = BtsSetup::n32_shipped();
++    setup.set_evalmod(em);
+     setup.k_max = kb;
+     setup.real = true;
+     setup.em_fuse_rescale = em_fuse;
+@@ -273,6 +276,7 @@ fn bench_k(o: &Opts, kb: usize, out_rows: &mut Vec<Row>, mem_rows: &mut Vec<(Str
+         .iter()
+         .map(|&s| {
+             let mut c = SparseBCfg::n32(s, 1);
++            c.evalmod = em.sparse_route();
+             c.k_max = kb;
+             c.em_fuse_rescale = em_fuse;
+             c
+@@ -352,7 +356,7 @@ fn bench_k(o: &Opts, kb: usize, out_rows: &mut Vec<Row>, mem_rows: &mut Vec<(Str
+     let mut encr = Encryptor::<W>::new(&arena, &ex.compute, lay, false, &mut prng)?;
+     let mut dec = Decryptor::<W>::new(&arena, &ex.compute, lay, chain.level_unit, 1)?;
+     dec.load_secret(&ex.compute, &sec)?;
+-    let sh = Shadow::new(ShadowConfig { chain: ctx.shape, bts: BtsConfig::n32_shipped(), quirks: Quirks::none() }, Some(Arc::new(ctx.scale.clone())));
++    let sh = Shadow::new(ShadowConfig { chain: ctx.shape, bts: BtsConfig::n32(em), quirks: Quirks::none() }, Some(Arc::new(ctx.scale.clone())));
+     let align = Arena::bytes_for::<u8>(1);
+     let mark = |a: &Arena| a.used_bytes().div_ceil(align) * align;
+     let mut carved: Vec<usize> = Vec::new();
+diff --git a/crates/pc-tools/src/bts_classic.rs b/crates/pc-tools/src/bts_classic.rs
+index 128855e..270024c 100644
+--- a/crates/pc-tools/src/bts_classic.rs
++++ b/crates/pc-tools/src/bts_classic.rs
+@@ -128,6 +128,7 @@ pub fn run(o: &Opts) -> Res<bool> {
+     let n = chain.n;
+     let nq = chain.q.len();
+     let mut cfg = ClassicCfg::n32(o.route, &[o.raise_drop]);
++    cfg.set_evalmod(pc_core::bts_setup::EvalMod::from_env()?);
+     cfg.level_budget = o.budget;
+     let plan = ClassicPlan::new(&chain, &cfg)?;
+     let steps = plan.rot_steps();
+@@ -186,8 +187,8 @@ pub fn run(o: &Opts) -> Res<bool> {
+     arena.freeze();
+     println!("[sparse-classic] setup {:.1} s; arena {} of {} B", t0.elapsed().as_secs_f64(), arena.used_bytes(), arena.capacity());
+     // landing vs the compile's runtime table (realized; raw = one CKKS level above, degree 2)
+-    let mut bc = BtsConfig::n32_shipped();
+-    bc.landings.insert(o.route, pc_shadow::route::multi_stage_landing(o.budget, chain.level_unit as u32));
++    let mut bc = BtsConfig::n32(pc_core::bts_setup::EvalMod::from_env()?);
++    bc.landings.insert(o.route, pc_shadow::route::multi_stage_landing(o.budget, chain.level_unit as u32, pc_core::bts_setup::EvalMod::from_env()?.sparse_route()));
+     let sh = Shadow::new(ShadowConfig { chain: ctx.shape, bts: bc, quirks: Quirks::none() }, Some(Arc::new(ctx.scale.clone())));
+     let r0 = Route { slots: o.route, raise_drop: o.raise_drop, ..Route::sparse(o.route) };
+     let raw = BtsRoute::<W, M>::landing(&route, &sh, &CtMeta::new(10, 1), &r0)?;
+diff --git a/crates/pc-tools/src/bts_sparse.rs b/crates/pc-tools/src/bts_sparse.rs
+index 1b1e917..526abe3 100644
+--- a/crates/pc-tools/src/bts_sparse.rs
++++ b/crates/pc-tools/src/bts_sparse.rs
+@@ -247,7 +247,7 @@ pub fn run(o: &Opts) -> Res<bool> {
+     let mut enc = Encryptor::<W>::new(&arena, &ex.compute, lay, false, &mut prng)?;
+     let mut dec = Decryptor::<W>::new(&arena, &ex.compute, lay, chain.level_unit, 1)?;
+     dec.load_secret(&ex.compute, &secret)?;
+-    let sh = Shadow::new(ShadowConfig { chain: ctx.shape, bts: BtsConfig::n32_shipped(), quirks: Quirks::none() }, Some(Arc::new(ctx.scale.clone())));
++    let sh = Shadow::new(ShadowConfig { chain: ctx.shape, bts: BtsConfig::n32(pc_core::bts_setup::EvalMod::from_env()?), quirks: Quirks::none() }, Some(Arc::new(ctx.scale.clone())));
+     let align = pc_cuda::Arena::bytes_for::<u8>(1);
+     let used0 = arena.used_bytes().div_ceil(align) * align;
+     let skey = SpruKey::sample(&mut prng, n, &cfg)?;
+@@ -541,6 +541,7 @@ fn run_sb(o: &Opts) -> Res<bool> {
+     let sk = SecretKey { s: read_sk(&g0.dir.join("sk.npy"))?, s_sparse: vec![] };
+     let rd = o.raise_drop.unwrap_or_else(|| g0.params["boot_routes"][o.route.to_string()]["raise_drop"].as_u64().unwrap_or(1) as u32);
+     let mut scfg = SparseBCfg::n32(o.route, rd);
++    scfg.evalmod = pc_core::bts_setup::EvalMod::from_env()?.sparse_route();
+     scfg.k_max = 8;
+     if let Some(src) = o.ks_source {
+         scfg.ks_source = src;
+@@ -626,7 +627,7 @@ fn run_sb(o: &Opts) -> Res<bool> {
+     ex.compute.sync()?;
+     println!("[bts-sparse] setup {:.1} s; arena {} of {} B", t0.elapsed().as_secs_f64(), arena.used_bytes(), arena.capacity());
+     arena.freeze();
+-    let sh = Shadow::new(ShadowConfig { chain: ctx.shape, bts: BtsConfig::n32_shipped(), quirks: Quirks::none() }, Some(Arc::new(ctx.scale.clone())));
++    let sh = Shadow::new(ShadowConfig { chain: ctx.shape, bts: BtsConfig::n32(pc_core::bts_setup::EvalMod::from_env()?), quirks: Quirks::none() }, Some(Arc::new(ctx.scale.clone())));
+     let encoder = Encoder::new(&chain);
+     let mut dct = pool.acquire(1, CtMeta::new(0, 1))?;
+     let mut decrypt = |ex: &mut Executor<'_, W>, ops: &mut Ops<'_, W>, x: &Ct<'_, W>, c: usize| -> Res<Vec<Complex>> {
+diff --git a/crates/pc-tools/src/bts_stc_first.rs b/crates/pc-tools/src/bts_stc_first.rs
+index 1b47c6b..ff77e93 100644
+--- a/crates/pc-tools/src/bts_stc_first.rs
++++ b/crates/pc-tools/src/bts_stc_first.rs
+@@ -250,6 +250,7 @@ fn d3(dir: &str, ks_list: &[usize], graph: bool, t: &mut Tally) -> Res<()> {
+     let exact = crate::check_bts::eval_const(&ctx, drop as usize, pc_core::bts_setup::EVALMOD_K);
+     let cts0_t = boot["cts0_t"].as_u64().ok_or("cts0_t")? as u32;
+     let mut setup = BtsSetup::n32_shipped();
++    setup.set_evalmod(pc_core::bts_setup::EvalMod::from_env()?);
+     setup.raise_drops = vec![drop];
+     setup.real = false;
+     setup.k_max = k_max;
+@@ -279,7 +280,7 @@ fn d3(dir: &str, ks_list: &[usize], graph: bool, t: &mut Tally) -> Res<()> {
+     s.sync()?;
+     println!("[pc-check] stcf d3 setup {:.1} s: {} rotation keys, arena {:.1} GB", t0.elapsed().as_secs_f64(), keys.rot.len(), arena.used_bytes() as f64 / 1e9);
+     arena.freeze();
+-    let sh = Shadow::new(ShadowConfig { chain: ctx.shape, bts: BtsConfig::n32_shipped(), quirks: Quirks::none() }, Some(Arc::new(ctx.scale.clone())));
++    let sh = Shadow::new(ShadowConfig { chain: ctx.shape, bts: BtsConfig::n32(pc_core::bts_setup::EvalMod::from_env()?), quirks: Quirks::none() }, Some(Arc::new(ctx.scale.clone())));
+     let nq = ctx.shape.n_q;
+     // the call's state from the input's metadata (pre_input: limb 21, before the input StC), as the PCMM takes it
+     let pre_in = d.ct("it0.pre_input");
+@@ -438,6 +439,7 @@ fn g0(dir: &str, t: &mut Tally) -> Res<()> {
+     let real = pj["run"]["env"]["FIDESLIB_BTS_REAL"].as_str() == Some("1");
+     let k_max = 1;
+     let mut setup = BtsSetup::n32_shipped();
++    setup.set_evalmod(pc_core::bts_setup::EvalMod::from_env()?);
+     setup.raise_drops = vec![rj["raise_drop"].as_u64().unwrap_or(0) as u32];
+     setup.real = real;
+     setup.k_max = k_max;
+@@ -512,12 +514,12 @@ fn g0(dir: &str, t: &mut Tally) -> Res<()> {
+     s.sync()?;
+     println!("[pc-check] stcf g0 setup {:.1} s: {} rotation keys, arena {:.1} of {:.1} GB; entry limb {}, {} input stages, cache {} entries", t0.elapsed().as_secs_f64(), keys.rot.len(), arena.used_bytes() as f64 / 1e9, arena.capacity() as f64 / 1e9, route.entry_top, route.input.len(), sf.cache_slots);
+     arena.freeze();
+-    let sh = Shadow::new(ShadowConfig { chain: ctx.shape, bts: BtsConfig::n32_shipped(), quirks: Quirks::none() }, Some(Arc::new(ctx.scale.clone())));
++    let sh = Shadow::new(ShadowConfig { chain: ctx.shape, bts: BtsConfig::n32(pc_core::bts_setup::EvalMod::from_env()?), quirks: Quirks::none() }, Some(Arc::new(ctx.scale.clone())));
+     let nq = ctx.shape.n_q;
+     let unit = ctx.shape.unit;
+     let q2 = [chain.q[0], chain.q[1]];
+     // entry and landings vs pc-shadow (FAKECAP_STC_ENTRY 46, StC-first lands FAKECAP_STC_DROP = 6 levels above the shipped order)
+-    let bcfg = BtsConfig::n32_shipped();
++    let bcfg = BtsConfig::n32(pc_core::bts_setup::EvalMod::from_env()?);
+     t.add("entry level vs pc-shadow BtsConfig::stc_first_entry", (Some(route.entry_level(nq)) != bcfg.stc_first_entry) as usize, 1);
+     let h_in = bd.ct("2.in");
+     let h_out = bd.ct("2.out");
+@@ -811,6 +813,7 @@ pub fn bench(args: &[String]) -> Res<bool> {
+     let slots = n / 2;
+     let kmax = (*a.ks.iter().max().unwrap_or(&1)).max(8);
+     let mut setup = BtsSetup::n32_shipped();
++    setup.set_evalmod(pc_core::bts_setup::EvalMod::from_env()?);
+     setup.raise_drops = vec![0, 1];
+     setup.k_max = kmax;
+     setup.real = true;
+@@ -880,7 +883,7 @@ pub fn bench(args: &[String]) -> Res<bool> {
+     let mut x = Ct::new(CtMeta::new(0, 1), CtBuf::<Compute, W>::new(&arena, "bench.cts", lay, kmax)?);
+     let mut y = Ct::new(CtMeta::new(0, 1), CtBuf::<Compute, W>::new(&arena, "bench.cts", lay, kmax)?);
+     arena.freeze();
+-    let sh = Shadow::new(ShadowConfig { chain: ctx.shape, bts: BtsConfig::n32_shipped(), quirks: Quirks::none() }, Some(Arc::new(ctx.scale.clone())));
++    let sh = Shadow::new(ShadowConfig { chain: ctx.shape, bts: BtsConfig::n32(pc_core::bts_setup::EvalMod::from_env()?), quirks: Quirks::none() }, Some(Arc::new(ctx.scale.clone())));
+     let enc = Encoder::new(&chain);
+     let nq = ctx.shape.n_q;
+     let mut fresh = |x: &mut Ct<'_, W>, ex: &mut Executor<'_, W>, vals: &[Vec<Complex>], level: u32| -> Res<()> {
+@@ -975,7 +978,7 @@ pub fn bench(args: &[String]) -> Res<bool> {
+                             call.run_to(&mut cx, std::slice::from_mut(&mut x), Phase::Done)?;
+                             t.add(&format!("cf={cf} own_cf={own} real={real}: output metadata == route landing"), (x.meta.level != land.level || x.meta.deg != land.deg || x.meta.nf.to_bits() != land.nf.to_bits()) as usize, 1);
+                             cx.ops.realize(&ctx, cx.ex, &sh, std::slice::from_mut(&mut x))?;
+-                            let want = BtsConfig::n32_shipped().landing(ctx.shape, &Quirks::none(), &r, a.level, 1)?;
++                            let want = BtsConfig::n32(pc_core::bts_setup::EvalMod::from_env()?).landing(ctx.shape, &Quirks::none(), &r, a.level, 1)?;
+                             t.add(&format!("cf={cf} own_cf={own} real={real}: realized landing == pc-shadow"), (x.meta.level != want.level || x.meta.deg != want.deg) as usize, 1);
+                             let got = dec.decrypt_slots(&ctx, &ex.compute, &enc, &x, Payload::Complex, Which::Dense)?;
+                             for (j, &amp) in chunk.1.iter().enumerate() {
+@@ -1025,7 +1028,7 @@ pub fn bench(args: &[String]) -> Res<bool> {
+                 let cf = a.cfs[0];
+                 let v = vec![rand_gauss(31, slots, 0.1)];
+                 // pc-shadow: the shipped-order dense landing is `dense_shipped` when landings[0] is the StC-first one
+-                let mut bc = BtsConfig::n32_shipped();
++                let mut bc = BtsConfig::n32(pc_core::bts_setup::EvalMod::from_env()?);
+                 bc.dense_shipped = bc.stc_first_fallback;
+                 for (lvl, stcf) in [(a.level, true), (a.level, false), (48u32, true)] {
+                     let r = Route { cf: Some(cf), stc_first: stcf, ..Route::dense() };
+@@ -1120,7 +1123,7 @@ pub fn bench(args: &[String]) -> Res<bool> {
+                 println!("[pc-bench] PCMM pattern hooks: {:?}", log);
+                 cx.ops.realize(&ctx, cx.ex, &sh, std::slice::from_mut(&mut x))?;
+             }
+-            let want = BtsConfig::n32_shipped().landing(ctx.shape, &Quirks::none(), &Route { raise_drop: 1, ..r }, a.level, 1)?;
++            let want = BtsConfig::n32(pc_core::bts_setup::EvalMod::from_env()?).landing(ctx.shape, &Quirks::none(), &Route { raise_drop: 1, ..r }, a.level, 1)?;
+             t.add("PCMM pattern (finish at raise drop 1): realized landing == pc-shadow (drop 1)", (x.meta.level != want.level) as usize, 1);
+             let got = dec.decrypt_slots(&ctx, &ex.compute, &enc, &x, Payload::Complex, Which::Dense)?;
+             let ec = got[0].iter().zip(&v1[0]).map(|(g, v)| (*g - *v).abs()).fold(0f64, f64::max);
+@@ -1194,7 +1197,7 @@ pub fn bench(args: &[String]) -> Res<bool> {
+                             cx.ops.realize(&ctx, cx.ex, &sh, std::slice::from_mut(&mut y))?;
+                         }
+                         if s == 0 {
+-                            let want = BtsConfig::n32_shipped().landing(ctx.shape, &Quirks::none(), &rx, a.level, 1)?;
++                            let want = BtsConfig::n32(pc_core::bts_setup::EvalMod::from_env()?).landing(ctx.shape, &Quirks::none(), &rx, a.level, 1)?;
+                             t.add(&format!("pair {cfx}:{ax} + {cfy}:{ay}: realized landings == pc-shadow"), (x.meta.level != want.level) as usize + (y.meta.level != want.level) as usize, 2);
+                         }
+                         let gx = dec.decrypt_slots(&ctx, &ex.compute, &enc, &x, Payload::Complex, Which::Dense)?;
+diff --git a/crates/pc-tools/src/word_seam.rs b/crates/pc-tools/src/word_seam.rs
+index f9849a0..3b94797 100644
+--- a/crates/pc-tools/src/word_seam.rs
++++ b/crates/pc-tools/src/word_seam.rs
+@@ -94,7 +94,9 @@ pub fn run<W: DevWord, M: DevStrategy<W>>(chain: Chain, o: &RigOpts) -> Res<RigO
+     let n = chain.n;
+     let slots = n / 2;
+     let nq = chain.q.len();
+-    let kmax = o.ks.iter().copied().max().unwrap_or(1).max(8);
++    // bench-only runs size the arena to the largest --k (a 4 GB card fits K <= 2); the checks keep K = 8
++    let kmax = o.ks.iter().copied().max().unwrap_or(1);
++    let kmax = if o.check { kmax.max(8) } else { kmax };
+     let dev = Device::open()?;
+     let cfg = MemCfg { k_max: kmax.max(2), pool: vec![PoolClass { k: 1, count: 1 }], events: 64, scratch_cts: 2 };
+     let mut mp = MemPlan::build::<W, M>(&chain, cfg)?;
+diff --git a/python/perseus/examples/gpt2/block.py b/python/perseus/examples/gpt2/block.py
+index 6755c83..a97586a 100644
+--- a/python/perseus/examples/gpt2/block.py
++++ b/python/perseus/examples/gpt2/block.py
+@@ -3,10 +3,16 @@ ln_1 (folded: shift only) -> MHA -> residual -> ln_2 (folded) -> up -> GELU -> d
+ residual."""
+ from __future__ import annotations
+ 
++import os
++
+ from perseus.impl.attention import mha
+ from perseus.impl.activation import gelu
+ from perseus.impl.linear import linear
+-from perseus.impl.norm import norm, ln_shift, ln_affine
++from perseus.impl.norm import norm, norm_defer, ln_shift, ln_affine
++
++# LN_DEFER: the residual's exit cap in units below the session limit (QKV_LANES' headroom(3) otherwise): the deferred
++# LayerNorm reaches its linear one unit after the residual instead of three
++LN_DEFER_EXIT = int(os.environ.get("LN_DEFER_EXIT", "3"))
+ 
+ 
+ def transformer_block(rt, x, w, kv, cfgs, pos: int, last: bool = False):
+@@ -15,21 +21,28 @@ def transformer_block(rt, x, w, kv, cfgs, pos: int, last: bool = False):
+     ``last``: the model's final block (its exit feeds the tail, not another block)."""
+     ops = rt.ops
+     ln1, ln2, sm, ge = cfgs
++    defer = getattr(w, "ln_defer", False)
+     skip = x
+     with rt.step("ln_1"):
+-        n = norm(rt, x, ln1, pos)
+-        x = ln_shift(rt, n, w.shift1, w.tag + "ln_1") if w.shift1 is not None else \
+-            ln_affine(rt, n, w.gamma1, w.beta1, w.tag + "ln_1")
++        if defer:
++            x = norm_defer(rt, x, ln1, pos)
++        else:
++            n = norm(rt, x, ln1, pos)
++            x = ln_shift(rt, n, w.shift1, w.tag + "ln_1") if w.shift1 is not None else \
++                ln_affine(rt, n, w.gamma1, w.beta1, w.tag + "ln_1")
+     x = mha(rt, x, w, kv, sm)
+     x = ops.add(x, skip)
+     skip = x
+     with rt.step("ln_2"):
+-        n = norm(rt, x, ln2, pos)
+-        if w.shift2 is not None:
+-            x = ln_shift(rt, n, w.shift2, w.tag + "ln_2")
++        if defer:
++            x = norm_defer(rt, x, ln2, pos)
+         else:
+-            ops.fhe.maybe_bootstrap(n)
+-            x = ln_affine(rt, n, w.gamma2, w.beta2, w.tag + "ln_2")
++            n = norm(rt, x, ln2, pos)
++            if w.shift2 is not None:
++                x = ln_shift(rt, n, w.shift2, w.tag + "ln_2")
++            else:
++                ops.fhe.maybe_bootstrap(n)
++                x = ln_affine(rt, n, w.gamma2, w.beta2, w.tag + "ln_2")
+     with rt.step("up"):
+         # mlp.cu (the output-pack unpack costs no level). QKV_LANES: the hint fires only past the limit plus one
+         # unit, so the up-projection runs on the LayerNorm output as is and the plan refreshes its OUTPUT at the
+@@ -48,5 +61,5 @@ def transformer_block(rt, x, w, kv, cfgs, pos: int, last: bool = False):
+         # push refresh covers it with no hint. The planner reads the cap (lvl_cap), the runtime passes through. Not
+         # on the last block: its exit feeds the tail, whose plan is cheaper from the deeper entry (+0.05 s/token
+         # planned otherwise).
+-        ops.fhe.level_hint(out, ops.headroom(3))
++        ops.fhe.level_hint(out, ops.headroom(LN_DEFER_EXIT if defer else 3))
+     return out
+diff --git a/python/perseus/examples/gpt2/model.py b/python/perseus/examples/gpt2/model.py
+index 7627924..e9aa0b5 100644
+--- a/python/perseus/examples/gpt2/model.py
++++ b/python/perseus/examples/gpt2/model.py
+@@ -70,8 +70,13 @@ class Gpt2Model(ImplModel):
+             fold = self.rt.ops.gelu_fold and ge.method in ("thor_composite", "chebyshev")
+             args = (b, self.rt.dims, self.fold[0], self.fold[1], self.complex_packing,
+                     1.0 / ge.xmax if fold else 1.0)
++            # LN_DEFER=1 (block.transformer_block): the cache key grows only when it is on
++            defer = os.environ.get("LN_DEFER", "0") not in ("", "0")
++            if defer:
++                args = args + ("ln_defer",)
+             self._bw[b] = slotcache.cached(self._slot_key(), "block", args, lambda: W.block_weights(
+-                self.store, self.cfgs, b, self.rt.dims, args[2], args[3], args[4], up_scale=args[5]))
++                self.store, self.cfgs, b, self.rt.dims, args[2], args[3], args[4], up_scale=args[5],
++                ln_defer=defer))
+         return self._bw[b]
+ 
+     def _slot_key(self):
+diff --git a/python/perseus/examples/gpt2/weights.py b/python/perseus/examples/gpt2/weights.py
+index 53ea771..84c5795 100644
+--- a/python/perseus/examples/gpt2/weights.py
++++ b/python/perseus/examples/gpt2/weights.py
+@@ -140,6 +140,7 @@ class BlockWeights:
+     beta2: np.ndarray | None = None
+     tag: str = ""                     # plaintext-name prefix of the block ("b3.")
+     kv: EncodedLinear | None = None   # cachemir_complex: the fused K + iV linear (k, v unused)
++    ln_defer: bool = False            # LN_DEFER: q/k/v and up carry the LayerNorm centring and shift (block_weights)
+ 
+ 
+ @dataclasses.dataclass
+@@ -179,13 +180,28 @@ def block_matrices(store, cfgs: Configs, b: int, dims: Dims, fold_ln1=True, fold
+ 
+ 
+ def block_weights(store, cfgs: Configs, b: int, dims: Dims, fold_ln1=True, fold_ln2=True,
+-                  complex_packing=False, up_scale=1.0):
++                  complex_packing=False, up_scale=1.0, ln_defer=False):
+     """The block's EncodedLinears (weight_loader.h, untiled) plus the LN shifts (folded) or
+     descaled gamma/beta (unfolded). `complex_packing` (cachemir_complex): one fused K + iV
+     linear with a complex bias, and the up- and down-projections output-packed. `up_scale`
+-    multiplies the up-projection (GELU_FOLD: the GELU's 1/xmax input scaling)."""
++    multiplies the up-projection (GELU_FOLD: the GELU's 1/xmax input scaling). `ln_defer` (LN_DEFER, folded LNs
++    only): the LayerNorm's centring rides q/k/v and up (W_C = C W, C the centring over the real input rows) and its
++    shift (beta/gamma) their biases, so they read norm.norm_defer's x * (mask * 1/sigma) and give n W + shift W."""
+     m = block_matrices(store, cfgs, b, dims, fold_ln1, fold_ln2)
+     m.Up, m.bup = m.Up * up_scale, m.bup * up_scale
++    if ln_defer:
++        if not (fold_ln1 and fold_ln2):
++            raise ValueError("block_weights: LN_DEFER needs both LayerNorms folded")
++        dr = dims.dim
++        for s, mats, biases in ((ln_input_shift(m.g1, m.b1, dr), ("Q", "K", "V"), ("bq", "bk", "bv")),
++                                (ln_input_shift(m.g2, m.b2, dr), ("Up",), ("bup",))):
++            for mat, bias in zip(mats, biases):
++                M = np.array(getattr(m, mat), dtype=np.float64)
++                sp = np.zeros(M.shape[0])
++                sp[:s.shape[0]] = s
++                setattr(m, bias, getattr(m, bias) + sp @ M)
++                M[:dr] -= M[:dr].mean(axis=0)
++                setattr(m, mat, M)
+     N, dp, ep = dims.N, dims.hid, dims.E
+     enc = EncodedLinear.encode
+     pre = f"b{b}."
+@@ -210,6 +226,7 @@ def block_weights(store, cfgs: Configs, b: int, dims: Dims, fold_ln1=True, fold_
+         w.shift2 = ln_input_shift(m.g2, m.b2, dims.dim)
+     else:
+         w.gamma2, w.beta2 = m.g2, m.b2
++    w.ln_defer = ln_defer
+     return w
+ 
+ 
+diff --git a/python/perseus/impl/fakecap.py b/python/perseus/impl/fakecap.py
+index b603362..27a1795 100644
+--- a/python/perseus/impl/fakecap.py
++++ b/python/perseus/impl/fakecap.py
+@@ -141,7 +141,8 @@ class CapFhe(FakeFhe):
+         self.ct_counter = self.pt_counter = self.anon_counter = 0
+         self.graph_scope, self.graph_scope_counter, self.graph_scope_strict = "", 0, False
+         self.steps = []
+-        self.landing = parse_landings(cfg["quirks.fakecap_landings"] or "0:32,1:14,256:22,512:22")
++        # quirks.fakecap_landings re-landed for bts.evalmod (the Shadow's fakecap mode reads the same)
++        self.landing = dict(_pc.fakecap_landings(cfg))
+         self.sparse_mode = cfg["bts.sparse_auto"] or 0
+         self.sparse_precomp_slots = sorted({int(x) for x in (cfg["bts.sparse_bts_slots"] or []) if x})
+         self.pcmm_landing = None           # (level, deg) of a PCMM output, set by the session
+diff --git a/python/perseus/impl/norm.py b/python/perseus/impl/norm.py
+index 187aa51..8b3aaa8 100644
+--- a/python/perseus/impl/norm.py
++++ b/python/perseus/impl/norm.py
+@@ -119,6 +119,35 @@ def norm(rt, x, cfg: NormCfg, pos: int):
+     return ops.mult(centered, inv)
+ 
+ 
++def norm_defer(rt, x, cfg: NormCfg, pos: int):
++    """LN_DEFER: norm() with its centring and shift left to the next linear (weights.block_weights(ln_defer):
++    W_C = C W, the shift in the bias). The statistics and the inverse sqrt are norm()'s; the vector is
++    x * (m_c * inv), m_c the centring-scale mask, so x W_C gives c x inv C W = norm() W exactly. The mask rides the
++    scalar's path: the vector pays one product before the linear instead of the mask, the centring and the product."""
++    ops, d = rt.ops, rt.dims
++    N, t, dr = d.N, d.t, d.dim
++    if not (cfg.cheb_coeffs and ops.ln_cheb) or ops.fused_ln_var:
++        raise ValueError("norm_defer: needs the Chebyshev inverse-sqrt seed (LN_CHEB=1, cheb_* config), no FUSED_LN_VAR")
++    c2 = cfg.c_eff_sq(pos)
++    c = math.sqrt(c2)
++    x2 = im_cleanse(ops, x)
++    mask = lambda: active_token_mask(N, dr, t, 0.5 * c)  # noqa: E731
++    xs = rt.mult_mask(x2, ("ln.center", c), mask)
++    mean = ops.tag_reduce(rotsum(ops, xs, t, N), t)
++    mean = rt.mult_mask(mean, "ln.scalemask", lambda: stride_mask(N, dr, t, -1.0 / dr))
++    centered = ops.add(xs, mean)
++    if getattr(ops, "realize_shared", False):
++        ops.realize(centered)
++    var = ops.square(centered)
++    var = ops.tag_reduce(rotsum(ops, var, 1, N), 1)       # broadcast constant
++    var = ops.mult(var, 1.0 / dr)
++    var = ops.add(var, cfg.epsilon * c2)
++    init = eval_chebyshev(ops, var, cfg.cheb_coeffs, cfg.cheb_lo, cfg.cheb_hi)
++    inv = inv_sqrt_newton_d2(ops, var, init, cfg.cheb_nr_iters, 1.0 / (cfg.inv_out_scale * cfg.inv_out_scale))
++    ops.bootstrap_hint(inv, ops.headroom(4))
++    return ops.mult(x2, rt.mult_mask(inv, ("ln.center", c), mask))
++
++
+ def rms_norm(rt, x, cfg: NormCfg, pos: int):
+     """RMSNorm without its gamma (the next linear carries gamma / inv_out_scale):
+     inv_out_scale * x / sqrt(mean(x^2) + eps) on the lanes. The norm() pipeline minus the mean:
+diff --git a/python/tests/test_fake_shadow.py b/python/tests/test_fake_shadow.py
+index 2637556..93fefd3 100644
+--- a/python/tests/test_fake_shadow.py
++++ b/python/tests/test_fake_shadow.py
+@@ -24,12 +24,12 @@ D3 = Path("/data02/users/mithrillo/projects/perseus-oracle/fx/dumps/d3")
+ # ── Config ──────────────────────────────────────────────────────────────────────────────────────────────────────────
+ 
+ def test_config_fields_and_presets():
+-    # + bts.em_fuse_rescale, bts.lt_tails, bts.pair, bts.sparse_b_k, model.prefill.{last_query,qkv_pack,attn_bsgs,sm_hpack},
+-    # chain.preset;
++    # + bts.em_fuse_rescale, bts.lt_tails, bts.pair, bts.sparse_b_k, bts.evalmod,
++    # model.prefill.{last_query,qkv_pack,attn_bsgs,sm_hpack}, chain.preset;
+     # plan.fallback_cf,
+     # plan.argmax_mincut, plan.ilp_tiebreak, plan.raise_drop_base, plan.raise_drop_search, plan.pack_cf,
+     # plan.keep_placements_exact, plan.mag_safety_steps, plan.resume; chain.preset
+-    assert len(_pc.Config.fields()) == 259 and len(_pc.PlanConfig.fields()) == 98
++    assert len(_pc.Config.fields()) == 260 and len(_pc.PlanConfig.fields()) == 98
+     assert all(f["env"] == "" or f"`{f['env']}`" in f["doc"] for f in _pc.Config.fields())
+     assert set(config.PRESETS) == {"n32_gpt2_decode", "n32_gpt2_prefill", "n32_llama_decode", "n32_llama_prefill"}
+     c = config.preset("n32_gpt2_decode")
+diff --git a/speedrun/server.py b/speedrun/server.py
+index a1eb13d..2ecc4e3 100644
+--- a/speedrun/server.py
++++ b/speedrun/server.py
+@@ -31,8 +31,9 @@ HEADER = struct.Struct("<Q")
+ STEPS = 16
+ # Decode-8 never holds more than STEPS keys: its plan's softmax and GELU are fitted to positions 0..STEPS-1 (the main
+ # decode plan's to 1024-token windows); it runs on the lean chain n32a4 (its runtime line's CHAIN_PRESET:
+-# speedrun/make_n32a4_decode_plan.sh)
+-DECODE_PLAN = "bootstrap_placements/gpt2_decode_python_n32a4_kc16r_cm"
++# speedrun/make_n32a4_decode_plan.sh). This entry's: the LayerNorm deferred (LN_DEFER) and the degree-27 EvalMod
++# (FIDESLIB_BTS_EVALMOD=d27), both on its runtime line, re-planned on the LN-deferred merged capture graphs/lnd_on_e3m
++DECODE_PLAN = "bootstrap_placements/lnd_fin_e3_em9_cm"
+ # speedrun/make_prefill_plan.sh's plan with CutMax's scaled normalisers (stage 13 replanned: its PLAN_CMD.txt), on the
+ # lean chain n32a4 too (PRESET=n32a4; its runtime line's CHAIN_PRESET)
+ PREFILL_PLAN = "bootstrap_placements/gpt2_prefill128_n32a4_pfbhrd_cm"

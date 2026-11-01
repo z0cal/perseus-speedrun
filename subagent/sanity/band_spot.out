@@ -1,0 +1,15 @@
+windows 261 (128 held-out doc starts + 128 held-out random + 5 stress)
+L 0 l2=3 band [0.06176,22.39] runtime-twin d [0.1942,3.548] headroom 3.14/6.31 | exact d [0.1942,3.548] headroom 3.14/6.31
+L 1 l2=2 band [0.01938,28.31] runtime-twin d [0.06124,2.423] headroom 3.16/11.69 | exact d [0.06123,2.423] headroom 3.16/11.68
+L 2 l2=1 band [0.118,6842] runtime-twin d [0.5134,202.8] headroom 4.35/33.73 | exact d [0.5133,202.8] headroom 4.35/33.73
+L 3 l2=2 band [0.06434,135.5] runtime-twin d [0.2301,16.24] headroom 3.58/8.35 | exact d [0.2295,16.24] headroom 3.57/8.34
+L 4 l2=4 band [0.08091,110.9] runtime-twin d [0.2967,4.322] headroom 3.67/25.65 | exact d [0.297,4.328] headroom 3.67/25.62
+L 5 l2=2 band [1.516,1963] runtime-twin d [6.134,138.4] headroom 4.05/14.18 | exact d [6.133,138.5] headroom 4.05/14.17
+L 6 l2=2 band [0.9886,2796] runtime-twin d [3.736,160] headroom 3.78/17.47 | exact d [3.733,160.7] headroom 3.78/17.40
+L 7 l2=2 band [0.2282,470] runtime-twin d [0.9778,33.71] headroom 4.28/13.94 | exact d [0.9768,33.86] headroom 4.28/13.88
+L 8 l2=1 band [0.01974,1138] runtime-twin d [0.1204,19.68] headroom 6.10/57.84 | exact d [0.1204,19.68] headroom 6.10/57.83
+L 9 l2=1 band [0.01977,977.1] runtime-twin d [0.09637,19.09] headroom 4.87/51.19 | exact d [0.09627,19.06] headroom 4.87/51.27
+L10 l2=2 band [0.04936,63.14] runtime-twin d [0.1855,4.357] headroom 3.76/14.49 | exact d [0.1853,4.365] headroom 3.75/14.46
+L11 l2=3 band [0.04597,469.7] runtime-twin d [0.1403,7.458] headroom 3.05/62.98 | exact d [0.1403,7.473] headroom 3.05/62.86
+outside (runtime twin): []  outside (exact): []
+min headroom runtime twin: low 3.05 high 6.31; exact: low 3.05 high 6.31

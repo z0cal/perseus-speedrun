@@ -1,0 +1,104 @@
+    512.0 MB  2 blocks
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/examples/gpt2/model.py", line 98
+           self._lm = slotcache.cached(self._slot_key(), "lm", (self.rt.dims, self.vocab, self.W_tile,
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/examples/gpt2/slotcache.py", line 89
+           return build()
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/examples/gpt2/model.py", line 97
+           return W.lm_head_tiles(Wlm, self.rt.dims, self.vocab, self.W_tile, paired=self.complex_packing)
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/examples/gpt2/weights.py", line 264
+           return [EncodedLinear.encode(slice_tile(2 * m) + 1j * slice_tile(2 * m + 1), dims.N,
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/linear.py", line 35
+           pts = encode_weight_matrix_fast(W, N, d_in, d_out, outputpack)
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/layout.py", line 233
+           return flat.astype(np.complex128 if np.iscomplexobj(W) else np.float64, copy=False).take(idx)
+    448.1 MB  1792 blocks
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/linear.py", line 86
+           tmp = _baby_sum(ops, x_rot, w, [(j0 + b) * p.r_o + k for b in range(p.bstep_c)])
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/linear.py", line 57
+           ops.inplace_add(tmp, ops.mult_pt(x_rot[b], w.pts[idx[b]], key=w.key(idx[b])))
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/ops.py", line 231
+           return self.inf.mult_slot_pt(a, self._slot(key, a, v))
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/ops.py", line 204
+           self.inf.set_slot_pt(name, self._vec(v), lv, deg)
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/fakecap.py", line 670
+           v = self._full(values)
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/fake.py", line 293
+           v = np.zeros(self.slots, dtype=np.complex128 if np.iscomplexobj(vals) else np.float64)
+    448.1 MB  1792 blocks
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/linear.py", line 86
+           tmp = _baby_sum(ops, x_rot, w, [(j0 + b) * p.r_o + k for b in range(p.bstep_c)])
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/linear.py", line 57
+           ops.inplace_add(tmp, ops.mult_pt(x_rot[b], w.pts[idx[b]], key=w.key(idx[b])))
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/ops.py", line 231
+           return self.inf.mult_slot_pt(a, self._slot(key, a, v))
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/fakecap.py", line 683
+           return self.fhe.mult(a, self._slot_pt(name, a))
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/fakecap.py", line 590
+           return self._tagged(self._c_mult(a, b), T.t_mult(a.ptag, b.tag))
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/fakecap.py", line 454
+           return self._binary(a, a.vec * b.vec, self.shadow.mult_pt(a.meta, b.meta()), T.t_mult(a.tag, b.tag),
+    294.5 MB  2 blocks
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/examples/gpt2/model.py", line 98
+           self._lm = slotcache.cached(self._slot_key(), "lm", (self.rt.dims, self.vocab, self.W_tile,
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/examples/gpt2/slotcache.py", line 89
+           return build()
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/examples/gpt2/model.py", line 96
+           Wlm = W.lm_head_matrix(self.store, self.cfgs.ln_f, self.rt.dims, self.vocab, self.fold[2])
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/examples/gpt2/weights.py", line 245
+           W = load_linear(store, WTE, dims.dim, vocab, dims.hid, vocab)
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/examples/gpt2/weights.py", line 73
+           W = np.asarray(store.tensor(name), dtype=np.float64)
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/examples/gpt2/weights.py", line 44
+           self._cache[name] = np.frombuffer(buf, dtype=np.dtype(e["dtype"])).astype(np.float64) \
+    128.0 MB  3 blocks
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/examples/gpt2/slotcache.py", line 89
+           return build()
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/examples/gpt2/model.py", line 97
+           return W.lm_head_tiles(Wlm, self.rt.dims, self.vocab, self.W_tile, paired=self.complex_packing)
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/examples/gpt2/weights.py", line 264
+           return [EncodedLinear.encode(slice_tile(2 * m) + 1j * slice_tile(2 * m + 1), dims.N,
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/linear.py", line 35
+           pts = encode_weight_matrix_fast(W, N, d_in, d_out, outputpack)
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/layout.py", line 232
+           idx = weight_index(N, d_in, d_out)
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/layout.py", line 203
+           out = [np.empty((p.r_i * len(ks), N), dtype=np.int32) for _ in ks[0]]
+     64.0 MB  289 blocks
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/linear.py", line 86
+           tmp = _baby_sum(ops, x_rot, w, [(j0 + b) * p.r_o + k for b in range(p.bstep_c)])
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/linear.py", line 55
+           tmp = ops.mult_pt(x_rot[0], w.pts[idx[0]], key=w.key(idx[0]))
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/ops.py", line 231
+           return self.inf.mult_slot_pt(a, self._slot(key, a, v))
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/ops.py", line 204
+           self.inf.set_slot_pt(name, self._vec(v), lv, deg)
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/fakecap.py", line 670
+           v = self._full(values)
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/fake.py", line 293
+           v = np.zeros(self.slots, dtype=np.complex128 if np.iscomplexobj(vals) else np.float64)
+     56.0 MB  224 blocks
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/linear.py", line 119
+           tmp = _baby_sum(ops, x_rot, w, [(j0 + b) * rop + kp for b in range(p.bstep_c)])
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/linear.py", line 57
+           ops.inplace_add(tmp, ops.mult_pt(x_rot[b], w.pts[idx[b]], key=w.key(idx[b])))
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/ops.py", line 231
+           return self.inf.mult_slot_pt(a, self._slot(key, a, v))
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/ops.py", line 204
+           self.inf.set_slot_pt(name, self._vec(v), lv, deg)
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/fakecap.py", line 670
+           v = self._full(values)
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/fake.py", line 293
+           v = np.zeros(self.slots, dtype=np.complex128 if np.iscomplexobj(vals) else np.float64)
+     56.0 MB  224 blocks
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/linear.py", line 119
+           tmp = _baby_sum(ops, x_rot, w, [(j0 + b) * rop + kp for b in range(p.bstep_c)])
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/linear.py", line 57
+           ops.inplace_add(tmp, ops.mult_pt(x_rot[b], w.pts[idx[b]], key=w.key(idx[b])))
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/ops.py", line 231
+           return self.inf.mult_slot_pt(a, self._slot(key, a, v))
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/fakecap.py", line 683
+           return self.fhe.mult(a, self._slot_pt(name, a))
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/fakecap.py", line 590
+           return self._tagged(self._c_mult(a, b), T.t_mult(a.ptag, b.tag))
+         File "/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/python/perseus/impl/fakecap.py", line 454
+           return self._binary(a, a.vec * b.vec, self.shadow.mult_pt(a.meta, b.meta()), T.t_mult(a.tag, b.tag),

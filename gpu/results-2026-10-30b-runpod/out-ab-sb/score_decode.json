@@ -1,0 +1,21 @@
+{
+ "track": "decode",
+ "quality": {
+  "requests": 12,
+  "kl_mean": 7.623201060994145e-06,
+  "kl_max": 1.700939139527366e-05,
+  "kl_bar": 0.001,
+  "p": 1.554872765474465e-26,
+  "argmax_agreement": 1.0,
+  "pass": true
+ },
+ "speed": {
+  "pairs": 3,
+  "entry_s": 2.3568216719819852,
+  "record_s": 2.3732268454817436,
+  "speedup": 1.006959672432756,
+  "delta": 0.01,
+  "p": 0.007316078729034186,
+  "new_record": false
+ }
+}

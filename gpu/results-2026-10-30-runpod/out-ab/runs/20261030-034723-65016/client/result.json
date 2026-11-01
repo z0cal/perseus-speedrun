@@ -1,0 +1,72 @@
+{
+ "track": "prefill",
+ "backend": "perseus-lean",
+ "requests": [
+  {
+   "warmup": false,
+   "times_s": [
+    9.305833457037807
+   ],
+   "score": 9.305833457037807,
+   "prompt": 0,
+   "kl": [
+    7.215618892226832e-06
+   ],
+   "kl_scored_mean": 7.215618892226832e-06,
+   "argmax_ok": [
+    true
+   ],
+   "outputs_ok": true
+  },
+  {
+   "warmup": false,
+   "times_s": [
+    9.322479245718569
+   ],
+   "score": 9.322479245718569,
+   "prompt": 1,
+   "kl": [
+    1.4767535834301913e-05
+   ],
+   "kl_scored_mean": 1.4767535834301913e-05,
+   "argmax_ok": [
+    true
+   ],
+   "outputs_ok": true
+  },
+  {
+   "warmup": false,
+   "times_s": [
+    9.330805210862309
+   ],
+   "score": 9.330805210862309,
+   "prompt": 2,
+   "kl": [
+    9.335198084739192e-06
+   ],
+   "kl_scored_mean": 9.335198084739192e-06,
+   "argmax_ok": [
+    true
+   ],
+   "outputs_ok": true
+  },
+  {
+   "warmup": false,
+   "times_s": [
+    9.362354042939842
+   ],
+   "score": 9.362354042939842,
+   "prompt": 3,
+   "kl": [
+    1.355252765701041e-05
+   ],
+   "kl_scored_mean": 1.355252765701041e-05,
+   "argmax_ok": [
+    true
+   ],
+   "outputs_ok": true
+  }
+ ],
+ "prompts_sha256": "ce446d42f61728288fc3191f5e697c7ff2fb2c77dd7e3802fb059109292ff5a2",
+ "manifest_sha256": "e422ba855b700e353ab83d7dbce48dac11ef0ed6f09430d35fc4ab87d78f5f01"
+}

@@ -1,0 +1,5 @@
+bootstrap_placements/p0_base per stage [9, 8, 10, 8, 11, 9, 10, 9, 8, 10, 8, 12, 1, 13] blocks0-12 113 b11 exit 36 1 b12 exit 44 2
+bootstrap_placements/p0_em9 per stage [8, 8, 8, 8, 10, 8, 9, 8, 8, 8, 8, 12, 1, 13] blocks0-12 104 b11 exit 34 1 b12 exit 44 2
+bootstrap_placements/p0_em9_smrel per stage [8, 8, 8, 8, 9, 8, 8, 8, 8, 8, 8, 12, 1, 13] blocks0-12 102 b11 exit 34 1 b12 exit 44 2
+bootstrap_placements/p0_em9_smrel_gelubs per stage [8, 9, 8, 8, 9, 8, 8, 8, 8, 8, 8, 12, 1, 13] blocks0-12 103 b11 exit 34 1 b12 exit 44 2
+bootstrap_placements/p0_base_smrel_gelubs per stage [9, 8, 9, 8, 11, 9, 10, 9, 8, 9, 8, 12, 1, 13] blocks0-12 111 b11 exit 36 1 b12 exit 44 2

@@ -1,0 +1,30 @@
+[10:12:20] slack_k2_sb: BTS_LEVEL=34 PLAN_SPARSE_BTS_OUT=1:16,512:22 PLAN_DELIB_LANDING_REMAP=26:26 BTS_LEVEL=28 PLAN_STC_FIRST_FALLBACK=34:1 
+  bootstrap_placements/slack_k2_sb: blocks 0-12 99 [8, 8, 8, 8, 9, 8, 8, 8, 8, 8, 8, 9, 1], sparse sites {512: 38, 1: 25}
+[10:31:20] done
+[10:31:20] slack_k2_spru: BTS_LEVEL=34 PLAN_SPARSE_BTS_OUT=1:12,512:26 PLAN_DELIB_LANDING_REMAP=26:26 BTS_LEVEL=28 PLAN_STC_FIRST_FALLBACK=34:1 
+  bootstrap_placements/slack_k2_spru: blocks 0-12 101 [8, 8, 8, 8, 10, 8, 8, 8, 8, 8, 8, 10, 1], sparse sites {512: 40, 1: 25}
+[10:39:00] done
+[10:39:00] slack_k2_dense: BTS_LEVEL=30 PLAN_SPARSE_BTS_OUT=1:16,512:26 PLAN_DELIB_LANDING_REMAP=26:26 BTS_LEVEL=24 PLAN_STC_FIRST_FALLBACK=30:1 
+  bootstrap_placements/slack_k2_dense: blocks 0-12 101 [8, 8, 8, 8, 10, 8, 8, 8, 8, 8, 8, 10, 1], sparse sites {512: 40, 1: 25}
+[10:52:51] done
+[10:52:51] slack_k2_delib: BTS_LEVEL=34 PLAN_SPARSE_BTS_OUT=1:16,512:26 PLAN_DELIB_LANDING_REMAP=26:22 BTS_LEVEL=28 PLAN_STC_FIRST_FALLBACK=34:1 
+  bootstrap_placements/slack_k2_delib: blocks 0-12 101 [8, 8, 8, 8, 10, 8, 8, 8, 8, 8, 8, 10, 1], sparse sites {512: 40, 1: 25}
+[11:07:18] done
+[11:07:18] slack_k3_dense_sb_spru_delib: BTS_LEVEL=28 PLAN_SPARSE_BTS_OUT=1:10,512:20 PLAN_DELIB_LANDING_REMAP=26:20 BTS_LEVEL=22 PLAN_STC_FIRST_FALLBACK=28:1 
+  bootstrap_placements/slack_k3_dense_sb_spru_delib: blocks 0-12 89 [7, 7, 7, 7, 8, 7, 7, 7, 8, 7, 7, 8, 2], sparse sites {512: 29, 1: 25}
+[11:32:47] done
+SWEEP2_EXIT=0
+[11:33:06] slack_k2_sb_dense: BTS_LEVEL=30 PLAN_SPARSE_BTS_OUT=1:16,512:22 PLAN_DELIB_LANDING_REMAP=26:26 BTS_LEVEL=24 PLAN_STC_FIRST_FALLBACK=30:1 
+  bootstrap_placements/slack_k2_sb_dense: blocks 0-12 90 [7, 8, 8, 7, 8, 7, 7, 7, 7, 7, 7, 9, 1], sparse sites {512: 29, 1: 25}
+[11:55:25] done
+[11:55:25] slack_k2_sb_delib: BTS_LEVEL=34 PLAN_SPARSE_BTS_OUT=1:16,512:22 PLAN_DELIB_LANDING_REMAP=26:22 BTS_LEVEL=28 PLAN_STC_FIRST_FALLBACK=34:1 
+  bootstrap_placements/slack_k2_sb_delib: blocks 0-12 99 [8, 8, 8, 8, 9, 8, 8, 8, 8, 8, 8, 9, 1], sparse sites {512: 38, 1: 25}
+[12:26:04] done
+SWEEP3_EXIT=0
+[12:26:34] slack_k0_lndsmrel: BTS_LEVEL=34 PLAN_SPARSE_BTS_OUT=1:16,512:26 PLAN_DELIB_LANDING_REMAP=26:26 BTS_LEVEL=28 PLAN_STC_FIRST_FALLBACK=34:1 
+  bootstrap_placements/slack_k0_lndsmrel: blocks 0-12 100 [8, 8, 8, 8, 10, 8, 8, 7, 8, 8, 8, 10, 1], sparse sites {512: 39, 1: 25}
+[12:43:43] done
+[12:43:43] slack_k1_dense_sb: BTS_LEVEL=32 PLAN_SPARSE_BTS_OUT=1:16,512:24 PLAN_DELIB_LANDING_REMAP=26:26 BTS_LEVEL=26 PLAN_STC_FIRST_FALLBACK=32:1 
+  bootstrap_placements/slack_k1_dense_sb: blocks 0-12 95 [7, 8, 8, 8, 8, 8, 7, 7, 8, 7, 8, 10, 1], sparse sites {512: 34, 1: 25}
+[12:57:45] done
+SWEEP4_EXIT=0

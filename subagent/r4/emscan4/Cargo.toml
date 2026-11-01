@@ -1,0 +1,8 @@
+[package]
+name = "emscan4"
+version = "0.1.0"
+edition = "2021"
+[workspace]
+[dependencies]
+pc-core = { path = "../../../work/perseus-r4/crates/pc-core" }
+pc-shadow = { path = "../../../work/perseus-r4/crates/pc-shadow" }

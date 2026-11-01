@@ -1,0 +1,70 @@
+🍹 Building a mixed python/rust project
+🐍 Found CPython 3.12 at /home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/.venv/bin/python
+🔗 Found pyo3 bindings with abi3-py3.12 support
+📡 Using build options features from pyproject.toml
+Checked 24 packages in 0.61ms
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling target-lexicon v0.13.5
+   Compiling crossbeam-utils v0.8.23
+   Compiling syn v3.0.9
+   Compiling pyo3-build-config v0.27.2
+   Compiling serde_core v1.0.229
+   Compiling crossbeam-epoch v0.9.21
+   Compiling libc v0.2.191
+   Compiling serde v1.0.229
+   Compiling crossbeam-deque v0.8.8
+   Compiling thiserror v2.0.21
+   Compiling thiserror-impl v2.0.21
+   Compiling serde_derive v1.0.229
+   Compiling rayon-core v1.13.0
+   Compiling serde_json v1.0.128
+   Compiling memchr v2.8.3
+   Compiling getrandom v0.3.4
+   Compiling itoa v1.0.18
+   Compiling ryu v1.0.23
+   Compiling cfg-if v1.0.5
+   Compiling either v1.19.0
+   Compiling rayon v1.12.0
+   Compiling pc-core v0.1.0 (/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/crates/pc-core)
+   Compiling pc-cublas v0.1.0 (/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/crates/pc-cublas)
+   Compiling pc-cuda v0.1.0 (/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/crates/pc-cuda)
+   Compiling pyo3-macros-backend v0.27.2
+   Compiling pyo3-ffi v0.27.2
+   Compiling autocfg v1.5.1
+   Compiling pc-kernels v0.1.0 (/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/crates/pc-kernels)
+   Compiling memoffset v0.9.1
+   Compiling syn v2.0.119
+   Compiling pc-gpu v0.1.0 (/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/crates/pc-gpu)
+   Compiling heck v0.5.0
+   Compiling pc-shadow v0.1.0 (/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/crates/pc-shadow)
+warning: unused import: `PrimeConst`
+ --> crates/pc-kernels/src/ring.rs:3:55
+  |
+3 | use crate::args::{BconvArgs, EwArgs, Launch, NttArgs, PrimeConst};
+  |                                                       ^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `std::ffi::c_void`
+ --> crates/pc-kernels/src/ring.rs:5:5
+  |
+5 | use std::ffi::c_void;
+  |     ^^^^^^^^^^^^^^^^
+
+   Compiling pyo3 v0.27.2
+warning: `pc-kernels` (lib) generated 2 warnings (run `cargo fix --lib -p pc-kernels` to apply 2 suggestions)
+   Compiling pyo3-macros v0.27.2
+   Compiling pc-config v0.1.0 (/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/crates/pc-config)
+   Compiling indoc v2.0.8
+   Compiling pc-py v0.1.0 (/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/crates/pc-py)
+   Compiling once_cell v1.21.4
+   Compiling unindent v0.2.4
+   Compiling pc-program v0.1.0 (/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/crates/pc-program)
+   Compiling pc-client v0.1.0 (/home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/crates/pc-client)
+    Finished `release` profile [optimized + debuginfo] target(s) in 1m 10s
+⚠️ Warning: Failed to set rpath for /home/zocal/pesquisa/perseus-speedrun/work/perseus-r4/target/maturin/lib_pc.so: Failed to execute 'patchelf', did you install it? Hint: Try `pip install maturin[patchelf]` (or just `pip install patchelf`)
+📦 Built wheel for abi3 Python ≥ 3.12 to /tmp/.tmprBArQI/perseus-0.1.0-cp312-abi3-linux_x86_64.whl
+✏️ Setting installed package as editable
+🛠 Installed perseus-0.1.0

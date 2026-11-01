@@ -1,0 +1,5 @@
+gpt2_base_n32_kc16_cm: KL pos 8-15 over 8 owt windows: mean 2.184e-06 max 5.435e-05
+gpt2_base_n32_kc16r_cm: KL pos 8-15 over 8 owt windows: mean 2.189e-06 max 5.465e-05
+r4_smrel: KL pos 8-15 over 8 owt windows: mean 2.190e-06 max 5.467e-05
+r4_gelubs: KL pos 8-15 over 8 owt windows: mean 3.586e-06 max 9.302e-05
+r4_smrel_gelubs: KL pos 8-15 over 8 owt windows: mean 3.588e-06 max 9.301e-05

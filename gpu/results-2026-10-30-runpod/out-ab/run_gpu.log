@@ -1,0 +1,45 @@
+[2026-10-30 02:59:18] preflight
+[2026-10-30 02:59:18] preflight: NOSANDBOX=1, the A/B outside the harness's sandbox (gpu/ab/sandbox.sh): NOT harness runs
+[2026-10-30 02:59:18] preflight ok (A/B): NVIDIA RTX PRO 6000 Blackwell Workstation Edition, 97887 MiB, 595.91.07, nvcc 13.0
+[2026-10-30 02:59:18] setup in /root/perseus-entry
+[2026-10-30 02:59:35] entry at 83b8d55, on record 4
+[2026-10-30 02:59:44] build .
+[2026-10-30 03:00:55] build ../perseus-client
+[2026-10-30 03:01:49] build ../perseus-lean-client
+[2026-10-30 03:02:48] build ../perseus-record
+[2026-10-30 03:04:22] A/B runner at /root/perseus-entry/ab/speedrun (sandbox stand-in, NOT the harness's isolation)
+[2026-10-30 03:04:22] setup done
+[2026-10-30 03:04:22] step setup done; results in /root/perseus-entry/out-ab
+[2026-10-30 03:04:44] pc-bench dense, EvalMod shipped
+[2026-10-30 03:04:58] pc-bench dense, EvalMod d27
+[2026-10-30 03:05:13] bts done: compare /root/perseus-entry/out-ab/bts_prec_dense_{shipped,d27}.log before going on
+[2026-10-30 03:05:13] step bts done; results in /root/perseus-entry/out-ab
+[2026-10-30 03:05:13] smoke: one Decode-8 entry run
+[2026-10-30 03:08:18] smoke ok: /root/perseus-entry/out-ab/runs/20261030-030514-9540/run.json
+[2026-10-30 03:08:18] step smoke done; results in /root/perseus-entry/out-ab
+GO1_EXIT=0
+[2026-10-30 03:10:42] decode pair 1/6: record (prompts 0..3)
+[2026-10-30 03:13:42] decode pair 1/6: entry (prompts 0..3)
+[2026-10-30 03:16:49] decode pair 2/6: entry (prompts 4..7)
+[2026-10-30 03:19:55] decode pair 2/6: record (prompts 4..7)
+[2026-10-30 03:22:56] decode pair 3/6: record (prompts 8..11)
+[2026-10-30 03:25:56] decode pair 3/6: entry (prompts 8..11)
+[2026-10-30 03:29:02] decode pair 4/6: entry (prompts 12..15)
+[2026-10-30 03:32:08] decode pair 4/6: record (prompts 12..15)
+[2026-10-30 03:35:09] decode pair 5/6: record (prompts 16..19)
+[2026-10-30 03:38:09] decode pair 5/6: entry (prompts 16..19)
+[2026-10-30 03:41:15] decode pair 6/6: entry (prompts 20..23)
+[2026-10-30 03:44:21] decode pair 6/6: record (prompts 20..23)
+[2026-10-30 03:47:23] decode peak GPU memory  53044 MiB
+[2026-10-30 03:47:23] score_decode: does NOT beat the record / fails a check (score.py exit 1)
+[2026-10-30 03:47:23] step decode done; results in /root/perseus-entry/out-ab
+[2026-10-30 03:47:23] prefill pair 1/2: record (prompts 0..3)
+[2026-10-30 03:49:38] prefill pair 1/2: entry (prompts 0..3)
+[2026-10-30 03:51:53] prefill pair 2/2: entry (prompts 4..7)
+[2026-10-30 03:54:08] prefill pair 2/2: record (prompts 4..7)
+[2026-10-30 03:56:24] prefill peak GPU memory  60672 MiB
+[2026-10-30 03:56:24] score_prefill: does NOT beat the record / fails a check (score.py exit 1)
+[2026-10-30 03:56:24] step prefill done; results in /root/perseus-entry/out-ab
+GO2_EXIT=0/0
+36:DECODE_PLAN = "bootstrap_placements/lnd_fin_e3_d27sb_cm"
+GO3_EXIT=0

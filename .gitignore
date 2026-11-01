@@ -1,0 +1,30 @@
+# Heavy work and build artifacts
+work/
+backups/
+
+# Python cache & compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Tool and test caches
+.pytest_cache/
+.cache/
+.mypy_cache/
+.ruff_cache/
+
+# Agent/IDE directories
+.claude/
+.vscode/
+.idea/
+
+# System / OS
+.DS_Store
+Thumbs.db

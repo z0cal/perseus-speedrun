@@ -1,0 +1,44 @@
+[17:37:47] blocks (em9, ilp)
+stage 12 from bootstrap_placements/r4f_em9_mc_b12/block_12_placement.json (entry 34/d1)
+[17:37:47] feedback
+[plan] out=bootstrap_placements/r4f_em9_ilps_feedback bts_level=26 max_level=48 unit=2 table_measured=True err_target=0.01
+[plan] [block_0] (entry=26/d2)
+[plan] erased 32 reactive auto_bootstrap(s); 1 deliberate fixed point(s) kept
+[plan] feasible after 2 cut pass(es); 3 refresh(es) placed
+[ilp] optimum in 4.5s, tie-break optimal in 4.7s
+[ilp] optimal: cost 7 (bound 7.0001) vs min-cut 7.0001; 4 placed, 3 hint(s) fire; 16790 integer vars, 9.2s
+[plan] shared_realize: 37 shared-operand realize anchor(s), bootstraps 7 -> 7
+[plan] prune: 0 redundant refresh(es) removed
+[plan] raise_drop (search): 4 refreshes (placed + fired hints) raise below the chain top; v_89:12 v_421:4 v_455:2 v_658:6; skipped {'no_slack': 2, 'shipped_order': 1}
+[plan] cf clamp: 0 of 7 typed sites at cf_max=20 (0 pinned; 0 miss err_target=0.01)
+[plan]  P4: 96 branch(es) fed an over-budget op but were never cuttable (non-binding operands the min-cut cannot see). Largest |m|: v_392(6.81), v_426(6.68), v_436(4.13), v_424(4.01), v_425(4.01), v_433(4.01)
+[plan] placed_input_level_hist 36:1 42:1 48:2
+[plan] placements=4 hints=3/6 deliberate=1 total=8
+[plan] CF {'2': 1, '5': 3, '10': 1, '12': 1, '13': 1}  out-levels {'24': 1, '26': 1, '28': 2, '32': 2, '40': 1}  pred rel_err median=8.11e-06 p90=0.0012
+[plan] planned 1 blocks, 8 bootstraps, cf clamp 0/7 -> ./bootstrap_placements/r4f_em9_ilps_feedback
+feedback entry: level 26 deg 2
+bootstrap_placements/r4f_em9_ilps/block_0_feedback_placement.json placements: 4
+[17:38:06] CutMax stage 13 (ILP)
+[plan] out=bootstrap_placements/r4f_em9_ilps_cm_argmax bts_level=26 max_level=48 unit=2 table_measured=True err_target=0.01
+[plan] [block_13] (entry=44/d2)
+[plan] erased 10 reactive auto_bootstrap(s); 6 deliberate fixed point(s) kept
+[ilp] min-cut incumbent infeasible (every S->T path crosses only unrefreshable sites (infinite cut); over-budget ops: ['mult@cutmax', 'mult@cutmax', 'mult@cutmax', 'add@cutmax', 'hint@cutmax', 'conjugate@cutmax']; finite candidates in net: ['v_1', 'v_10', 'v_100', 'v_101', 'v_102', 'v_103', 'v_104', 'v_105']); solving without a cutoff
+[plan] hint dissolution starved — retaining 6 hint(s): v_16, v_54, v_135, v_212, v_289, v_366
+[plan] feasible after 1 cut pass(es); 1 refresh(es) placed
+[plan] hint veto taken back for 5 hint(s): the cut cannot cover the branch, so the deep hint stays
+[plan] feasible after 0 cut pass(es); 1 refresh(es) placed
+[ilp] optimum in 0.5s, tie-break optimal in 0.4s
+[ilp] optimal: cost 7 (bound 7.0002) vs min-cut 7.0002; 1 placed, 6 hint(s) fire; 4661 integer vars, 0.9s
+[plan] shared_realize: 55 shared-operand realize anchor(s), bootstraps 7 -> 7
+[plan] prune: 0 redundant refresh(es) removed
+[plan] raise_drop (search): 2 refreshes (placed + fired hints) raise below the chain top; v_54:3 v_404:1; skipped {'shipped_order': 5}
+[plan] cf clamp: 0 of 7 typed sites at cf_max=20 (0 pinned; 0 miss err_target=0.01)
+[plan] placed_input_level_hist 26:1
+[plan] hints dissolved 0/6; retained 6 (starved 6)
+[plan] placements=1 hints=6/6 deliberate=6 total=13
+[plan] CF {'2': 2, '5': 3, '9': 1, '15': 1}  out-levels {'18': 1, '32': 6}  pred rel_err median=7.97e-05 p90=0.00152
+[plan] planned 1 blocks, 13 bootstraps, cf clamp 0/7 -> ./bootstrap_placements/r4f_em9_ilps_cm_argmax
+bootstrap_placements/r4f_em9_ilps_cm/block_13_placement.json placements: 1
+bootstrap_placements/r4f_em9_ilps_cm: stage 13 13 refreshes, exit 40:2
+r4f_em9_ilps_cm: refreshes [8, 8, 8, 8, 9, 8, 8, 8, 8, 8, 8, 10, 1, 13], stages 0-12 100, all 113
+[17:38:09] done

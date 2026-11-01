@@ -1,0 +1,223 @@
+From 67717aa2d1ecca61e0ec03008eedca0ce5e8e08f Mon Sep 17 00:00:00 2001
+From: z0cal <gabrielgamer120@gmail.com>
+Date: Mon, 26 Oct 2026 22:15:18 -0300
+Subject: [PATCH] EvalMod: degree-27 series with 4 double angles (9 levels
+ instead of 10)
+
+Dense/ENCAPS (K=16): degree-27 whole-interval minimax, 43.5 bits (was degree 14 + 5
+double angles, 27.4 bits). SparseB (K=24): degree 27 + 4 double angles, 28.2 bits
+(was degree 20 + 5, 35.2 bits). EVALMOD_LEVELS 10 -> 9. pc-shadow example em_depth
+measures the levels an EvalMod series consumes.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ crates/pc-core/src/bts_setup.rs       | 115 +++++++++++++++-----------
+ crates/pc-shadow/examples/em_depth.rs |  33 ++++++++
+ crates/pc-shadow/src/route.rs         |  10 +--
+ 3 files changed, 106 insertions(+), 52 deletions(-)
+ create mode 100644 crates/pc-shadow/examples/em_depth.rs
+
+diff --git a/crates/pc-core/src/bts_setup.rs b/crates/pc-core/src/bts_setup.rs
+index 7dc8f8e..22f20f7 100644
+--- a/crates/pc-core/src/bts_setup.rs
++++ b/crates/pc-core/src/bts_setup.rs
+@@ -78,65 +78,86 @@ impl Neg for C64 {
+ // EvalMod tables
+ // ------------------------------------------------------------------------------------------------------------------
+ 
+-/// The shipped EvalMod series (dense/ENCAPS route): degree-14 Chebyshev refit of (2 pi)^(-1/32) cos(2 pi (16 y -
+-/// 0.25) / 32), followed by 5 double-angle iterations, K = 16 (sparse-encapsulated uniform secret). OpenFHE
+-/// evaluator convention (c0 not halved). Provenance: FIDESlib `openfhe-interface/RawCiphertext.cu`, ENCAPS branch of
+-/// `GetRawParams` (FIDESlib f31017d) — not the OpenFHE patch series, whose g_coefficients tables are the deg-32/44/88
+-/// upstream ones; the d3 dump's `params.json::cheb` is this table bit for bit.
+-pub const EVALMOD_CHEB: [f64; 15] = [
+-    -5.73829476916553172e-01,
+-    2.63718536771466207e-02,
+-    -9.15574236933522245e-01,
+-    -3.08975417541565676e-02,
+-    2.85601052580403802e-01,
+-    4.83129148738224799e-03,
+-    -2.74350673185783482e-02,
+-    -3.16919293037672828e-04,
+-    1.31295181914509542e-03,
+-    1.15825536926191591e-05,
+-    -3.79010152666429525e-05,
+-    -2.71035793019274615e-07,
+-    7.33952552563662122e-07,
+-    4.41686895092293209e-09,
+-    -1.03169742989480305e-08,
++/// The EvalMod series (dense/ENCAPS route): degree-27 whole-interval minimax of (2 pi)^(-1/16) cos(2 pi (16 y -
++/// 0.25) / 16), weighted by the first-order amplification of the double angles, followed by 4 double-angle iterations,
++/// K = 16 (sparse-encapsulated uniform secret): 9 levels, 43.5 bits on |u| < 16. OpenFHE evaluator convention (c0 not
++/// halved). Replaces FIDESlib's ENCAPS table (`openfhe-interface/RawCiphertext.cu`, `GetRawParams`, f31017d: degree
++/// 14 + 5 double angles, 10 levels, 27.4 bits), so the d3 dump's `params.json::cheb` no longer matches it.
++pub const EVALMOD_CHEB: [f64; 28] = [
++    3.90855681124558652e-01,
++    -3.71162910650894989e-02,
++    5.10810133815939427e-01,
++    -5.08769125848825953e-03,
++    5.60138167641663909e-01,
++    6.51553991585960141e-02,
++    -4.92725685622943887e-01,
++    -2.75286301187290736e-02,
++    1.30054006295017399e-01,
++    5.08973388866522207e-03,
++    -1.79895085307721879e-02,
++    -5.50118683807736177e-04,
++    1.56743051595426724e-03,
++    3.95634864955302966e-05,
++    -9.47941022427921008e-05,
++    -2.04268994077678499e-06,
++    4.23104955069223787e-06,
++    7.96578184648313916e-08,
++    -1.45471469219364063e-07,
++    -2.43379383340224642e-09,
++    3.97710801199866705e-09,
++    5.99153450803262745e-11,
++    -8.86204651276593044e-11,
++    -1.20786230596993937e-12,
++    1.63846497749070475e-12,
++    2.35383700712163019e-14,
++    -2.69919862866792120e-14,
++    -0.00000000000000000e+00,
+ ];
+ /// EvalMod K of the shipped table (bootK = 16, K_SPARSE_ENCAPSULATED).
+ pub const EVALMOD_K: f64 = 16.0;
+ /// Double-angle iterations after the shipped series.
+-pub const EVALMOD_DA_ITS: u32 = 5;
++pub const EVALMOD_DA_ITS: u32 = 4;
+ 
+ /// The frozen EvalMod coefficient table (see `EVALMOD_CHEB`).
+ pub fn evalmod_coeffs() -> &'static [f64] {
+     &EVALMOD_CHEB
+ }
+ 
+-/// SparseB's EvalMod series for K = 24: (2 pi)^(-1/32) cos(2 pi (24 y - 0.25) / 32), Chebyshev degree 20 (same PS
+-/// depth as degree 14), 5 double angles. Provenance: FIDESlib `SparseB.cu::sparseBChebyshevK24`.
+-pub const SPARSE_B_CHEB_K24: [f64; 21] = [
+-    -5.01431878575762102e-01,
+-    -2.60978240793176830e-02,
+-    -2.75969415548868335e-01,
+-    -3.76057943042461193e-02,
+-    6.98674483745098551e-01,
+-    2.06638885145157200e-02,
+-    -1.93915485831718332e-01,
+-    -3.59503488102385325e-03,
+-    2.34902992390395096e-02,
+-    3.23162556614403976e-04,
+-    -1.63628724411827371e-03,
+-    -1.80046855470203313e-05,
+-    7.47055232583680419e-05,
+-    6.86710430736672347e-07,
+-    -2.41801471221991641e-06,
+-    -1.91108603715104241e-08,
+-    5.85030407613337840e-08,
+-    4.05831352269635484e-10,
+-    -1.09946346874119116e-09,
+-    -6.79891244700694627e-12,
+-    1.65253168377321969e-11,
++/// SparseB's EvalMod series for K = 24: degree-27 whole-interval minimax of (2 pi)^(-1/16) cos(2 pi (24 y - 0.25) / 16),
++/// 4 double angles: 9 levels, 28.2 bits. Replaces FIDESlib's `SparseB.cu::sparseBChebyshevK24` (degree 20 + 5 double
++/// angles: 10 levels, 35.2 bits).
++pub const SPARSE_B_CHEB_K24: [f64; 28] = [
++    -3.21538587848569313e-01,
++    3.08847621269544570e-02,
++    -3.88081959779990548e-01,
++    1.46625287774889406e-02,
++    -4.82856279558641466e-01,
++    -2.57052700448712930e-02,
++    -2.05937303491004281e-01,
++    -5.15304564992511219e-02,
++    5.71244407978557023e-01,
++    4.39840074272567841e-02,
++    -2.81655069311994632e-01,
++    -1.48833805347735257e-02,
++    7.10850137515337682e-02,
++    2.94518870618867791e-03,
++    -1.14079725394480355e-02,
++    -3.92867870967202797e-04,
++    1.28894490329919888e-03,
++    3.81661513695801395e-05,
++    -1.08993226337966983e-04,
++    -2.83812779550276711e-06,
++    7.18983814407743793e-06,
++    1.67321395345254438e-07,
++    -3.81409214254401084e-07,
++    -8.03026897488691191e-09,
++    1.66383531050880358e-08,
++    3.12985682661885936e-10,
++    -6.19385871968205931e-10,
++    -2.16900898405575976e-11,
+ ];
+ pub const SPARSE_B_K: f64 = 24.0;
+-pub const SPARSE_B_DA_ITS: u32 = 5;
++pub const SPARSE_B_DA_ITS: u32 = 4;
+ 
+ /// FNV-1a 64 over the little-endian f64 bit patterns: the checksum recorded for a frozen table.
+ pub fn table_checksum(t: &[f64]) -> u64 {
+diff --git a/crates/pc-shadow/examples/em_depth.rs b/crates/pc-shadow/examples/em_depth.rs
+new file mode 100644
+index 0000000..d4d10c4
+--- /dev/null
++++ b/crates/pc-shadow/examples/em_depth.rs
+@@ -0,0 +1,33 @@
++//! Levels an EvalMod series consumes on the n32 chain: `cargo run -p pc-shadow --example em_depth -- [COEFFS.json DA]`.
++//! COEFFS.json: a JSON array of Chebyshev coefficients (OpenFHE convention, c0 not halved); no argument = the
++//! shipped table and SparseB's K = 24 one. Prints the input top, the output top and their difference.
++use pc_shadow::evalmod::{build_evalmod, PsPlan};
++use pc_core::scale::ScaleTables;
++use pc_shadow::fides::FMeta;
++
++fn levels(st: &ScaleTables, coeffs: &[f64], da: i32, top: i32) -> (i32, usize) {
++    let input = FMeta { top, nl: 2, nf: st.sf(top).unwrap() * st.sf(top).unwrap() };
++    let ps = PsPlan::from_coeffs(coeffs).expect("PS plan");
++    let (prog, out) = build_evalmod(st, input, &ps, da).expect("build");
++    (top - out.top, prog.ops.len())
++}
++
++fn main() {
++    let chain = pc_core::params::Chain::generate(&pc_core::params::ChainSpec::n32()).expect("n32 chain");
++    let st = ScaleTables::precompute(&chain).expect("tables");
++    let args: Vec<String> = std::env::args().skip(1).collect();
++    let mut tables: Vec<(String, Vec<f64>, i32)> = vec![];
++    if args.len() >= 2 {
++        let c: Vec<f64> = serde_json::from_str(&std::fs::read_to_string(&args[0]).unwrap()).unwrap();
++        tables.push((args[0].clone(), c, args[1].parse().unwrap()));
++    } else {
++        tables.push(("shipped deg-14 K16".into(), pc_core::bts_setup::evalmod_coeffs().to_vec(), 5));
++        tables.push(("SparseB deg-20 K24".into(), pc_core::bts_setup::SPARSE_B_CHEB_K24.to_vec(), 5));
++    }
++    for (name, c, da) in &tables {
++        for top in [45, 51] {
++            let (l, n) = levels(&st, c, *da, top);
++            println!("{name}: degree {} + {da} double angles, in top {top}: {l} levels, {n} ops", c.len() - 1);
++        }
++    }
++}
+diff --git a/crates/pc-shadow/src/route.rs b/crates/pc-shadow/src/route.rs
+index e1e4307..3598439 100644
+--- a/crates/pc-shadow/src/route.rs
++++ b/crates/pc-shadow/src/route.rs
+@@ -153,14 +153,14 @@ impl BtsConfig {
+     }
+ }
+ 
+-/// CKKS levels EvalMod consumes on the shipped n32 series: K = 16 degree 14 (dense) and K = 24 degree 20 (SparseB, the
+-/// classic sparse routes), each with 5 double angles (`evalmod::build_evalmod`: input -> output 20 primes on d = 2).
+-pub const EVALMOD_LEVELS: u32 = 10;
++/// CKKS levels EvalMod consumes on the n32 series: K = 16 (dense) and K = 24 (SparseB, the classic sparse routes), each
++/// degree 27 with 4 double angles (`evalmod::build_evalmod`: input -> output 18 primes on d = 2).
++pub const EVALMOD_LEVELS: u32 = 9;
+ 
+ /// The realized landing of a multi-stage route in the shifted flow (FIDESLIB_BTS_SHIFT: the raise keeps the top
+ /// level, no adjust level): `budget` = {CtS, StC} stages, one CKKS level each, plus EvalMod, raise drop 0 (the caller
+-/// adds `raise_drop * unit`, as `BtsConfig::landing`). On n32: classic sparse routes {3, 3} at 32, the dense shipped
+-/// order {4, 3} at 34, SparseB's depth-1 transforms ({1, 1}) at 24.
++/// adds `raise_drop * unit`, as `BtsConfig::landing`). On n32: classic sparse routes {3, 3} at 30, the dense shipped
++/// order {4, 3} at 32, SparseB's depth-1 transforms ({1, 1}) at 22.
+ pub fn multi_stage_landing(budget: [u32; 2], unit: u32) -> Landing {
+     Landing { level: unit * (budget[0] + EVALMOD_LEVELS + budget[1]), deg: 1 }
+ }
+-- 
+2.56.0
+

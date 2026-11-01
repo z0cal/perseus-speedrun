@@ -1,0 +1,21 @@
+[pc-bench] dense route key source Regen
+[pc-bench] scale_dec 4.116491880636786e0; raised FMeta { top: 53, nl: 1, nf: 7.078983181978619e19 }; em in FMeta { top: 45, nl: 1, nf: 1.5947063113602448e16 } out FMeta { top: 27, nl: 2, nf: 2.174275920601507e32 }; out FMeta { top: 21, nl: 2, nf: 1.8864302918787144e32 }
+[pc-bench]   cts top 53 nf 4.219402779328e12 width 65536 geom LtGeom { b: 16, g: 2, stride: 2048, npts: 31, offset: 0 } end FusedRescale max|coeff| 2^38.2
+[pc-bench]   cts top 51 nf 1.7282673784127488e16 width 4096 geom LtGeom { b: 16, g: 2, stride: 128, npts: 31, offset: 0 } end FusedRescale max|coeff| 2^50.5
+[pc-bench]   cts top 49 nf 1.6452029344456868e16 width 256 geom LtGeom { b: 16, g: 2, stride: 8, npts: 31, offset: 0 } end FusedRescale max|coeff| 2^51.8
+[pc-bench]   cts top 47 nf 1.6590348881187384e16 width 16 geom LtGeom { b: 8, g: 2, stride: 1, npts: 15, offset: 0 } end FusedRescale max|coeff| 2^53.0
+[pc-bench]   stc top 25 nf 1.3818954564770394e16 width 64 geom LtGeom { b: 16, g: 4, stride: 1, npts: 63, offset: 0 } end FusedRescale max|coeff| 2^52.3
+[pc-bench]   stc top 23 nf 1.6796882795788668e16 width 2048 geom LtGeom { b: 16, g: 4, stride: 32, npts: 63, offset: 0 } end FusedRescale max|coeff| 2^50.5
+[pc-bench]   stc top 21 nf 1.3734738045840906e16 width 65536 geom LtGeom { b: 16, g: 4, stride: 1024, npts: 63, offset: 2 } end ModDown max|coeff| 2^51.1
+[pc-bench] host plan 0.7 s: 75 rotation keys, EvalMod buffers 10
+[pc-bench] MemPlan context 63.9 MB, ks_work 1890.0 MB, bconv_work 126.0 MB, scratch 504.0 MB, ct_pool 31.5 MB, keys 14747.5 MB, keygen 31.5 MB, secret 31.5 MB, encrypt 0.0 MB, decrypt 10.0 MB, ks.plans 4.0 MB, ks.regen_a 189.0 MB, ops 14.5 MB, rescale 253.5 MB, bts.dense 4907.2 MB, bts.work 8064.0 MB, bench.dbg 256.0 MB, bench.cts 252.0 MB, total 31376.1 MB
+[pc-bench] keygen 79 keys in 2.7 s
+[pc-bench] dense route tables 0.6 s; arena used 32.3 of 32.9 GB
+[pc-bench] stages K=1 lt_baby=Regen2 (ms): raise 0.55, cts0 2.31, cts1 2.34, cts2 2.23, cts3 1.38, evalmod 8.20, stc0 1.61, stc1 1.52, stc2 1.83, finish 0.01
+[pc-bench] bts route=dense real=false lt_baby=Regen2 cf=6 drop=0 input level 44 K=1: device 21.94 ms/call 21.94 ms/ct, wall 21.94 ms/call (median of 10); out level 32 deg 2; max err 1.13e-4 (A=1)
+[pc-bench] stages K=2 lt_baby=Regen2 (ms): raise 1.06, cts0 3.08, cts1 3.38, cts2 3.24, cts3 2.20, evalmod 17.81, stc0 2.12, stc1 2.04, stc2 2.30, finish 0.01
+[pc-bench] bts route=dense real=false lt_baby=Regen2 cf=6 drop=0 input level 44 K=2: device 37.22 ms/call 18.61 ms/ct, wall 37.23 ms/call (median of 10); out level 32 deg 2; max err 1.16e-4 (A=1)
+[pc-bench] stages K=4 lt_baby=Regen2 (ms): raise 2.13, cts0 4.58, cts1 5.72, cts2 5.44, cts3 3.96, evalmod 38.33, stc0 3.72, stc1 3.59, stc2 3.66, finish 0.02
+[pc-bench] bts route=dense real=false lt_baby=Regen2 cf=6 drop=0 input level 44 K=4: device 71.12 ms/call 17.78 ms/ct, wall 71.13 ms/call (median of 10); out level 32 deg 2; max err 1.13e-4 (A=1)
+[pc-bench] stages K=8 lt_baby=Regen2 (ms): raise 4.33, cts0 8.46, cts1 11.25, cts2 10.71, cts3 7.90, evalmod 77.13, stc0 7.76, stc1 7.45, stc2 7.44, finish 0.10
+[pc-bench] bts route=dense real=false lt_baby=Regen2 cf=6 drop=0 input level 44 K=8: device 142.57 ms/call 17.82 ms/ct, wall 142.58 ms/call (median of 10); out level 32 deg 2; max err 1.27e-4 (A=1)

@@ -1,0 +1,20 @@
+===== stcf shipped
+[pc-bench] stcf host plan 1.2 s: entry limb 7, 2 input stages, 75 rotation keys
+[pc-bench] stcf route cf=13 real=false input level 44 K=1: device 18.42 ms/call 18.42 ms/ct (median of 10); out level 26 deg 2
+[pc-bench]   stages K=1 (ms): Split 1.41, Raised 0.53, Folded 0.00, Cts(1) 2.31, Cts(2) 2.34, Cts(3) 2.23, Cts(4) 1.38, EvalMod 8.20, Done 0.01
+[pc-bench] stcf route cf=13 real=false input level 44 K=2: device 32.61 ms/call 16.31 ms/ct (median of 10); out level 26 deg 2
+[pc-bench]   stages K=2 (ms): Split 1.86, Raised 1.05, Folded 0.00, Cts(1) 3.09, Cts(2) 3.38, Cts(3) 3.24, Cts(4) 2.20, EvalMod 17.77, Done 0.01
+[pc-bench] stcf route cf=13 real=false input level 44 K=4: device 63.21 ms/call 15.80 ms/ct (median of 10); out level 26 deg 2
+[pc-bench]   stages K=4 (ms): Split 3.08, Raised 2.10, Folded 0.00, Cts(1) 4.59, Cts(2) 5.74, Cts(3) 5.46, Cts(4) 3.96, EvalMod 38.27, Done 0.02
+[pc-bench] stcf route cf=13 real=false input level 44 K=8: device 125.68 ms/call 15.71 ms/ct (median of 10); out level 26 deg 2
+[pc-bench]   stages K=8 (ms): Split 5.79, Raised 4.28, Folded 0.00, Cts(1) 8.50, Cts(2) 11.28, Cts(3) 10.75, Cts(4) 7.94, EvalMod 77.01, Done 0.14
+===== stcf d27
+[pc-bench] stcf host plan 1.2 s: entry limb 7, 2 input stages, 75 rotation keys
+[pc-bench] stcf route cf=13 real=false input level 44 K=1: device 20.62 ms/call 20.62 ms/ct (median of 10); out level 24 deg 2
+[pc-bench]   stages K=1 (ms): Split 1.41, Raised 0.54, Folded 0.00, Cts(1) 2.32, Cts(2) 2.34, Cts(3) 2.23, Cts(4) 1.38, EvalMod 10.39, Done 0.01
+[pc-bench] stcf route cf=13 real=false input level 44 K=2: device 37.70 ms/call 18.85 ms/ct (median of 10); out level 24 deg 2
+[pc-bench]   stages K=2 (ms): Split 1.86, Raised 1.05, Folded 0.00, Cts(1) 3.09, Cts(2) 3.38, Cts(3) 3.25, Cts(4) 2.20, EvalMod 22.89, Done 0.01
+[pc-bench] stcf route cf=13 real=false input level 44 K=4: device 73.63 ms/call 18.41 ms/ct (median of 10); out level 24 deg 2
+[pc-bench]   stages K=4 (ms): Split 3.09, Raised 2.10, Folded 0.00, Cts(1) 4.59, Cts(2) 5.75, Cts(3) 5.47, Cts(4) 3.97, EvalMod 48.66, Done 0.02
+[pc-bench] stcf route cf=13 real=false input level 44 K=8: device 146.55 ms/call 18.32 ms/ct (median of 10); out level 24 deg 2
+[pc-bench]   stages K=8 (ms): Split 5.78, Raised 4.27, Folded 0.00, Cts(1) 8.50, Cts(2) 11.30, Cts(3) 10.77, Cts(4) 7.96, EvalMod 97.81, Done 0.16

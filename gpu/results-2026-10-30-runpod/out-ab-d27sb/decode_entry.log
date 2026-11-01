@@ -1,0 +1,15 @@
+request 0: score 1.6784 s/token, outputs ok, mean KL 2.68e-06
+request 1: score 1.6917 s/token, outputs ok, mean KL 3.28e-06
+request 2: score 1.7067 s/token, outputs ok, mean KL 7.94e-06
+request 3: score 1.7046 s/token, outputs ok, mean KL 1.41e-06
+run.json: /root/perseus-entry/out-ab-d27sb/runs/20261030-035933-81892/run.json
+request 0: score 1.6786 s/token, outputs ok, mean KL 2.55e-06
+request 1: score 1.6903 s/token, outputs ok, mean KL 1.22e-06
+request 2: score 1.6979 s/token, outputs ok, mean KL 2.77e-06
+request 3: score 1.7012 s/token, outputs ok, mean KL 3.36e-06
+run.json: /root/perseus-entry/out-ab-d27sb/runs/20261030-040235-86102/run.json
+request 0: score 1.6802 s/token, outputs ok, mean KL 7.55e-06
+request 1: score 1.6923 s/token, outputs ok, mean KL 1.38e-05
+request 2: score 1.7037 s/token, outputs ok, mean KL 1.56e-05
+request 3: score 1.7056 s/token, outputs ok, mean KL 1.16e-05
+run.json: /root/perseus-entry/out-ab-d27sb/runs/20261030-041137-98676/run.json

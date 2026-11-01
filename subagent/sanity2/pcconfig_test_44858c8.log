@@ -1,0 +1,9 @@
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test float_spellings_are_one_value ... ok
+test dotted_access_and_errors ... ok
+test field_table ... ok
+test presets_place_every_name ... ok
+test shipped_stamps_round_trip ... FAILED
+thread 'shipped_stamps_round_trip' (361276) panicked at crates/pc-config/tests/legacy.rs:167:13:
+/home/zocal/pesquisa/perseus-speedrun/subagent/sanity2/clone/crates/pc-config/../../bootstrap_placements/gpt2_prefill128_n32a4_pfbh_cm/PLAN_CMD.txt: no field for ["PLAN_PCMM_PREDIV_CAP"]
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.63s

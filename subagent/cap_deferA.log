@@ -1,0 +1,5 @@
+[impl] decode 1 tokens, layers=12, capture=/home/zocal/pesquisa/perseus-speedrun/work/caps/sa_s6t2_deferA plan=None
+[impl] tok0 top1=198 decode=14.4s ref=198 ref_rank=0 KL=8.782e-07 OK rss=4.2GB cpu=14.6s thread=13.9s ctx=5949/385 flt=701533/47 masks=0/0/0 wait=0.00s enc=0 miss=134 hit=444 ring_gap=0.01s gaps=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] cutmax=198 OK z_mass=1.0000 argmax=0.4s bts=79
+[precise] tok0 decode=14.372 argmax=0.441 e2e=14.814
+[impl] SUMMARY completed=1/1 top1=1/1 medianKL=8.782e-07 deliberate_bts=50 total_bts=281 relevels=None wall=15s
+[decode] PASS

@@ -1,0 +1,9 @@
+[2026-10-30 18:32:25] decode pair 1/3: record (prompts 0..3)
+[2026-10-30 18:35:47] decode pair 1/3: entry (prompts 0..3)
+[2026-10-30 18:39:11] decode pair 2/3: entry (prompts 4..7)
+[2026-10-30 18:42:34] decode pair 2/3: record (prompts 4..7)
+[2026-10-30 18:46:01] decode pair 3/3: record (prompts 8..11)
+[2026-10-30 18:49:26] decode pair 3/3: entry (prompts 8..11)
+[2026-10-30 18:52:51] decode peak GPU memory  50208 MiB
+[2026-10-30 18:52:51] score_decode: does NOT beat the record / fails a check (score.py exit 1)
+[2026-10-30 18:52:51] step decode done; results in /root/perseus-entry/out-ab-sb

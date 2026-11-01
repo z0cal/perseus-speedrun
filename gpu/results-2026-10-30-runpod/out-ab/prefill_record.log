@@ -1,0 +1,10 @@
+request 0: score 9.3058 s, outputs ok, mean KL 7.22e-06
+request 1: score 9.3225 s, outputs ok, mean KL 1.48e-05
+request 2: score 9.3308 s, outputs ok, mean KL 9.34e-06
+request 3: score 9.3624 s, outputs ok, mean KL 1.36e-05
+run.json: /root/perseus-entry/out-ab/runs/20261030-034723-65016/run.json
+request 0: score 9.3129 s, outputs ok, mean KL 6.41e-06
+request 1: score 9.3135 s, outputs ok, mean KL 9.71e-07
+request 2: score 9.3238 s, outputs ok, mean KL 3.67e-05
+request 3: score 9.3509 s, outputs ok, mean KL 2.15e-04
+run.json: /root/perseus-entry/out-ab/runs/20261030-035408-74524/run.json

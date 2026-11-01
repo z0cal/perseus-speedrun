@@ -1,0 +1,9 @@
+[package]
+name = "emops"
+version = "0.1.0"
+edition = "2021"
+[dependencies]
+pc-shadow = { path = "/home/zocal/pesquisa/perseus-speedrun/work/perseus/crates/pc-shadow" }
+pc-core = { path = "/home/zocal/pesquisa/perseus-speedrun/work/perseus/crates/pc-core" }
+serde_json = "1"
+[workspace]

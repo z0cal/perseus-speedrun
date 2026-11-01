@@ -1,0 +1,43 @@
+== ../graphs_combo/rc3b bootstrap_placements/fin_rc3b_m_cm
+errors 0 | refreshes blocks 0-12 98 | stage 13 12 | per-block [8, 8, 8, 8, 9, 8, 8, 8, 7, 7, 9, 9, 1, 12]
+deliberate (stage13?, route, real): {(False, 0, True): 12, (True, 1, False): 6}
+stage 13 mix: {('hint', 0): 6, ('deliberate', 1): 6}
+sample site tuple: ('v_89', 'hint', 1, 12, False, 12, False)
+== ../graphs_combo/rc3b ../../subagent/sanity/plans/fin_rc3b_m_cm_noswitch
+  block_11: 2800 errors, first: node 2 MultPt(0) -> ["v_3"] (blk11.ln_1): rule rescale: top limb 1 has no 2 primes left to drop
+  block_12: 4616 errors, first: node 2 MultPt(0) -> ["v_3"] (tail): rule rescale: top limb 1 has no 2 primes left to drop
+  block_13: 1006 errors, first: node 9 MultPt(0) -> ["v_10"] (cutmax): rule rescale: top limb 1 has no 2 primes left to drop
+errors 33320 | refreshes blocks 0-12 5 | stage 13 0 | per-block [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+deliberate (stage13?, route, real): {(False, 512, True): 1}
+stage 13 mix: {}
+sample site tuple: ('v_89', 'hint', 1, 12, False, 12, False)
+== ../graphs_combo/fin ../../subagent/sanity/plans/fin_dfr13_m_cm_d27
+errors 0 | refreshes blocks 0-12 86 | stage 13 12 | per-block [7, 7, 8, 7, 8, 6, 7, 7, 6, 6, 7, 9, 1, 12]
+deliberate (stage13?, route, real): {(False, 1, True): 12, (True, 1, False): 6}
+stage 13 mix: {('hint', 0): 6, ('deliberate', 1): 6}
+sample site tuple: ('v_89', 'hint', 1, 12, False, 12, False)
+== ../graphs_combo/rec bootstrap_placements/gpt2_decode_python_n32_kc16_cm
+errors 0 | refreshes blocks 0-12 108 | stage 13 12 | per-block [9, 8, 9, 9, 10, 9, 9, 9, 8, 8, 9, 10, 1, 12]
+deliberate (stage13?, route, real): {(False, 0, True): 12, (True, 1, False): 6}
+stage 13 mix: {('hint', 0): 6, ('deliberate', 1): 6}
+sample site tuple: ('v_89', 'hint', 1, 12, False, 12, False)
+== ../graphs_combo/rec ../../subagent/sanity/plans/rec_d27
+  block_11: 2828 errors, first: node 2 MultPt(0) -> ["v_3"] (blk11.ln_1): rule rescale: top limb 1 has no 2 primes left to drop
+  block_12: 4616 errors, first: node 2 MultPt(0) -> ["v_3"] (tail): rule rescale: top limb 1 has no 2 primes left to drop
+  block_13: 1006 errors, first: node 9 MultPt(0) -> ["v_10"] (cutmax): rule rescale: top limb 1 has no 2 primes left to drop
+errors 34085 | refreshes blocks 0-12 1 | stage 13 0 | per-block [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+deliberate (stage13?, route, real): {}
+stage 13 mix: {}
+sample site tuple: ('v_89', 'hint', 1, 12, False, 12, False)
+  block_10: 2359 errors, first: node 2 MultPt(0) -> ["v_3"] (blk10.ln_1): rule rescale: top limb 1 has no 2 primes left to drop
+  block_11: 2784 errors, first: node 2 MultPt(0) -> ["v_3"] (blk11.ln_1): rule rescale: top limb 1 has no 2 primes left to drop
+  block_12: 4616 errors, first: node 2 MultPt(0) -> ["v_3"] (tail): rule rescale: top limb 1 has no 2 primes left to drop
+  block_13: 1006 errors, first: node 9 MultPt(0) -> ["v_10"] (cutmax): rule rescale: top limb 1 has no 2 primes left to drop
+errors 33179 | refreshes blocks 0-12 2 | stage 13 0 | per-block [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+deliberate (stage13?, route, real): {(False, 0, True): 1}
+stage 13 mix: {}
+sample site tuple: ('v_89', 'hint', 1, 12, False, 12, False)
+errors 0 | refreshes blocks 0-12 267 | stage 13 13 | per-block [24, 20, 29, 24, 30, 20, 20, 20, 20, 20, 20, 16, 4, 13]
+deliberate (stage13?, route, real): {(False, 0, False): 12, (True, 1, False): 6}
+stage 13 mix: {('placement', 0): 3, ('deliberate', 1): 6, ('placement', 1): 4}
+sample site tuple: ('v_117', 'hint', 512, 10, False, 5, False)

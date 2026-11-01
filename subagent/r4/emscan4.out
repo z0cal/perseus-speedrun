@@ -1,0 +1,40 @@
+n32: q.len() = 54, groups (bottom first) = [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], lone_top = None
+  K16 in top 41 nl 1: shipped -> top 23 (18 primes, 78 ops), d27 -> top 25 (16 primes, 98 ops)
+  K16 in top 41 nl 2: shipped -> top 21 (20 primes, 80 ops), d27 -> top 23 (18 primes, 100 ops)
+  K16 in top 45 nl 1: shipped -> top 27 (18 primes, 78 ops), d27 -> top 29 (16 primes, 98 ops)
+  K16 in top 45 nl 2: shipped -> top 25 (20 primes, 80 ops), d27 -> top 27 (18 primes, 100 ops)
+  K16 in top 49 nl 1: shipped -> top 31 (18 primes, 78 ops), d27 -> top 33 (16 primes, 98 ops)
+  K16 in top 49 nl 2: shipped -> top 29 (20 primes, 80 ops), d27 -> top 31 (18 primes, 100 ops)
+  K16 in top 53 nl 1: shipped -> top 35 (18 primes, 78 ops), d27 -> top 37 (16 primes, 98 ops)
+  K16 in top 53 nl 2: shipped -> top 33 (20 primes, 80 ops), d27 -> top 35 (18 primes, 100 ops)
+  K24 in top 41 nl 1: shipped -> top 23 (18 primes, 97 ops), d27 -> top 25 (16 primes, 98 ops)
+  K24 in top 41 nl 2: shipped -> top 21 (20 primes, 99 ops), d27 -> top 23 (18 primes, 100 ops)
+  K24 in top 45 nl 1: shipped -> top 27 (18 primes, 97 ops), d27 -> top 29 (16 primes, 98 ops)
+  K24 in top 45 nl 2: shipped -> top 25 (20 primes, 99 ops), d27 -> top 27 (18 primes, 100 ops)
+  K24 in top 49 nl 1: shipped -> top 31 (18 primes, 97 ops), d27 -> top 33 (16 primes, 98 ops)
+  K24 in top 49 nl 2: shipped -> top 29 (20 primes, 99 ops), d27 -> top 31 (18 primes, 100 ops)
+  K24 in top 53 nl 1: shipped -> top 35 (18 primes, 97 ops), d27 -> top 37 (16 primes, 98 ops)
+  K24 in top 53 nl 2: shipped -> top 33 (20 primes, 99 ops), d27 -> top 35 (18 primes, 100 ops)
+n32: mismatches 0, scans consuming a non-pair level 0
+n32a4: q.len() = 51, groups (bottom first) = [2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], lone_top = Some(2)
+  K16 in top 18 nl 1: shipped -> top 1 (17 primes, 78 ops), d27 -> top 2 (16 primes, 98 ops)  MISMATCH  NON-PAIR LEVEL CONSUMED
+  K16 in top 20 nl 2: shipped -> top 1 (19 primes, 80 ops), d27 -> top 2 (18 primes, 100 ops)  MISMATCH  NON-PAIR LEVEL CONSUMED
+  K16 in top 38 nl 1: shipped -> top 20 (18 primes, 78 ops), d27 -> top 22 (16 primes, 98 ops)
+  K16 in top 38 nl 2: shipped -> top 18 (20 primes, 80 ops), d27 -> top 20 (18 primes, 100 ops)
+  K16 in top 42 nl 1: shipped -> top 24 (18 primes, 78 ops), d27 -> top 26 (16 primes, 98 ops)
+  K16 in top 42 nl 2: shipped -> top 22 (20 primes, 80 ops), d27 -> top 24 (18 primes, 100 ops)
+  K16 in top 46 nl 1: shipped -> top 28 (18 primes, 78 ops), d27 -> top 30 (16 primes, 98 ops)
+  K16 in top 46 nl 2: shipped -> top 26 (20 primes, 80 ops), d27 -> top 28 (18 primes, 100 ops)
+  K16 in top 50 nl 1: shipped -> top 32 (18 primes, 78 ops), d27 -> top 34 (16 primes, 98 ops)
+  K16 in top 50 nl 2: shipped -> top 30 (20 primes, 80 ops), d27 -> top 32 (18 primes, 100 ops)
+  K24 in top 18 nl 1: shipped -> top 1 (17 primes, 97 ops), d27 -> top 2 (16 primes, 98 ops)  MISMATCH  NON-PAIR LEVEL CONSUMED
+  K24 in top 20 nl 2: shipped -> top 1 (19 primes, 99 ops), d27 -> top 2 (18 primes, 100 ops)  MISMATCH  NON-PAIR LEVEL CONSUMED
+  K24 in top 38 nl 1: shipped -> top 20 (18 primes, 97 ops), d27 -> top 22 (16 primes, 98 ops)
+  K24 in top 38 nl 2: shipped -> top 18 (20 primes, 99 ops), d27 -> top 20 (18 primes, 100 ops)
+  K24 in top 42 nl 1: shipped -> top 24 (18 primes, 97 ops), d27 -> top 26 (16 primes, 98 ops)
+  K24 in top 42 nl 2: shipped -> top 22 (20 primes, 99 ops), d27 -> top 24 (18 primes, 100 ops)
+  K24 in top 46 nl 1: shipped -> top 28 (18 primes, 97 ops), d27 -> top 30 (16 primes, 98 ops)
+  K24 in top 46 nl 2: shipped -> top 26 (20 primes, 99 ops), d27 -> top 28 (18 primes, 100 ops)
+  K24 in top 50 nl 1: shipped -> top 32 (18 primes, 97 ops), d27 -> top 34 (16 primes, 98 ops)
+  K24 in top 50 nl 2: shipped -> top 30 (20 primes, 99 ops), d27 -> top 32 (18 primes, 100 ops)
+n32a4: mismatches 4, scans consuming a non-pair level 4

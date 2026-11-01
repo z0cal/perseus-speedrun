@@ -1,0 +1,5 @@
+[impl] decode 1 tokens, layers=12, capture=graphs/r4_ln3 plan=None
+[impl] tok0 top1=198 decode=28.6s ref=198 ref_rank=0 KL=9.946e-07 OK rss=5.3GB cpu=29.1s thread=28.4s ctx=1631/809 flt=565930/16 masks=0/0/0 wait=0.00s enc=0 miss=140 hit=458 ring_gap=0.02s gaps=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] cutmax=198 OK z_mass=1.0000 argmax=0.5s bts=22
+[precise] tok0 decode=28.557 argmax=0.535 e2e=29.092
+[impl] SUMMARY completed=1/1 top1=1/1 medianKL=9.946e-07 deliberate_bts=48 total_bts=262 relevels=None wall=29s
+[decode] PASS

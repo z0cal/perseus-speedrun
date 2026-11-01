@@ -1,0 +1,43 @@
+     Running unittests src/lib.rs (target/release/deps/pc_core-5c75caf1c0b86d5f)
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+     Running tests/encode.rs (target/release/deps/encode-cfa095dd1a042eb0)
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.73s
+     Running tests/kskb_frozen.rs (target/release/deps/kskb_frozen-ffc47deefdd488b2)
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+     Running tests/modmul_contract.rs (target/release/deps/modmul_contract-3ccda86f3e6cdd17)
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+     Running tests/oracle_bts.rs (target/release/deps/oracle_bts-075190c40b5379a0)
+test cts_factor_values_match_decoded_d3_plaintexts ... FAILED
+test stage_metadata_matches_the_dump ... FAILED
+test result: FAILED. 4 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s
+     Running tests/oracle_cheb.rs (target/release/deps/oracle_cheb-e9a7a36b5134b941)
+test ps_plan_reproduces_the_dump ... FAILED
+test evalmod_table_is_the_dumped_one ... FAILED
+test result: FAILED. 1 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+     Running tests/oracle_galois.rs (target/release/deps/oracle_galois-7c7b1aec517f06db)
+test d3_key_names_follow_the_convention ... FAILED
+test result: FAILED. 2 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+     Running tests/oracle_keys.rs (target/release/deps/oracle_keys-4f957d4635a048ce)
+test every_dumped_key_satisfies_the_switch_relation ... FAILED
+test kska_twin_matches_dumped_dense_a ... FAILED
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+     Running tests/params_chain.rs (target/release/deps/params_chain-1731271313e9f920)
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+     Running tests/scale_tables.rs (target/release/deps/scale_tables-a697d596fa8ef992)
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+     Running unittests src/lib.rs (target/release/deps/pc_shadow-3e1a327227efe1c7)
+test route::tests::multi_stage_landings ... ok
+test evalmod::general_ps_tests::evalmod_series_levels ... ok
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+     Running tests/capture_rules.rs (target/release/deps/capture_rules-63259edbde7611ce)
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+     Running tests/d3_oracle.rs (target/release/deps/d3_oracle-d49b40ee4e3ed65d)
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+     Running tests/planner_equiv.rs (target/release/deps/planner_equiv-38437b2e363cd923)
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+     Running tests/rules_unit.rs (target/release/deps/rules_unit-557b66a2e72146e7)
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+     Running tests/tag_vectors.rs (target/release/deps/tag_vectors-77b4d77d7786e3ee)
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

@@ -1,0 +1,5 @@
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test shipped_stamps_round_trip ... FAILED
+thread 'shipped_stamps_round_trip' (1020906) panicked at crates/pc-config/tests/legacy.rs:165:13:
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.93s

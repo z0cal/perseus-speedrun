@@ -1,0 +1,12 @@
+[14:07:59] position-0 capture
+[impl] decode 1 tokens, layers=12, capture=graphs/lnd_r4_ln3_smrel_db plan=None
+[impl] tok0 top1=198 decode=25.2s ref=198 ref_rank=0 KL=9.946e-07 OK rss=5.3GB cpu=35.3s thread=25.1s ctx=99/779 flt=844829/0 masks=0/0/0 wait=0.00s enc=0 miss=163 hit=459 ring_gap=0.02s gaps=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] cutmax=198 OK z_mass=1.0000 argmax=0.4s bts=22
+[precise] tok0 decode=25.198 argmax=0.394 e2e=25.592
+[impl] SUMMARY completed=1/1 top1=1/1 medianKL=9.946e-07 deliberate_bts=47 total_bts=196 relevels=None wall=26s
+[decode] PASS
+[14:08:27] merged capture
+    var = ops.tag_reduce(rotsum(ops, var, 1, N), 1)   # broadcast constant
+                                           ^^
+NameError: name 'os' is not defined. Did you mean: 'pos'? Or did you forget to import 'os'?
+xargs: bash: exited with status 255; aborting
+RUN_LNDCFG_EXIT=124

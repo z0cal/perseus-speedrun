@@ -1,0 +1,78 @@
+[2026-10-30 18:03:30] preflight
+NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition, 97887 MiB, 580.126.09
+[2026-10-30 18:03:30] preflight: NOSANDBOX=1, the A/B outside the harness's sandbox (gpu/ab/sandbox.sh): NOT harness runs
+[2026-10-30 18:03:30] preflight ok (A/B): NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition, 97887 MiB, 580.126.09, nvcc 13.0
+[2026-10-30 18:03:30] setup in /root/perseus-entry
+info: downloading installer
+info: profile set to default
+info: default host tuple is x86_64-unknown-linux-gnu
+info: skipping toolchain installation
+
+
+Rust is installed now. Great!
+
+To get started you may need to restart your current shell.
+This would reload your PATH environment variable to include
+Cargo's bin directory ($HOME/.cargo/bin).
+
+To configure your current shell, you need to source the
+corresponding env file under $HOME/.cargo.
+
+Consider running the right command for your shell (note the leading DOT):
+. "$HOME/.cargo/env" # For sh/ash/dash/pdksh/bash
+cargo:rerun-if-env-changed=CC_x86_64-unknown-linux-gnu
+CC_x86_64-unknown-linux-gnu = None
+cargo:rerun-if-env-changed=CC_x86_64_unknown_linux_gnu
+CC_x86_64_unknown_linux_gnu = None
+cargo:rerun-if-env-changed=HOST_CC
+HOST_CC = None
+cargo:rerun-if-env-changed=CC
+CC = None
+cargo:rerun-if-env-changed=CC_ENABLE_DEBUG_OUTPUT
+cargo:rerun-if-env-changed=CRATE_CC_NO_DEFAULTS
+CRATE_CC_NO_DEFAULTS = None
+cargo:rerun-if-env-changed=CFLAGS
+CFLAGS = None
+cargo:rerun-if-env-changed=HOST_CFLAGS
+HOST_CFLAGS = None
+cargo:rerun-if-env-changed=CFLAGS_x86_64_unknown_linux_gnu
+CFLAGS_x86_64_unknown_linux_gnu = None
+cargo:rerun-if-env-changed=CFLAGS_x86_64-unknown-linux-gnu
+CFLAGS_x86_64-unknown-linux-gnu = None
+[2026-10-30 18:03:55] entry at 34e8db7, on record 4
+[2026-10-30 18:04:02] build .
+[2026-10-30 18:06:27] build ../perseus-client
+[2026-10-30 18:07:06] build ../perseus-lean-client
+[2026-10-30 18:07:48] build ../perseus-record
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/148 [00:00<?, ?it/s]Loading weights: 100%|██████████| 148/148 [00:00<00:00, 20881.22it/s]
+Zipped -> .cache/models/openai-community/gpt2/classic/weights.bin.zip (148 tensors)
+Wrote -> .cache/models/openai-community/gpt2/classic/client.npz
+[2026-10-30 18:08:54] A/B runner at /root/perseus-entry/ab/speedrun (sandbox stand-in, NOT the harness's isolation)
+[2026-10-30 18:08:54] setup done
+[2026-10-30 18:08:54] step setup done; results in /root/perseus-entry/out-ab
+[2026-10-30 18:08:54] smoke: one Decode-8 entry run
+[2026-10-30 18:12:11] smoke ok: /root/perseus-entry/out-ab/runs/20261030-180855-9072/run.json
+[2026-10-30 18:12:11] step smoke done; results in /root/perseus-entry/out-ab
+[2026-10-30 18:12:11] decode pair 1/3: record (prompts 0..3)
+[2026-10-30 18:15:38] decode pair 1/3: entry (prompts 0..3)
+[2026-10-30 18:18:58] decode pair 2/3: entry (prompts 4..7)
+[2026-10-30 18:22:18] decode pair 2/3: record (prompts 4..7)
+[2026-10-30 18:25:42] decode pair 3/3: record (prompts 8..11)
+[2026-10-30 18:29:06] decode pair 3/3: entry (prompts 8..11)
+[2026-10-30 18:32:25] decode peak GPU memory  50208 MiB
+quality: 12 requests, mean KL 4.54e-06 (bar 0.001, p 2.5e-30), argmax agreement 100.0%: PASS
+speed: 3 pairs, entry 2.324 s vs record 2.369 s, x1.019 (delta 1.0%, p 0.00029): NEW RECORD
+[2026-10-30 18:32:25] score_decode: a new record that passes (score.py exit 0)
+[2026-10-30 18:32:25] step decode done; results in /root/perseus-entry/out-ab
+[2026-10-30 18:32:25] decode pair 1/3: record (prompts 0..3)
+[2026-10-30 18:35:47] decode pair 1/3: entry (prompts 0..3)
+[2026-10-30 18:39:11] decode pair 2/3: entry (prompts 4..7)
+[2026-10-30 18:42:34] decode pair 2/3: record (prompts 4..7)
+[2026-10-30 18:46:01] decode pair 3/3: record (prompts 8..11)
+[2026-10-30 18:49:26] decode pair 3/3: entry (prompts 8..11)
+[2026-10-30 18:52:51] decode peak GPU memory  50208 MiB
+quality: 12 requests, mean KL 7.62e-06 (bar 0.001, p 1.6e-26), argmax agreement 100.0%: PASS
+speed: 3 pairs, entry 2.357 s vs record 2.373 s, x1.007 (delta 1.0%, p 0.0073): not a record
+[2026-10-30 18:52:51] score_decode: does NOT beat the record / fails a check (score.py exit 1)
+[2026-10-30 18:52:51] step decode done; results in /root/perseus-entry/out-ab-sb
