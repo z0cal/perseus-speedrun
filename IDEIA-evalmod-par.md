@@ -2,6 +2,14 @@
 
 Data: 2026-10-30. Status: **só modelo e contagem de operações; nada medido na GPU.**
 
+> **Revisão 2026-11-01 (`ATAP-ganhos.md`, seção 1).** Não use o par z11 com os planos em9: o `tmodel` mostrou que o em9
+> perdeu +52 ms com os pousos 2 limbs mais altos, além do custo do d27. Use o nível livre num **raise drop**: o pouso fica
+> o do recorde e o plano do recorde 4 (114 refreshes) vale sem mudança, só runtime, como a opção A (`tmodel/sbd27.py`).
+> Estimativa com as etapas medidas: −1,2 a −1,6 ms por refresh StC-first complexo, ~−25 a −45 ms por token. Séries pares
+> de grau baixo com 5–6 DA não ganham (tabela na mesma seção). A frase "GELU e softmax não ganham com o livro" continua
+> valendo na prática: a GELU par dá −30 produtos/token (seção 3 de `ATAP-ganhos.md`).
+
+
 ## Resumo
 
 O alvo do EvalMod antes dos ângulos duplos é par em `u' = u − 1/4`. Basta somar `−1/4` (constante, sem nível),
@@ -71,7 +79,7 @@ No SparseB o ganho é menor: o par z13 não é mais barato em Rescale e fica aba
 - O par z11 pousa igual ao em9 (mesmos 9 níveis, 18 limbs), então os planos `plans/gpt2_decode_em9_cm` e os
   pousos já existentes se aplicam.
 - Mesmo número de refreshes do em9 (108 contra 114 do recorde), com EvalMod mais barato que o recorde, em vez de
-  27 % mais caro.
+  27 % mais caro. *(2026-11-01: o pouso mais alto do em9 custa ~+52 ms nas ops; ver a revisão no topo.)*
 - A precisão prevista (34–35 bits) fica acima dos 27,4 bits do recorde na rota dense.
 
 ## Riscos e ressalvas

@@ -2,6 +2,41 @@
 
 Desafio: https://github.com/gladia-research-group/perseus/tree/speedrun (Decode-8 recorde 3: 2,325 s/token).
 
+## Estado em 2026-11-01 (leia isto primeiro)
+
+- **Recorde vigente:** Decode-8 recorde 4 (`origin/speedrun` = d97a6f7): 1,798 s/token, 114 refreshes/token, cadeia
+  n32a4, softmax centrada. Regra 5: a entrada precisa ser ≥ 1 % mais rápida no harness oficial, com KL < 1e-3.
+- **Melhor candidato medido:** `r4_ln3_sbd27d1_cm` (1/√ da LayerNorm a 1e-3 + SparseB na tabela d27 K24 com +1 raise
+  drop; mesmos 114 refreshes e pousos do recorde): **×1,019** contra o recorde 4 na mesma GPU (RTX PRO 6000 Max-Q,
+  3 pares alternados, p = 0,0003, KL 4,5e-6). Medido **fora do harness** (`NOSANDBOX=1`), então não é reportável.
+  Detalhes em `tmodel/RELATORIO-2026-10-30.md`, seção 6.
+- **Falta para PR:** rodar no harness oficial numa VM ou bare metal (a Runpod é container: o `sandbox.sh` não sobe).
+- **Linhas fechadas (não repetir):** EvalMod d27 nas rotas densas (×0,956: o EvalMod fica 27 % mais caro e o pouso
+  mais alto encarece as ops); d27 só no SparseB, sem drop (empate); smrel, faixas da softmax e LN adiada sobre o recorde
+  4 (0 refreshes); semente CGF; T1/Newton na LN; f∘arcsin (RBOOT).
+- **Próximas ideias, por ganho estimado:** EvalMod par z11 nas rotas densas com +1 raise drop, mais o par z13 no SparseB
+  (`ATAP-ganhos.md`: −25 a −45 ms/token, sem replanejar); hoisting das rotações baby (opção D do `tmodel`, −10 a −19 ms);
+  ILP com objetivo em ms (opção B, −7,6 ms).
+- **Números invalidados:** os 113 (em9), 106 e 98 refreshes/token das seções de 2026-10-26/27 saíram com o bug do remap
+  duplo (ver 2026-10-27/28). O plano válido do recorde 3 era `fin_rc3b_m_cm` (110).
+
+### Documentos
+
+| arquivo | conteúdo |
+|---|---|
+| `HANDOFF-2026-10-30.md` | passagem mais recente: GPU, ferramentas, restrições da máquina |
+| `tmodel/RELATORIO-2026-10-30.md` | modelo de tempo calibrado na GPU, opções A–E, A/B do ×1,019 |
+| `ATAP-ganhos.md` | revisão das ideias do Trefethen (ATAP) com contagens; prioridades |
+| `IDEIA-evalmod-par.md`, `IDEIA-gelu-par.md`, `IDEIA-softmax-ponderada.md` | propostas originais, com revisão no topo |
+| `subagent/audit/auditoria.md`, `subagent/sanity*/relatorio.md`, `subagent/r4/relatorio.md` | auditorias e sanidade |
+| `subagent/ganhos-rapidos.md` | smrel, gelubs, normalização adiada (recorde 3) |
+| `HANDOFF.md` | passagem antiga (recorde 3); só como histórico |
+
+`work/` (clones do Perseus, capturas, ILPs) não é versionado: os caminhos `work/...` citados abaixo só existem na
+máquina local.
+
+O resto deste arquivo é o diário em ordem cronológica, começando pelo recorde 3.
+
 ## Ideia
 
 O EvalMod do bootstrap (`crates/pc-core/src/bts_setup.rs`) era um Chebyshev de grau 14 + 5 ângulos duplos
@@ -434,3 +469,26 @@ Resultados em `gpu/results-2026-10-30-runpod/` (23 run.json, score_*.txt, logs d
 ⇒ par z11 pousa igual ao em9 (mesmos planos) com EvalMod MENOR que o recorde (previsão −10…−17 % só no EvalMod),
 precisão > recorde. SparseB K=24: par z13+4DA 9 níveis = 30–33 bits (d27 geral: 28,2; recorde 35,2). Falta: o pré-passo
 em `build_evalmod` + variante `EvalMod`, KL e `pc-bench bts` na GPU (o time_model errou no d27: medir antes).
+
+### 2026-10-30 (tarde) — modelo de tempo recalibrado e A/B na GPU: `r4_ln3_sbd27d1_cm` ×1,019 (fora do harness)
+Relatório completo: `tmodel/RELATORIO-2026-10-30.md`. Resumo:
+- Modelo calibrado nas etapas do `pc-bench` (erro ±6–15 % por etapa). Ele explica os dois A/B da manhã com o mesmo
+  desvio de ~+9,5 ms, que depois se mostrou ser custo da LN adiada.
+- Onde vão os 1690 ms do recorde 4 (WK): refreshes ~65 %, ops ~26 % (key switch ~290 ms; LayerNorm 100, softmax 74,
+  GELU 42, CutMax 40), resíduo ~9 %. Um nível a mais ou a menos em todas as ops vale ±47 ms.
+- A/B na RTX PRO 6000 Max-Q (3 pares alternados, `NOSANDBOX=1`, `harness: null`):
+  - `r4_ln3_sbd27d1_cm` (opções C + A): 2,324 s contra 2,369 s, **×1,019**, p 0,0003, KL 4,5e-6, score.py "NEW RECORD";
+  - `sbd27d1_cm` (opção A): ×1,007.
+  - Em proporção, o modelo acertou os dois (−1,7 % e −0,55 % previstos).
+
+### 2026-11-01 — revisão das ideias do Trefethen (ATAP) e dos `.md`
+Detalhes em `ATAP-ganhos.md`. Nada rodou em GPU.
+- **GELU par** (`IDEIA-gelu-par.md`): o BSGS atual já pula os termos ímpares (`IMPL_DEAD_OPS`). O ganho real é 210 → 180
+  produtos ct×ct/token (~−4 ms), não −170 produtos. Contagem com o novo `scripts/gelu_bsgs_count.py` (reimplementa o
+  BSGS do upstream sem importar o Perseus).
+- **EvalMod par:** usar o nível livre num raise drop, para manter os pousos e o plano do recorde 4. Estimativa: −25 a
+  −45 ms/token. Varredura de séries pares de grau baixo com 5–6 DA: nenhuma bate o recorde em 9 níveis.
+- **Softmax por bandas** (`IDEIA-softmax-ponderada.md`): precisa de bandas relativas. O (d=8, k=1) é o smrel, já medido;
+  sobra o (d=3, k=3).
+- Notas de revisão no topo das três `IDEIA-*`; `HANDOFF.md` marcado como obsoleto; bloco "Estado" e índice no topo
+  deste README.

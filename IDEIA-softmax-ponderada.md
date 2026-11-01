@@ -1,5 +1,13 @@
 # Ideia de Otimização: Sementes Compostas e Aproximação Ponderada para a Softmax no Perseus
 
+> **Revisão 2026-11-01 (`ATAP-ganhos.md`, seção 4).** A formulação por bandas (LP convexo, bissecção em ε) é boa, mas:
+> (1) use bandas **relativas**, `e^{x/n}(1±ε)^{1/n}`: o ajuste absoluto do exp já foi medido e estourou (KL 3,1e-4,
+> `subagent/ganhos-rapidos.md`, item 3), e a softmax do recorde 4 é centrada numa chave de referência, não no máximo da
+> linha; (2) o cenário (d=8, k=1) é o `smrel` r=1, já medido: −12 níveis/token, 0 refreshes, ~0 ms (`tmodel`);
+> (3) o recorde 4 usa `n_squarings` 2–3 e `gs_iters` 6–7/4–5 (não 8), e o Goldschmidt escalado já é o minimax relativo
+> de 1/x (`tmodel`, seção 5). O que resta testar é o (d=3, k=3) com bandas relativas, só como ganho em ms. Os arquivos
+> citados abaixo (`/home/zocal/...`, prova em Lean) não estão neste repo.
+
 Este documento formaliza a aplicação da teoria de sementes compostas e bandas de erro exatas (desenvolvida em `/home/zocal/pesquisa/exp_approximation_design/theory/COMPOSED_SEEDS.md` e `THEORY.md`) para otimizar a fase exponencial da Softmax homomórfica no Perseus Speedrun (GPT-2 Decode).
 
 ---

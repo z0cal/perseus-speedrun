@@ -1,5 +1,8 @@
 # Passagem — corrigir o plano do Perseus speedrun (Decode-8) antes da GPU
 
+> **OBSOLETO (recorde 3).** Leia `HANDOFF-2026-10-30.md` e o bloco "Estado em 2026-11-01" do `README.md`. As tarefas
+> 1–3 abaixo foram feitas em 2026-10-28, o plano de 98 é inválido, e o recorde vigente agora é o 4 (d97a6f7).
+
 Leia nesta ordem: este arquivo, `README.md` (histórico e números), `subagent/audit/auditoria.md` (auditoria que
 reprovou o plano), `work/perseus-rec/README.md` + `work/perseus-rec/CLAUDE.md` (regras do speedrun).
 

@@ -1,6 +1,14 @@
 # Ideia: GELU com série PAR (Trefethen, *Approximation Theory and Approximation Practice*, Caps. 3–4)
 
-Data: 2026-11-01. Status: **Proposta técnica analisada e validada pelo agente Sonnet; pronta para prototipagem.**
+Data: 2026-11-01. Status: **revisada no mesmo dia: o ganho real é ~7× menor que o previsto abaixo.** Prioridade baixa.
+
+> **Revisão 2026-11-01 (contagem real, `scripts/gelu_bsgs_count.py` na config do recorde 4).** O `IMPL_DEAD_OPS`, ligado
+> por padrão, já pula os babies ímpares mortos: os coeficientes ímpares de grau ≥ 3 viram 0 exato no `_cheb_trim`. O
+> BSGS atual faz **14** produtos no grau 62, não 26. A forma par em z faz 12 na mesma profundidade. No token inteiro são
+> **210 → 180 produtos (−30, não −170)**, ou ~−4 ms (0,2 %). Os graus do recorde 4 são 62/94/254 (60 na camada 7), não 63.
+> Profundidade: 62 → 7 níveis e 254 → 9, iguais em z; z também permite 62 → 6 níveis com +6 produtos (o mesmo que m=2 em x).
+> O ×2 de z = 2x² − 1 é `add(sq, sq)`, sem nível, como o próprio BSGS já faz nos babies: a seção 5.1 não se aplica.
+> Detalhes e tabela: `ATAP-ganhos.md`, seção 3. O texto original segue abaixo, sem edição, para registro.
 
 ## 1. Resumo
 
@@ -51,7 +59,7 @@ Para $x \in [-1, 1]$ (após normalização por $x_{\max}$):
 
 ---
 
-## 4. Julgamento Técnico do Agente Sonnet
+## 4. Parecer de um agente (2026-11-01, sem contagem; ver a revisão no topo)
 
 A proposta foi submetida ao agente Claude Sonnet para análise crítica em 2026-11-01. O parecer técnico concluiu:
 
