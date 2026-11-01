@@ -19,8 +19,8 @@ Desafio: https://github.com/gladia-research-group/perseus/tree/speedrun. Recorde
   - Semente CGF, T1/Newton na LN, f∘arcsin (RBOOT), GELU par (−30 produtos/token, ~0,2 %), semente do exp por
     bandas (recai no smrel).
 - **Próximas ideias, por ganho estimado:**
-  - EvalMod par z11 nas rotas densas com +1 raise drop, mais o par z13 no SparseB: −25 a −45 ms/token, sem replanejar
-    (`ATAP-ganhos.md`);
+  - EvalMod par z11 nas rotas densas com +1 raise drop, mais o par z13 no SparseB: −60,3 ms/token (−3,6 %) no modelo
+    calibrado, sem replanejar (`ATAP-ganhos.md`, `tmodel/even_sites.py`);
   - hoisting das rotações baby (opção D do `tmodel`): −10 a −19 ms;
   - ILP com objetivo em ms (opção B): −7,6 ms.
 
@@ -399,8 +399,18 @@ Detalhes em `ATAP-ganhos.md`. Nada rodou em GPU.
 - **GELU par:** o BSGS atual já pula os termos ímpares (`IMPL_DEAD_OPS`). O ganho real é 210 → 180 produtos
   ct×ct/token (~−4 ms), não −170 produtos. A contagem é do novo `scripts/gelu_bsgs_count.py`, que reimplementa o BSGS
   do upstream sem importar o Perseus. `IDEIA-gelu-par.md` foi reescrita.
-- **EvalMod par:** usar o nível livre num raise drop, para manter os pousos e o plano do recorde 4. Estimativa: −25 a
-  −45 ms/token. A varredura de séries pares de grau baixo com 5–6 DA não achou nenhuma que bata o recorde em 9 níveis.
+- **EvalMod par:** usar o nível livre num raise drop, para manter os pousos e o plano do recorde 4. A varredura de
+  séries pares de grau baixo com 5–6 DA não achou nenhuma que bata o recorde em 9 níveis.
+- **EvalMod par no modelo calibrado** (com o código do upstream, autorizado):
+  - `tmodel/emcost_even.rs` (exemplo do `pc-shadow`) gera as listas de ops; as do recorde e do d27 saem idênticas às do
+    `tmodel/em/`;
+  - `tmodel/even_sites.py` custeia os 114 refreshes do plano do recorde 4 a partir dos placements (mix 36/6/40/32, igual
+    ao do relatório; reproduz os −9,4 ms da opção A);
+  - resultado: par z11 nas densas + 1 drop **−37,8 ms**; par z13 no SparseB + 1 drop −22,6 ms (o d27 dá −9,4);
+    os dois juntos **−60,3 ms (−3,6 %)**.
+- `tmodel/gelu_count.py` tinha dois bugs: o eps de corte padrão no lugar do `cheb_eps` da config (205 produtos em vez de
+  210) e a profundidade perdida no `inplace_add` (grau 62 lido como 6 níveis). Corrigido; com o `poly.py` real, agora
+  bate com `scripts/gelu_bsgs_count.py`.
 - **Softmax por bandas:** nas camadas centradas do recorde 4 basta erro absoluto para u ≤ 0, porque a referência
   está na linha. Mesmo assim, uma semente sem quadratura não alcança o erro real do recorde na cadeia simulada
   (`scripts/sm_seed_*.py`). Com uma quadratura a menos, o critério misto dá grau 10–13 contra 14 do smrel (≤ 1 produto

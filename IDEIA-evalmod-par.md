@@ -8,7 +8,8 @@ O alvo do EvalMod antes dos ângulos duplos é par em `u' = u − 1/4`. Basta so
 elevar ao quadrado e usar uma série de Chebyshev em `z` de **metade do grau**. Resultado previsto: um EvalMod de 9
 níveis mais barato que o de 10 do recorde, em vez de 27 % mais caro como o d27. O nível livre vai para um **raise
 drop**, de modo que o refresh pousa onde o do recorde pousa e o plano do recorde 4 vale sem mudança.
-Estimativa: −25 a −45 ms/token (`ATAP-ganhos.md`, seção 1).
+Modelo calibrado (`tmodel/even_sites.py`): **−37,8 ms/token** nas rotas densas, e −60,3 ms somando o par z13 no SparseB
+(`ATAP-ganhos.md`, seção 1).
 
 ## Contexto
 
@@ -88,11 +89,12 @@ Com K=24, nada de grau ≤ 7 passa de 22 bits em 10 níveis. Em 9 níveis, só z
   menos devolveram só −31 ms.
 - **Usar com +1 raise drop:** o refresh pousa onde o do recorde pousa, e o plano do recorde 4 (114 refreshes, mesmos
   posicionamentos) vale sem mudança. O padrão é o da opção A (`tmodel/sbd27.py`), agora nas rotas densas.
-- É a primeira série de 9 níveis com **menos** multiplicações que a do recorde (9 Mult contra 10). O `tmodel` diz que
-  d13 + 5 DA, d20 + 4 DA e d27 + 4 DA têm mais relins que a enviada mesmo com o drop.
-- Conta com as etapas medidas na StC-first (EvalMod = 8,20 de 18,42 ms): −0,7 a −0,9 ms do EvalMod mais barato e −0,5
-  a −0,7 ms do drop (CtS + EvalMod com 2 limbs a menos) por refresh complexo. Com 36 StC-first reais e 6 complexos por
-  token, dá ≈ −25 a −45 ms.
+- É a primeira série de 9 níveis com **menos** relins que a do recorde. No `pc-shadow` do upstream (n32a4, topo 42)
+  são 10 relins, 334 limbs e 15 rescales, contra 11, 359 e 18 do recorde. O d13 + 5 DA, o d20 + 4 DA e o d27 + 4 DA
+  têm mais relins que a enviada.
+- Modelo calibrado do `tmodel` aplicado aos 114 refreshes do recorde 4 (`tmodel/even_sites.py`, validado: reproduz
+  os −9,4 ms da opção A): **−37,8 ms/token** (−29,4 nos 36 StC-first reais, −8,4 nos 6 complexos). O d27 com o mesmo
+  drop dá +21,0 ms, e o par z13 +6,4.
 - A precisão prevista (34–35 bits) fica acima dos 27,4 bits do recorde na rota dense. O drop não mexe na aproximação.
 
 ## Riscos e ressalvas
