@@ -1,7 +1,7 @@
 # Ideia: semente do exp da softmax ajustada à cadeia de quadraturas (bandas)
 
-Data: 2026-11-01. Status: **fechada. Feita do jeito certo (erro relativo), a ideia vira o `smrel`, que já foi medido.**
-Nada rodou em GPU.
+Data: 2026-11-01. Status: **fechada. Com o critério certo, a melhor semente cai na vizinhança do `smrel` (uma
+quadratura a menos), que já foi medido.** O ganho sobre o smrel é ≤ 1 produto por camada. Nada rodou em GPU.
 
 ## Contexto
 
@@ -18,18 +18,41 @@ A proposta original (sementes compostas) restringe a semente a uma banda que já
 É afim nos coeficientes de Chebyshev, então o conjunto viável é convexo e o melhor ε sai por bissecção com LP. O
 espírito é o mesmo do minimax ponderado de `scripts/em_fit.py` (ATAP, cap. 10).
 
-### A métrica tem de ser relativa
+### Qual métrica
 
 A versão original usava erro **absoluto** (`L = max(e^x − ε, 0)^(1/n)`, `U = (e^x + ε)^(1/n)`), com o argumento de que
-a cauda não importa. Isso não vale aqui:
+a cauda não importa. A resposta depende da camada:
 
-- o ajuste absoluto do exp largo já foi medido e **estourou** (KL 3,1e-4; `subagent/ganhos-rapidos.md`, item 3);
-- a softmax é invariante a deslocamento por linha, e a do recorde 4 é centrada numa chave de referência, não no máximo
-  da linha. Uma linha com todos os scores no fundo da faixa precisa de precisão **relativa** lá.
+- **Sem chave de referência** (recorde 3; camadas 8 e 11 do recorde 4): a linha pode ter todos os scores no fundo da
+  faixa, então o erro tem de ser **relativo**. O ajuste absoluto do exp largo já foi medido e estourou (KL 3,1e-4;
+  `subagent/ganhos-rapidos.md`, item 3). Com bandas relativas, `(1−ε)^(1/n) ≤ P/e^y ≤ (1+ε)^(1/n)`, a restrição vira
+  o minimax relativo da semente: é o que o `smrel` (`subagent/search2.py::apply_smrel`) já faz.
+- **Centradas** (as outras 10 camadas do recorde 4): a chave de referência está na linha com u = 0, então
+  `Σ_j e^{u_j} ≥ 1` e `p_i ≤ e^{u_i}`. O erro do exp entra em p como `|Ê(u) − e^u| / max(1, e^u)`: **absoluto para
+  u ≤ 0, relativo para u > 0**. As rodadas δ2 são potências exatas dos valores normalizados e não mudam isso em
+  primeira ordem. É o critério misto do `scripts/sm_seed_weighted.py` (bandas LP com esse peso).
 
-Com bandas relativas, `(1−ε)^(1/n) ≤ P(y)/e^y ≤ (1+ε)^(1/n)`, as bandas ficam quase simétricas, com largura ≈ ε/n. A
-restrição vira exatamente o **minimax relativo da semente** com tolerância ε/n: o mesmo problema que o IRLS relativo do
-`smrel` (`subagent/search2.py::apply_smrel`) resolve. A teoria das bandas não acrescenta nada além disso.
+### O critério misto ganha algo? Pouco
+
+O cap. 8 do ATAP sugere que, com erro absoluto, o exp num intervalo longo dispensa o *scaling and squaring*. Testei isso
+na cadeia completa simulada (`scripts/sm_seed_sim.py` e `sm_seed_search.py`). Usei linhas sintéticas de 16 chaves, com
+a referência em u = 0, metade uniformes e metade agrupadas, e aritmética exata. O critério foi o max|p − p_exato| do
+recorde em cada camada:
+
+| camada (recorde) | recorde: níveis, ct×ct | k1 = 0 (sem quadratura) | k1 − 1 | mesmo k1 |
+|---|---|---|---|---|
+| 0 (d8, k1=2) | 6, 8 | não alcança (d ≤ 15) | d11: 5, 7 | d7: 6, 6 |
+| 2 (d8, k1=2) | 6, 8 | não alcança | d10: 5, 6 | d8: 6, 8 |
+| 9 (d8, k1=2) | 6, 8 | não alcança | d11: 5, 7 | d8: 6, 8 |
+| 5 (d8, k1=3) | 7, 9 | não alcança | d9 (k1=2): 6, 7; d13 com k1=1: 5, 6 (−2 níveis) | d7: 7, 7 |
+
+- Sem quadratura não dá: o erro absoluto equioscila na faixa toda, e a normalização soma o erro das 16 chaves.
+  Na primeira tentativa (grau 14, 4 níveis), max|Δp| deu 4,3e-4 contra 2,3e-5 do recorde na camada 0, e a camada 11
+  (sem referência) falhou por completo.
+- Com uma quadratura a menos, o critério misto alcança o recorde com grau 10–13, contra 14 do smrel: o mesmo número de
+  níveis e 0 a 1 produto a menos. Não muda a conclusão do smrel, que foi medido com 0 refreshes a menos.
+- Ressalvas: linhas sintéticas (não capturadas), sem ruído CKKS. O Σ|c| das sementes do LP cresce com a faixa, então o
+  condicionamento precisaria de um teste no gêmeo antes de qualquer uso.
 
 ## Fronteira (níveis × produtos × erro relativo)
 

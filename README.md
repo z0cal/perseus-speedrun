@@ -401,9 +401,11 @@ Detalhes em `ATAP-ganhos.md`. Nada rodou em GPU.
   do upstream sem importar o Perseus. `IDEIA-gelu-par.md` foi reescrita.
 - **EvalMod par:** usar o nível livre num raise drop, para manter os pousos e o plano do recorde 4. Estimativa: −25 a
   −45 ms/token. A varredura de séries pares de grau baixo com 5–6 DA não achou nenhuma que bata o recorde em 9 níveis.
-- **Softmax por bandas:** com erro relativo, as bandas viram o minimax relativo da semente, ou seja, o `smrel`, já
-  medido. O (d=3, k=3) da proposta tem erro relativo 8,9e-2 (o recorde tem 1,1e-4). Linha fechada.
-  `IDEIA-softmax-ponderada.md` foi reescrita.
+- **Softmax por bandas:** nas camadas centradas do recorde 4 basta erro absoluto para u ≤ 0, porque a referência
+  está na linha. Mesmo assim, uma semente sem quadratura não alcança o erro real do recorde na cadeia simulada
+  (`scripts/sm_seed_*.py`). Com uma quadratura a menos, o critério misto dá grau 10–13 contra 14 do smrel (≤ 1 produto
+  por camada). O (d=3, k=3) da proposta tem erro relativo 8,9e-2. Linha fechada. `IDEIA-softmax-ponderada.md` foi
+  reescrita.
 - Removidos por obsoletos:
   - `HANDOFF.md` (recorde 3, tarefas feitas);
   - `plans/fin_dfr13_m_cm` (o plano de 98, inválido: K/V na SPRU);

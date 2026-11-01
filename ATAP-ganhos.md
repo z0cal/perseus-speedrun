@@ -12,7 +12,7 @@ passar pelo `tmodel/predict.py`.
 | 1 | **EvalMod par z11 + 4 DA nas rotas densas, com 1 raise drop** (pouso = recorde) (caps. 3 e 8) | só modelo | **−25 a −45 ms (−1,5 a −2,7 %)** | `tmodel` + `pc-bench bts` |
 | 2 | SparseB par z13 + 4 DA (K=24) no lugar da tabela d27 da opção A (cap. 3) | só modelo | 0 a −10 ms, mais 2 a 5 bits | junto com o item 1 |
 | 3 | GELU par em z = 2x² − 1 (caps. 3 e 4) | contado (este doc) | −30 produtos ct×ct, ~−4 ms (0,2 %) | só dentro de um pacote |
-| 4 | exp da softmax com bandas da cadeia de quadraturas (cap. 10, LP) | **fechada** | 0: com erro relativo vira o `smrel`, já medido | — |
+| 4 | exp da softmax com bandas da cadeia de quadraturas (caps. 8 e 10, LP) | **fechada** | ≤ 1 produto/camada além do `smrel` (já medido) | — |
 | — | caps. 23–27 (racionais), f∘arcsin (RBOOT), T1/Newton na LN, CGF | **descartados** | 0 | não repetir |
 
 A combinação 1 + 2 + o melhor candidato medido (`r4_ln3_sbd27d1_cm`, ×1,019) tem chance real de passar a margem de 1 %
@@ -114,8 +114,16 @@ Config do recorde 4 (`gpt2_base_n32_kc16r_cm`), produtos ct×ct por GELU:
 ## 4. Softmax: com a métrica certa, as bandas recaem no `smrel`
 
 `IDEIA-softmax-ponderada.md` (reescrita) ajusta a semente P do exp por LP, com bandas que já levam em conta a cadeia de
-quadraturas. Com erro **relativo**, que é o necessário (o ajuste absoluto estourou: KL 3,1e-4), as bandas
-`(1±ε)^(1/n)` equivalem ao minimax relativo da própria semente. É o que o `smrel` já faz.
+quadraturas. A métrica certa depende da camada:
+
+- **sem chave de referência** (camadas 8 e 11 do recorde 4): erro relativo, e as bandas `(1±ε)^(1/n)` viram o minimax
+  relativo da semente, o que o `smrel` já faz;
+- **centradas** (as outras 10): a referência está na linha com u = 0, então p_i ≤ e^{u_i}, e basta erro absoluto para
+  u ≤ 0 (relativo para u > 0).
+
+Testei o critério misto na cadeia simulada. Sem nenhuma quadratura (a ideia do cap. 8) ele **não** alcança o erro real
+do recorde em nenhuma camada. Com uma quadratura a menos alcança com grau 10–13, contra 14 do smrel: mesmos níveis,
+0 a 1 produto a menos. Tabela na nota.
 
 LP relativo na faixa do recorde 4 (camada 0), com contagem pelo BSGS do upstream:
 
@@ -126,7 +134,8 @@ LP relativo na faixa do recorde 4 (camada 0), com contagem pelo BSGS do upstream
 | (9, 2) | 1,4e-5 | 6 | 7 |
 | (13 ou 14, 1) = `smrel` | ≤ 8e-6 | 5 | 6 |
 
-O ponto ótimo já é o `smrel`, medido no recorde 4 com 0 refreshes a menos. **Linha fechada.** O Goldschmidt também
+(Tabela acima: erro relativo puro, o critério das camadas sem referência.) O ponto ótimo nos dois critérios é a
+vizinhança do `smrel`, medido no recorde 4 com 0 refreshes a menos. **Linha fechada.** O Goldschmidt também
 está no piso: ele já é o minimax relativo de 1/x (`tmodel`, seção 5), e o recorde 4 usa 6–7 iterações, não 8.
 
 ## 5. O que o livro NÃO dá (já medido ou descartado)
