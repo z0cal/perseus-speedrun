@@ -1,20 +1,14 @@
 # Ideia: EvalMod com série PAR (Trefethen, *Approximation Theory and Approximation Practice*)
 
-Data: 2026-10-30. Status: **só modelo e contagem de operações; nada medido na GPU.**
-
-> **Revisão 2026-11-01 (`ATAP-ganhos.md`, seção 1).** Não use o par z11 com os planos em9: o `tmodel` mostrou que o em9
-> perdeu +52 ms com os pousos 2 limbs mais altos, além do custo do d27. Use o nível livre num **raise drop**: o pouso fica
-> o do recorde e o plano do recorde 4 (114 refreshes) vale sem mudança, só runtime, como a opção A (`tmodel/sbd27.py`).
-> Estimativa com as etapas medidas: −1,2 a −1,6 ms por refresh StC-first complexo, ~−25 a −45 ms por token. Séries pares
-> de grau baixo com 5–6 DA não ganham (tabela na mesma seção). A frase "GELU e softmax não ganham com o livro" continua
-> valendo na prática: a GELU par dá −30 produtos/token (seção 3 de `ATAP-ganhos.md`).
-
+Data: 2026-10-30, revisada em 2026-11-01. Status: **só modelo e contagem de operações; nada medido na GPU.**
 
 ## Resumo
 
 O alvo do EvalMod antes dos ângulos duplos é par em `u' = u − 1/4`. Basta somar `−1/4` (constante, sem nível),
-elevar ao quadrado e usar uma série de Chebyshev em `z` de **metade do grau**. Resultado previsto: o EvalMod de 9
-níveis (em9) fica mais barato que o do recorde, em vez de 27 % mais caro como o d27.
+elevar ao quadrado e usar uma série de Chebyshev em `z` de **metade do grau**. Resultado previsto: um EvalMod de 9
+níveis mais barato que o de 10 do recorde, em vez de 27 % mais caro como o d27. O nível livre vai para um **raise
+drop**, de modo que o refresh pousa onde o do recorde pousa e o plano do recorde 4 vale sem mudança.
+Estimativa: −25 a −45 ms/token (`ATAP-ganhos.md`, seção 1).
 
 ## Contexto
 
@@ -22,9 +16,9 @@ níveis (em9) fica mais barato que o do recorde, em vez de 27 % mais caro como o
   (+3,0 ms por refresh dense, +2,2 ms na StC-first), mais do que os 6 refreshes a menos devolvem
   (ver `HANDOFF-2026-10-30.md`).
 - O `HANDOFF-2026-10-30.md` pede, na ideia aberta 4, um EvalMod mais barato **no mesmo número de níveis**.
-- GELU e softmax não ganham com o livro. A GELU já é um composto ímpar (THOR) ou série ímpar, e o código descarta
-  operações mortas. A softmax já usa expoente com quadraturas, minimax relativo e sementes lineares/Chebyshev no
-  Goldschmidt. Aproximação racional (caps. 23–27) não serve em FHE, porque a divisão custa níveis.
+- GELU e softmax quase não ganham com o livro. Na GELU, a forma par dá −30 produtos/token (`IDEIA-gelu-par.md`),
+  porque o BSGS já descarta os termos ímpares mortos. Na softmax, o ponto ótimo da semente do exp já é o `smrel`
+  (`IDEIA-softmax-ponderada.md`). Aproximação racional (caps. 23–27) não serve em FHE, porque a divisão custa níveis.
 
 ## A ideia
 
@@ -72,15 +66,34 @@ previsão de −10 % a −17 % no EvalMod.
 | par z13 + 4 DA (ajuste em 2^-6) | 9 | 30–33 | 11 | 23 | 472 / 896 / 304 |
 | par z11 + 4 DA | 9 | 23,5 | 9 | 15 | 400 / 582 / 410 |
 
-No SparseB o ganho é menor: o par z13 não é mais barato em Rescale e fica abaixo dos 35,2 bits do recorde.
+No SparseB o ganho é menor: o par z13 não é mais barato em Rescale e fica abaixo dos 35,2 bits do recorde. Contra a
+tabela d27 K24 da opção A (`sbd27d1_cm`, medida em ×1,007), porém, ele é melhor: mesmos 9 níveis, mais 2 a 5 bits e
+menos Mult/WSum. É uma troca direta de tabela no mesmo plano.
+
+### Séries pares de grau baixo (varredura de 2026-11-01): não ganham
+
+| série (K=16) | níveis | bits |
+|---|---|---|
+| z5 + 5 DA | 9 | 17,7 |
+| z7 + 4 DA | 9 | 16,6 |
+| z5 + 6 DA | 10 | 27,7 (= recorde, no mesmo nível) |
+| z7 + 5 DA | 10 | 26,6 |
+
+Com K=24, nada de grau ≤ 7 passa de 22 bits em 10 níveis. Em 9 níveis, só z11/z13 + 4 DA alcançam o recorde.
 
 ## Por que a conta pode fechar
 
-- O par z11 pousa igual ao em9 (mesmos 9 níveis, 18 limbs), então os planos `plans/gpt2_decode_em9_cm` e os
-  pousos já existentes se aplicam.
-- Mesmo número de refreshes do em9 (108 contra 114 do recorde), com EvalMod mais barato que o recorde, em vez de
-  27 % mais caro. *(2026-11-01: o pouso mais alto do em9 custa ~+52 ms nas ops; ver a revisão no topo.)*
-- A precisão prevista (34–35 bits) fica acima dos 27,4 bits do recorde na rota dense.
+- **Não usar com os planos em9.** O par z11 gasta os mesmos 9 níveis do em9, mas o `tmodel` mostrou que o em9 perdeu
+  na GPU também pelos pousos 2 limbs mais altos (+52 ms nas ops a jusante), não só pelo d27 (+46 ms). Os 6 SparseB a
+  menos devolveram só −31 ms.
+- **Usar com +1 raise drop:** o refresh pousa onde o do recorde pousa, e o plano do recorde 4 (114 refreshes, mesmos
+  posicionamentos) vale sem mudança. O padrão é o da opção A (`tmodel/sbd27.py`), agora nas rotas densas.
+- É a primeira série de 9 níveis com **menos** multiplicações que a do recorde (9 Mult contra 10). O `tmodel` diz que
+  d13 + 5 DA, d20 + 4 DA e d27 + 4 DA têm mais relins que a enviada mesmo com o drop.
+- Conta com as etapas medidas na StC-first (EvalMod = 8,20 de 18,42 ms): −0,7 a −0,9 ms do EvalMod mais barato e −0,5
+  a −0,7 ms do drop (CtS + EvalMod com 2 limbs a menos) por refresh complexo. Com 36 StC-first reais e 6 complexos por
+  token, dá ≈ −25 a −45 ms.
+- A precisão prevista (34–35 bits) fica acima dos 27,4 bits do recorde na rota dense. O drop não mexe na aproximação.
 
 ## Riscos e ressalvas
 
@@ -102,7 +115,11 @@ No SparseB o ganho é menor: o par z13 não é mais barato em Rescale e fica aba
    `fits/even_k16_z11_r4.json` (e a de K=24), `da_its() = 4`, `levels() = 9`, e a flag do pré-passo.
 3. Teste `evalmod_series_levels` com a nova variante (esperado: 9 níveis).
 4. Switch de runtime (`FIDESLIB_BTS_EVALMOD=even`).
-5. Na GPU: `pc-bench bts --all` (ms por etapa e precisão), depois A/B do decode com o plano em9.
+5. Raise drop de +1 nos sítios densos e StC-first. Confirme que a chave existe fora do SparseB
+   (`FIDESLIB_BTS_RAISE_DROP=512:N` no `sbd27.py`); se não existir, estenda-a. Depois copie o plano do recorde 4 com o
+   drop (como faz o `sbd27.py`) e rode `compile_check`, `route_mix` e `tmodel/predict.py`.
+6. Na GPU: `pc-bench bts --all` (ms por etapa e precisão), depois o A/B do decode com esse plano, de preferência
+   junto com o `r4_ln3` e o par z13 no SparseB.
 
 ## Arquivos
 
@@ -111,7 +128,7 @@ No SparseB o ganho é menor: o par z13 não é mais barato em Rescale e fica aba
 - `fits/even_k16_z11_r4.json`, `fits/even_k16_z13_r4.json`, `fits/even_k24_z13_r4_e6.json`: coeficientes
   (convenção OpenFHE, `c0` não dividido por 2).
 - `work/perseus-r4/crates/pc-shadow/examples/em_hist.rs`: histograma de operações e soma de limbs. **Não commitado.**
-- `README.md`: seção do fim com a mesma tabela.
+- `README.md`: seção de 2026-10-30 (noite) com a mesma tabela; `ATAP-ganhos.md`, seção 1.
 
 ## Reproduzir
 

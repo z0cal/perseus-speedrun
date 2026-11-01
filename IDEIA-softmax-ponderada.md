@@ -1,84 +1,71 @@
-# Ideia de Otimização: Sementes Compostas e Aproximação Ponderada para a Softmax no Perseus
+# Ideia: semente do exp da softmax ajustada à cadeia de quadraturas (bandas)
 
-> **Revisão 2026-11-01 (`ATAP-ganhos.md`, seção 4).** A formulação por bandas (LP convexo, bissecção em ε) é boa, mas:
-> (1) use bandas **relativas**, `e^{x/n}(1±ε)^{1/n}`: o ajuste absoluto do exp já foi medido e estourou (KL 3,1e-4,
-> `subagent/ganhos-rapidos.md`, item 3), e a softmax do recorde 4 é centrada numa chave de referência, não no máximo da
-> linha; (2) o cenário (d=8, k=1) é o `smrel` r=1, já medido: −12 níveis/token, 0 refreshes, ~0 ms (`tmodel`);
-> (3) o recorde 4 usa `n_squarings` 2–3 e `gs_iters` 6–7/4–5 (não 8), e o Goldschmidt escalado já é o minimax relativo
-> de 1/x (`tmodel`, seção 5). O que resta testar é o (d=3, k=3) com bandas relativas, só como ganho em ms. Os arquivos
-> citados abaixo (`/home/zocal/...`, prova em Lean) não estão neste repo.
+Data: 2026-11-01. Status: **fechada. Feita do jeito certo (erro relativo), a ideia vira o `smrel`, que já foi medido.**
+Nada rodou em GPU.
 
-Este documento formaliza a aplicação da teoria de sementes compostas e bandas de erro exatas (desenvolvida em `/home/zocal/pesquisa/exp_approximation_design/theory/COMPOSED_SEEDS.md` e `THEORY.md`) para otimizar a fase exponencial da Softmax homomórfica no Perseus Speedrun (GPT-2 Decode).
+## Contexto
 
----
+A fase exponencial da softmax (`_thor_exp`) é *scaling and squaring*: `H(x) = P_d(x/2^k)^(2^k)`. No recorde 4
+(`gpt2_base_n32_kc16r_cm`) a semente tem grau `d = 8` em `|y| ≤ δ0/2` (camada 0: δ0/2 = 2,43) e `k = 2` ou 3
+quadraturas, conforme a camada. A divisão usa Goldschmidt com `gs_iters` 6–7 na primeira rodada e 4–5 no refino.
 
-## 1. Contexto no Perseus Speedrun
+## A formulação por bandas
 
-Na arquitetura atual do Perseus (`work/perseus/python/perseus/impl/attention.py` e `work/perseus/python/perseus/calibrate/approximations/softmax.py`):
-- A Softmax consome ~74 ms e exige até 40 refreshes de bootstrap SparseB-512 por token.
-- A fase exponencial (`_thor_exp`) implementa o paradigma *scaling-and-squaring*:
-  $$H_{d, k}(x) = \left( P_d\left(\frac{x}{2^k}\right) \right)^{2^k}$$
-  onde avalia-se um polinômio de Chebyshev $P_d$ (grau padrão $d=8$) e aplica-se $k = \log_2(\delta_1)$ elevações ao quadrado (`ops.square`).
-- **A Ineficiência Atual:**
-  Os coeficientes em `cheb_exp_series` (`numerics.py`) são calculados via ajuste uniforme clássico de Chebyshev para $e^y$ no subintervalo $[-0.5\delta_0, 0.5\delta_0]$, normalizando $P(0)=1$.
-  Esse ajuste **ignora a cadeia de $k$ squarings subsequente**, gerando:
-  1. **Amplificação assimétrica de erro:** Um erro residual $\delta$ na semente é multiplicado por $2^k e^{(1 - 2^{-k})x}$. Perto de $x=0$, a amplificação é de $2^k$, enquanto na cauda negativa ($x \approx -32$) o erro é atenuado a $10^{-12}$.
-  2. **Desperdício de graus de liberdade:** O polinômio gasta esforço tentando atingir precisão extrema na cauda negativa profunda, onde o valor de $e^x$ é desprezível para a Softmax, enquanto perde precisão crítica perto de $x=0$.
-  3. **Ruído residual nos denominadores:** Isso obriga o uso de 8 iterações de divisão de Goldschmidt (`gs_iters: 8`).
+A proposta original (sementes compostas) restringe a semente a uma banda que já leva em conta as quadraturas:
 
----
+`sup |P(x/n)^n − e^x| ≤ ε  ⇔  L(x) ≤ P(x/n) ≤ U(x)`, com `n = 2^k` e `P ≥ 0`.
 
-## 2. A Teoria das Bandas Exatas (Composed Seeds)
+É afim nos coeficientes de Chebyshev, então o conjunto viável é convexo e o melhor ε sai por bissecção com LP. O
+espírito é o mesmo do minimax ponderado de `scripts/em_fit.py` (ATAP, cap. 10).
 
-A teoria desenvolvida em `COMPOSED_SEEDS.md` resolve exatamente esse problema:
+### A métrica tem de ser relativa
 
-### O Teorema das Bandas Exatas
-Para qualquer intervalo $I = [a, 0]$, potência $n = 2^k$ e tolerância máxima de erro $\epsilon > 0$, e sob a restrição de semente não-negativa $P(y) \ge 0$:
-$$\sup_{x \in I} |P(x/n)^n - e^x| \le \epsilon \iff L_\epsilon(x) \le P(x/n) \le U_\epsilon(x) \quad \forall x \in I$$
-onde:
-$$L_\epsilon(x) = \max(e^x - \epsilon, 0)^{1/n}$$
-$$U_\epsilon(x) = (e^x + \epsilon)^{1/n}$$
+A versão original usava erro **absoluto** (`L = max(e^x − ε, 0)^(1/n)`, `U = (e^x + ε)^(1/n)`), com o argumento de que
+a cauda não importa. Isso não vale aqui:
 
-### Propriedades Analíticas Fundamentais
-1. **Convexidade das Restrições:** Para qualquer ponto $x$, $P(x/n) = \sum_{j=0}^d c_j T_j(x/n)$ é afim nos coeficientes de Chebyshev $c$. As desigualdades $L_\epsilon(x) \le \sum c_j T_j \le U_\epsilon(x)$ formam um conjunto convexo fechado de coeficientes viáveis (provado formalmente em Lean 4 em `ConvexBands.lean`).
-2. **Quasiconvexidade do Erro Global:** O erro final de aproximação é quasiconvexo, garantindo a ausência de mínimos locais espúrios e permitindo encontrar o polinômio ótimo global via **bissecção simples com Programação Linear (LP)** via solver HiGHS (`linprog`).
-3. **Ponderação e Relaxamento Automáticos:**
-   - Onde $e^x \le \epsilon$, $L_\epsilon(x) = 0$: a semente é totalmente liberada de rastrear a cauda exponencial minúscula, bastando não exceder $(2\epsilon)^{1/n}$ nem ser negativa.
-   - Perto de $x = 0$, a banda estreita-se automaticamente para compensar exatamente a derivada da cadeia de squarings:
-     $$U_\epsilon(x) - e^{x/n} \approx \frac{\epsilon}{n e^{(1 - 1/n)x}}$$
+- o ajuste absoluto do exp largo já foi medido e **estourou** (KL 3,1e-4; `subagent/ganhos-rapidos.md`, item 3);
+- a softmax é invariante a deslocamento por linha, e a do recorde 4 é centrada numa chave de referência, não no máximo
+  da linha. Uma linha com todos os scores no fundo da faixa precisa de precisão **relativa** lá.
 
----
+Com bandas relativas, `(1−ε)^(1/n) ≤ P(y)/e^y ≤ (1+ε)^(1/n)`, as bandas ficam quase simétricas, com largura ≈ ε/n. A
+restrição vira exatamente o **minimax relativo da semente** com tolerância ε/n: o mesmo problema que o IRLS relativo do
+`smrel` (`subagent/search2.py::apply_smrel`) resolve. A teoria das bandas não acrescenta nada além disso.
 
-## 3. Avaliação Técnica Especializada
+## Fronteira (níveis × produtos × erro relativo)
 
-### 3.1. Erro Absoluto vs. Erro Relativo na Softmax
-Na Softmax normalizada $\hat{S}_i = \frac{\hat{E}_i}{\sum_j \hat{E}_j}$:
-- A perturbação de primeira ordem demonstra que:
-  $$\|\hat{S} - S\|_\infty \le 2 \|\hat{E} - e^x\|_\infty = 2\epsilon$$
-- Tokens na cauda com logits baixos ($x_i \le -20$) contribuem com probabilidades $< 10^{-4}$ para a soma de atenção $\sum \hat{S}_i V_i$. Mesmo um erro relativo de $1000\%$ nessa região tem impacto nulo no produto escalar final.
-- **Não-negatividade garantida:** Como a teoria impõe explicitamente $L_\epsilon(x) \ge 0$, os valores aproximados $\hat{E}_i$ são estritamente não-negativos, eliminando o risco de cancelamento destrutivo ou divisão por zero na Goldschmidt.
-- **Conclusão:** O critério de **erro absoluto $\epsilon \le 10^{-3}$ é o ideal**. Tentar impor erro relativo exigiria graus desnecessariamente altos na cauda negativa.
+Mesma faixa total do recorde na camada 0 (`h = 2,43·2^(2−k)`). P é o minimax relativo por LP. Os produtos e a
+profundidade vêm de `scripts/gelu_bsgs_count.bsgs` (BSGS do upstream, coeficientes densos, sem contar o mapa afim, que é
+igual em todas as linhas) mais as k quadraturas.
 
-### 3.2. Fronteira de Pareto e Oportunidades de Redução de Níveis CKKS
-Dados empíricos da fronteira validada em `composed-frontier.json` (intervalo $[-32, 0]$, $\epsilon \le 10^{-3}$):
+| semente (d, k) | erro relativo de P^(2^k) | níveis | ct×ct |
+|---|---|---|---|
+| **recorde (8, 2)**, refeito como minimax relativo | 1,1e-4 | 6 | 8 |
+| (3, 3), o "cenário B" da proposta original | **8,9e-2** (inviável) | 5 | 5 |
+| (6, 3) | 9,3e-5 | 6 | 6 |
+| (9, 2) | 1,4e-5 | 6 | 7 |
+| (13, 1) | 8,0e-6 | 5 | 6 |
+| **(14, 1) = `smrel` r=1** | ≤ 8e-6 | **5** | **6** |
 
-| Abordagem | Semente $d$ | Squarings $k$ | ct×ct Mults | ct×ct Depth | Níveis Estruturais | Erro Absoluto |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Chebyshev Direto (sem squaring)** | 13 | 0 | 7 | 4 | 5 | $6.42 \times 10^{-4}$ |
-| **Composed Seed A (Min Níveis)** | **8** | **1** | **6** | **4** | **6** | **$7.81 \times 10^{-4}$** |
-| **Composed Seed B (Min Multiplicações)**| **3** | **3** | **5** | **5** | **6** | **$7.81 \times 10^{-4}$** |
-| **Perseus Atual (Desajustado)** | 8 | 2 | 8 | 5 | 7 | $\sim 10^{-3}$ (inflado em 0) |
+- O cenário (d=3, k=3) só parecia bom no erro absoluto: no relativo ele é ~800× pior que o recorde.
+- O melhor ponto é o que o `smrel` já usa: 1 nível e 2 produtos a menos por camada, e erro relativo ~14× menor. No
+  recorde 4 isso foi medido: −12 níveis/token, KL neutro, mas **0 refreshes a menos** e ~0 ms no `tmodel`. A folga de
+  nível não vira refresh, e 2 produtos por camada pesam pouco (a softmax inteira são 74 ms/token).
+- (6, 3) e (9, 2) mantêm a profundidade e tiram 2 ou 1 produtos. São só alternativas ao smrel quando o nível a mais não
+  serve para nada.
 
-- **Cenário 1 (Economia de Níveis):** Com $(d=8, k=1)$, economiza-se 1 nível multiplicativo e 2 multiplicações em relação ao Perseus atual.
-- **Cenário 2 (Economia de Multiplicações):** Com $(d=3, k=3)$, o número de multiplicações ct-ct cai de 8 para 5 (redução de **$37.5\%$ no custo de tensores** da fase exponencial).
+## Goldschmidt
 
----
+A proposta original sugeria cortar `gs_iters` de 8 para 6 graças a "denominadores mais estáveis". Isso não procede:
 
-## 4. Plano de Ação para o Perseus
+- o recorde 4 já usa 6–7 e 4–5 iterações, não 8;
+- o `tmodel` (seção 5) mostrou que o Goldschmidt escalado por Chebyshev **já é** o minimax relativo de 1/x (o resíduo é
+  T_{2^k}(·)/T_{2^k}(z0)), e que a contagem de iterações vem da faixa do denominador e da regra do δ2 (ruído do refresh
+  SparseB), não da semente do exp.
 
-1. **Portar o Solver LP para o Calibrador:**
-   - Adicionar o gerador `fit_composed_seed(domain, degree, k, eps)` em `python/perseus/calibrate/approximations/softmax.py` utilizando `scipy.optimize.linprog(..., method='highs')`.
-2. **Atualizar o `gpt2.yaml`:**
-   - Testar pares ótimos na calibração: $(d=3, k=3)$ vs $(d=8, k=1)$ vs $(d=4, k=2)$.
-3. **Redução das Iterações de Goldschmidt:**
-   - Devido à estabilidade superior dos denominadores $S_{\text{sum}}$, testar a redução de `gs_iters` de 8 para 6 (economizando 2 níveis multiplicativos profundos na divisão).
+## Conclusão
+
+Nada a implementar além do `smrel`, que já existe. Se ele entrar num pacote, use o grau 13 ou 14 (4 níveis no BSGS).
+O grau 16 custaria 5 níveis e 10 produtos.
+
+Reproduzir a tabela: LP relativo de `e^y` em `[−h, h]` (2000 pontos de Chebyshev, `scipy.optimize.linprog`, HiGHS) e
+contagem por `scripts/gelu_bsgs_count.bsgs([1.0]*(d+1))`.

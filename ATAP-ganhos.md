@@ -1,6 +1,6 @@
 # Ganhos com o Trefethen (*Approximation Theory and Approximation Practice*): mapa e prioridades
 
-Data: 2026-11-01. Revisão das três notas `IDEIA-*.md` contra o que já foi medido (GPU de 2026-10-30, `tmodel/`,
+Data: 2026-11-01. Revisão das três notas `IDEIA-*.md` (reescritas com estes resultados) contra o que já foi medido (GPU de 2026-10-30, `tmodel/`,
 `subagent/ganhos-rapidos.md`) e contra o código do upstream `d97a6f7` (recorde 4). **Nada aqui rodou em GPU.** Os
 ganhos em ms são estimativas feitas com os tempos por etapa medidos no `pc-bench`. Antes de virar plano, elas precisam
 passar pelo `tmodel/predict.py`.
@@ -12,7 +12,7 @@ passar pelo `tmodel/predict.py`.
 | 1 | **EvalMod par z11 + 4 DA nas rotas densas, com 1 raise drop** (pouso = recorde) (caps. 3 e 8) | só modelo | **−25 a −45 ms (−1,5 a −2,7 %)** | `tmodel` + `pc-bench bts` |
 | 2 | SparseB par z13 + 4 DA (K=24) no lugar da tabela d27 da opção A (cap. 3) | só modelo | 0 a −10 ms, mais 2 a 5 bits | junto com o item 1 |
 | 3 | GELU par em z = 2x² − 1 (caps. 3 e 4) | contado (este doc) | −30 produtos ct×ct, ~−4 ms (0,2 %) | só dentro de um pacote |
-| 4 | exp da softmax com bandas **relativas** da cadeia de quadraturas (cap. 10, LP) | proposta | ≤ −3 produtos e −1 nível por camada | checar o erro relativo do (d=3, k=3) |
+| 4 | exp da softmax com bandas da cadeia de quadraturas (cap. 10, LP) | **fechada** | 0: com erro relativo vira o `smrel`, já medido | — |
 | — | caps. 23–27 (racionais), f∘arcsin (RBOOT), T1/Newton na LN, CGF | **descartados** | 0 | não repetir |
 
 A combinação 1 + 2 + o melhor candidato medido (`r4_ln3_sbd27d1_cm`, ×1,019) tem chance real de passar a margem de 1 %
@@ -22,7 +22,7 @@ com folga: ela não muda a contagem nem o posicionamento dos refreshes, só o cu
 
 ### O que mudou em relação a `IDEIA-evalmod-par.md`
 
-A nota de 10-30 propõe o par z11 + 4 DA com os planos em9 (108 refreshes). Mas o `tmodel` (seção 2, "efeito de nível")
+A primeira versão de `IDEIA-evalmod-par.md` (10-30) propunha o par z11 + 4 DA com os planos em9 (108 refreshes). Mas o `tmodel` (seção 2, "efeito de nível")
 mostrou por que o em9 perdeu na GPU: **+52 ms** vieram dos pousos 2 limbs mais altos, que encarecem todas as ops a
 jusante, e +46 ms do EvalMod d27. Os 6 SparseB a menos devolveram só −31 ms. Com o par z11 o segundo termo vira
 ganho, mas o primeiro continua lá. A conta só fecha se o nível livre **não** subir o pouso:
@@ -90,8 +90,8 @@ auditoria apontou.
 
 Contagem com `scripts/gelu_bsgs_count.py`. Ele reimplementa `eval_chebyshev_bsgs` do upstream d97a6f7 sem importar o
 Perseus e reproduz a tabela de profundidade de `subagent/ganhos-rapidos.md` (60 → 6, 62 → 7, 248 → 8, 254 → 9). O
-`tmodel/gelu_count.py` fazia a mesma conta só com o tamanho de baby step padrão, e a nota `IDEIA-gelu-par.md` não usou
-nenhum dos dois.
+`tmodel/gelu_count.py` fazia a mesma conta só com o tamanho de baby step padrão. A primeira versão de
+`IDEIA-gelu-par.md` não usou nenhum dos dois e previa −170 produtos; a nota foi reescrita com esta tabela.
 
 Config do recorde 4 (`gpt2_base_n32_kc16r_cm`), produtos ct×ct por GELU:
 
@@ -111,26 +111,23 @@ Config do recorde 4 (`gpt2_base_n32_kc16r_cm`), produtos ct×ct por GELU:
   cortava 62 → 60 e subia o KL (2,7e-6 → 4,1e-6). Só vale se esse nível virar refresh a menos. No recorde 4 o
   `subagent/r4/relatorio.md` diz que o gelubs "não compensa".
 
-## 4. Softmax: a ideia das bandas está certa na forma, errada na métrica
+## 4. Softmax: com a métrica certa, as bandas recaem no `smrel`
 
-`IDEIA-softmax-ponderada.md` propõe ajustar a semente P do exp por LP com a restrição `L ≤ P(x/n) ≤ U` que já leva em
-conta a cadeia de quadraturas. A formulação é boa: viabilidade convexa nos coeficientes e bissecção no ε, o mesmo
-espírito do minimax ponderado do `em_fit.py`. Três problemas:
+`IDEIA-softmax-ponderada.md` (reescrita) ajusta a semente P do exp por LP, com bandas que já levam em conta a cadeia de
+quadraturas. Com erro **relativo**, que é o necessário (o ajuste absoluto estourou: KL 3,1e-4), as bandas
+`(1±ε)^(1/n)` equivalem ao minimax relativo da própria semente. É o que o `smrel` já faz.
 
-1. **Métrica.** A nota usa erro **absoluto** ε = 1e-3. O `ganhos-rapidos.md` (item 3) mediu que o ajuste absoluto do
-   exp largo estoura (KL 3,1e-4). A softmax é invariante a deslocamento por linha, e uma linha com o máximo no fundo da
-   faixa precisa de precisão **relativa** lá. A softmax do recorde 4 é centrada numa chave de referência, não no máximo
-   da linha, então o argumento "a cauda não importa" não vale. A correção é trocar as bandas por
-   `L = e^{x/n}(1−ε)^{1/n}` e `U = e^{x/n}(1+ε)^{1/n}`, que continuam convexas.
-2. **Já explorado.** (d=8, k=1) é exatamente o `smrel` r=1: −12 níveis/token, medido com 0 refreshes a menos e
-   +0,4 ms no `tmodel`. Sobra o **(d=3, k=3)**: no BSGS do upstream o grau 3 custa (2 níveis, 2 produtos) e o grau 8
-   custa (4, 6). Nas camadas com k=2 isso dá 5 produtos e profundidade 5, contra 8 e 6 do recorde: −3 produtos e
-   −1 nível por camada (nas camadas com k=3, como a 5, a semente teria de ir a k=4). Vale **se** o erro relativo após
-   as quadraturas couber. Só ganha em ms, e pouco (softmax inteira = 74 ms).
-3. **Fatos a corrigir.** O recorde 4 usa `n_squarings` 2 ou 3 conforme a camada e `gs_iters` 6–7/4–5, não 8. O
-   `tmodel` (seção 5) já concluiu que o Goldschmidt escalado por Chebyshev **é** o minimax relativo de 1/x (resíduo
-   T_{2^k}/T_{2^k}(z0)) e que o que limita a softmax é a regra do δ2. Então "cortar gs_iters 8 → 6" não sai da semente.
-   A teoria citada (`/home/zocal/pesquisa/exp_approximation_design/…`, Lean) não está neste repo.
+LP relativo na faixa do recorde 4 (camada 0), com contagem pelo BSGS do upstream:
+
+| semente (d, k) | erro relativo | níveis | ct×ct |
+|---|---|---|---|
+| recorde (8, 2) | 1,1e-4 | 6 | 8 |
+| (3, 3), proposta original | 8,9e-2 (inviável) | 5 | 5 |
+| (9, 2) | 1,4e-5 | 6 | 7 |
+| (13 ou 14, 1) = `smrel` | ≤ 8e-6 | 5 | 6 |
+
+O ponto ótimo já é o `smrel`, medido no recorde 4 com 0 refreshes a menos. **Linha fechada.** O Goldschmidt também
+está no piso: ele já é o minimax relativo de 1/x (`tmodel`, seção 5), e o recorde 4 usa 6–7 iterações, não 8.
 
 ## 5. O que o livro NÃO dá (já medido ou descartado)
 

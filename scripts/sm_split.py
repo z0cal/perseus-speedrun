@@ -1,4 +1,4 @@
-"""Softmax level split per layer, with the record's round-0 band rule (v2, 2026-10-28; v1 = sm_split_v1.py).
+"""Softmax level split per layer, with the record's round-0 band rule (v2, 2026-10-28; v1 removed, see git history).
 
 With l1 + l2 fixed (the exp series' input scale 2^-(l1+l2) unchanged), choose l1 squarings vs l2 normalise-and-square
 rounds. Round 0's band for each (layer, l2) is the record's rule (scripts/utils/fit_gpt2_decode16.py::fit_softmax):
