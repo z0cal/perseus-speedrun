@@ -13,7 +13,7 @@ que o `pc-shadow` do upstream gera para cada série e aos 114 refreshes do plano
 | 2 | SparseB par z13 + 4 DA (K=24) com 1 raise drop, no lugar da tabela d27 da opção A (cap. 3) | modelo calibrado | **−22,6 ms (−1,3 %)**; o d27 dá −9,4 | junto com o item 1 |
 | 3 | GELU par em z = 2x² − 1 (caps. 3 e 4) | contado (este doc) | −30 produtos ct×ct, ~−4 ms (0,2 %) | só dentro de um pacote |
 | 2b | **SparseB com a tabela K16 já existente** (`FIDESLIB_BTS_SPARSE_B_K=16`, achado do teste de sanidade) | modelo calibrado | **−31,2 ms** sem código novo; com o par z11 K16 + drop nas densas e no SparseB, −98,2 ms no total | `bts-prec` + KL |
-| 4 | exp da softmax com bandas da cadeia de quadraturas (caps. 8 e 10, LP) | **em aberto** | o alvo da busca foi estrito demais (ver seção 4) | refazer com o erro real do recorde |
+| 4 | softmax: semente do exp por bandas (caps. 8 e 10); δ2 da camada 4; normalização adiada | **em aberto** | semente ≈ 0 ms; camada 4 ≈ −8,4 ms; normalização adiada 0 a ~−90 ms | ILP + KL (seção 4) |
 | — | caps. 23–27 (racionais), f∘arcsin (RBOOT), T1/Newton na LN, CGF | **descartados** | 0 | não repetir |
 
 Os itens 1 + 2 juntos dão **−60,3 ms (−3,6 %)** no modelo, sem mudar a contagem, o posicionamento nem os pousos dos
@@ -163,38 +163,25 @@ Config do recorde 4 (`gpt2_base_n32_kc16r_cm`), produtos ct×ct por GELU:
   cortava 62 → 60 e subia o KL (2,7e-6 → 4,1e-6). Só vale se esse nível virar refresh a menos. No recorde 4 o
   `subagent/r4/relatorio.md` diz que o gelubs "não compensa".
 
-## 4. Softmax: bandas com a métrica certa (em aberto)
+## 4. Softmax: o livro ajuda pouco; o que sobra é estrutura
 
-`IDEIA-softmax-ponderada.md` (reescrita) ajusta a semente P do exp por LP, com bandas que já levam em conta a cadeia de
-quadraturas. A métrica certa depende da camada:
+Resumo de `IDEIA-softmax-ponderada.md` e da segunda opinião (`subagent/softmax2/relatorio.md`):
 
-- **sem chave de referência** (camadas 8 e 11 do recorde 4): erro relativo, e as bandas `(1±ε)^(1/n)` viram o minimax
-  relativo da semente, o que o `smrel` já faz;
-- **centradas** (as outras 10): a referência está na linha com u = 0, então p_i ≤ e^{u_i}, e basta erro absoluto para
-  u ≤ 0 (relativo para u > 0).
+- **Semente do exp por bandas (ATAP, caps. 8 e 10).** Nas camadas centradas a métrica certa é mista (absoluta em u ≤ 0),
+  porque a referência está sempre na linha.
+  - **Alvo:** contra o erro real do recorde, que é dominado pelo fator por linha do Goldschmidt, o (14, 1) passa em
+    todas as camadas. O (14, 0), sem quadratura, passa só na camada 4.
+  - **Ganho:** ≈ −17 a −19 níveis/token, mas ≈ 0 ms. Os níveis caem no trecho do q, como os do smrel.
+  - **Custo real:** coeficientes genéricos; minhas tabelas antigas subcontavam 1–2 produtos. O recorde (8, 2) custa
+    (6, 8), o smrel (5, 8) e o (14, 0) (4, 7).
+- **Onde pode sair refresh:**
+  - **camada 4 com δ2 = 4:** τ = 5,0 já foi recusado pelo upstream; a variante com margem 1,0–1,1 dá −1 SparseB
+    (≈ −8,4 ms), com risco de ruído e de NaN;
+  - **normalização adiada sobre o recorde 4:** −2 níveis no trecho em que o 3º SparseB de cada bloco pode sumir; teto
+    ~−90 ms; nunca foi para a ILP no recorde 4;
+  - **Goldschmidt re-dividido** [7, 4] → [6, 5]: mesma profundidade, erro 100–170× menor.
 
-Testei o critério misto na cadeia simulada. Sem nenhuma quadratura (a ideia do cap. 8) ele **não** alcança o erro real
-do recorde em nenhuma camada. Com uma quadratura a menos alcança com grau 10–13, contra 14 do smrel: mesmos níveis,
-0 a 1 produto a menos. Tabela na nota.
-
-LP relativo na faixa do recorde 4 (camada 0), com contagem pelo BSGS do upstream:
-
-| semente (d, k) | erro relativo | níveis | ct×ct |
-|---|---|---|---|
-| recorde (8, 2) | 1,1e-4 | 6 | 8 |
-| (3, 3), proposta original | 8,9e-2 (inviável) | 5 | 5 |
-| (9, 2) | 1,4e-5 | 6 | 7 |
-| (13 ou 14, 1) = `smrel` | ≤ 8e-6 | 5 | 6 |
-
-(Tabela acima: erro relativo puro, o critério das camadas sem referência.) Com o alvo usado, o ponto ótimo nos dois
-critérios é a vizinhança do `smrel`, medido no recorde 4 com 0 refreshes a menos.
-
-**Ressalva do teste de sanidade:** o alvo da busca foi o erro de *forma* da cadeia simulada. A cadeia simulada bate
-com o `softmax_ref` do upstream até 2e-15 depois de renormalizar as linhas, mas o `softmax_ref` cru erra 8,2e-4 na
-camada 0 e 4,3e-4 na camada 5. Esse é um fator por linha, que vem do Goldschmidt, e é 35 a 185× maior que o alvo. A
-busca exigiu muito mais que o erro que o recorde já tem, então "linha fechada" afirmava demais. **Em aberto:** refazer a
-busca com o erro real do recorde como alvo e checar o KL. O Goldschmidt também
-está no piso: ele já é o minimax relativo de 1/x (`tmodel`, seção 5), e o recorde 4 usa 6–7 iterações, não 8.
+  Tudo isso depende de ILP e KL na máquina do usuário.
 
 ## 5. O que o livro NÃO dá (já medido ou descartado)
 

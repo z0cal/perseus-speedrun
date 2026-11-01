@@ -23,7 +23,10 @@ Desafio: https://github.com/gladia-research-group/perseus/tree/speedrun. Recorde
     (`subagent/sanity3/relatorio.md`) deu GO condicional e listou os requisitos de implementação;
   - SparseB com a tabela K16 que já existe (`FIDESLIB_BTS_SPARSE_B_K=16`): −31,2 ms sem código novo; com o par z11 K16
     + drop nas densas e no SparseB, −98,2 ms (−5,8 %). O risco é a precisão (27,4 bits no SparseB);
-  - semente do exp sem quadratura nas camadas centradas: em aberto (`IDEIA-softmax-ponderada.md`);
+  - softmax (`IDEIA-softmax-ponderada.md`, `subagent/softmax2/relatorio.md`):
+    - normalização adiada sobre o recorde 4: teto ~−90 ms se o 3º SparseB de cada bloco sumir; precisa de ILP;
+    - camada 4 com δ2 = 4 e margem 1,0–1,1: −1 SparseB (≈ −8,4 ms), com risco de ruído e NaN;
+    - Goldschmidt re-dividido na mesma profundidade: erro 100–170× menor, que serve de folga para o resto;
   - hoisting das rotações baby (opção D do `tmodel`): −10 a −19 ms;
   - ILP com objetivo em ms (opção B): −7,6 ms.
 
@@ -37,6 +40,7 @@ Desafio: https://github.com/gladia-research-group/perseus/tree/speedrun. Recorde
 | `IDEIA-evalmod-par.md` | EvalMod par: matemática, tabelas de precisão e custo, como implementar |
 | `IDEIA-gelu-par.md` | GELU par: contagem real (ganho pequeno) |
 | `IDEIA-softmax-ponderada.md` | semente do exp por bandas da cadeia de quadraturas: fechada (recai no smrel) |
+| `subagent/softmax2/relatorio.md` | segunda opinião (Opus) sobre a softmax: erro real por camada, δ2, normalização adiada |
 | `subagent/sanity3/relatorio.md` | teste de sanidade (Opus xhigh) das ideias do ATAP: GO condicional, requisitos |
 | `subagent/audit/auditoria.md`, `subagent/sanity*/relatorio.md`, `subagent/r4/relatorio.md` | auditorias e testes de sanidade |
 | `subagent/ganhos-rapidos.md` | smrel, gelubs, normalização adiada (recorde 3) |
@@ -448,3 +452,24 @@ Relatório: `subagent/sanity3/relatorio.md`.
   novo; com o par z11 K16 + drop nas densas e no SparseB, −98,2 ms (−5,8 %). Precisa de `bts-prec` e KL (27,4 bits).
 - **Ordem sugerida na GPU:** `pc-bench bts` (ms e `bts-prec` real/complexo) para par z11 + drop, par z13 K24 + drop e
   SparseB K16; só depois o A/B do pacote.
+
+### 2026-11-01 — softmax: segunda opinião (subagente Opus)
+Relatório: `subagent/softmax2/relatorio.md`. Mediu com o `softmax_ref` real do upstream, em linhas sintéticas e com
+réplica com ruído no refresh.
+- **Correções que conferi no código:**
+  - o δ2 sai de `next_pow2(U*/τ)` com U\* = máximo dos dados, não do U = 1,25·U\*; na camada 4, U\* = 18,57 fica a 0,9 %
+    do limiar de δ2 = 4;
+  - o upstream já testou τ = 5,0 (só muda a camada 4) e recusou: o KL do modelo de ruído dobrou (README do recorde 4,
+    linha 241);
+  - a contagem `bsgs([1.0]*(d+1))` subconta 1–2 produtos: graus 12–14 custam 7, não 5. O smrel tira 1 nível e
+    0 produtos. `sm_seed_weighted.cost` foi corrigido.
+- **Erro real por camada:** dominado pelo fator por linha do Goldschmidt, 8,2e-4 / 4,2e-4 / 5,5e-5 conforme a
+  camada (15× de variação).
+- **Ranking:**
+  1. camada 4 com δ2 = 4 e margem 1,0–1,1: −1 SparseB;
+  2. normalização adiada sobre o recorde 4, no trecho em que o 3º SparseB pode sumir;
+  3. Goldschmidt re-dividido na mesma profundidade;
+  4. semente pelo critério misto (≈ −17 a −19 níveis, ≈ 0 ms);
+  5. margem 1,1.
+
+  Nada sozinho chega a 1 %. `IDEIA-softmax-ponderada.md` foi reescrita como síntese.

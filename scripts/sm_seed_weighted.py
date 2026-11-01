@@ -14,7 +14,9 @@ from gelu_bsgs_count import bsgs
 def cost(d, k1):
     if d <= 3:
         return {1: (1, 0), 2: (1, 1), 3: (2, 2)}[d][0] + k1, {1: (1, 0), 2: (1, 1), 3: (2, 2)}[d][1] + k1
-    a, b = bsgs([1.0] * (d + 1)); return a + k1, b + k1
+    # generic (all distinct, nonzero) coefficients: with all-equal ones the BSGS split cancels terms by accident and
+    # undercounts by 1-2 products (degree 13/14: 5 instead of 7; subagent/softmax2/relatorio.md)
+    a, b = bsgs([1.0 + 0.37 * i + 0.011 * i * i for i in range(d + 1)]); return a + k1, b + k1
 
 def werr(E, u):
     return np.max(np.abs(E - np.exp(u)) / np.maximum(1.0, np.exp(u)))
