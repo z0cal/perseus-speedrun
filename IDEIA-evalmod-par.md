@@ -50,7 +50,7 @@ Precisão (bits, `-log2` do erro máximo) com `scripts/em_even.py` e `scripts/em
 |---|---|---|---|---|---|
 | recorde: grau 14 + 5 DA | 10 | 27,4 | 10 | 18 | 428 / 700 / 522 |
 | em9 atual: d27 + 4 DA | 9 | 43,5 | 12 | 23 | 514 / 902 / 916 |
-| **par z11 + 4 DA** | **9** | **34–35** | **9** | **15** | **400 / 582 / 410** |
+| **par z11 + 4 DA** | **9** | **33,7–34,2** | **9** | **15** | **400 / 582 / 410** |
 | par z13 + 4 DA | 9 | 44,4 | 11 | 23 | 472 / 896 / 304 |
 | par z13 + 3 DA | 8 | 23,3 | 10 | 22 | 444 / 866 / 304 |
 
@@ -95,7 +95,7 @@ Com K=24, nada de grau ≤ 7 passa de 22 bits em 10 níveis. Em 9 níveis, só z
 - Modelo calibrado do `tmodel` aplicado aos 114 refreshes do recorde 4 (`tmodel/even_sites.py`, validado: reproduz
   os −9,4 ms da opção A): **−37,8 ms/token** (−29,4 nos 36 StC-first reais, −8,4 nos 6 complexos). O d27 com o mesmo
   drop dá +21,0 ms, e o par z13 +6,4.
-- A precisão prevista (34–35 bits) fica acima dos 27,4 bits do recorde na rota dense. O drop não mexe na aproximação.
+- A precisão (33,7–34,2 bits no emulador do teste de sanidade) fica acima dos 27,4 bits do recorde na rota dense. O drop não mexe na aproximação.
 
 ## Riscos e ressalvas
 
@@ -110,18 +110,21 @@ Com K=24, nada de grau ≤ 7 passa de 22 bits em 10 níveis. Em 9 níveis, só z
 
 ## Como implementar
 
+0. **Base:** o branch `tmodel-gpu` (34e8db7, `gpu/perseus-tmodel-entry.bundle`), que já tem `EvalMod` e
+   `shift_evalmod`; o d97a6f7 do upstream não tem nenhum dos dois (`subagent/sanity3/relatorio.md`).
 1. Em `crates/pc-shadow/src/evalmod.rs`, `build_evalmod`: antes de `build_chebyshev`, fazer
-   `add_scalar(x, -0.25/K)`, `square(x)`, `add(x, x)` e `add_scalar(x, -1.0)`. O prototype está em `em_hist.rs`
-   (3º argumento = K).
+   `add_scalar(x, -0.25/K)`, `square(x)`, `add(x, x)` e `add_scalar(x, -1.0)`. O protótipo está em
+   `tmodel/emcost_even.rs`. O flag do pré-passo precisa chegar a todos os `build_evalmod`/`program`/`table_bytes`
+   (`dense.rs`, `sparse_b.rs`, `sparse_classic.rs`, `pc-tools`).
 2. Em `crates/pc-core/src/bts_setup.rs`: nova variante de `EvalMod` (por exemplo `Even`) com as tabelas
    `fits/even_k16_z11_r4.json` (e a de K=24), `da_its() = 4`, `levels() = 9`, e a flag do pré-passo.
 3. Teste `evalmod_series_levels` com a nova variante (esperado: 9 níveis).
 4. Switch de runtime (`FIDESLIB_BTS_EVALMOD=even`).
-5. Raise drop de +1 nos sítios densos e StC-first. Confirme que a chave existe fora do SparseB
-   (`FIDESLIB_BTS_RAISE_DROP=512:N` no `sbd27.py`); se não existir, estenda-a. Depois copie o plano do recorde 4 com o
-   drop (como faz o `sbd27.py`) e rode `compile_check`, `route_mix` e `tmodel/predict.py`.
-6. Na GPU: `pc-bench bts --all` (ms por etapa e precisão), depois o A/B do decode com esse plano, de preferência
-   junto com o `r4_ln3` e o par z13 no SparseB.
+5. Raise drop: `FIDESLIB_BTS_RAISE_DROP=0:1,512:2` no runtime (sem o `0:1` os 12 deliberados K/V por token não acham
+   rota densa com o pouso capturado), +1 nos `raise_drop` densos e 512 dos placements (nunca nos SPRU) e a variante 6
+   em `FIDESLIB_BTS_RAISE_DROPS`. Depois rode `compile_check`, `route_mix` e `tmodel/predict.py`.
+6. Na GPU: `pc-bench bts --all` (ms por etapa e `bts-prec` nos modos real e complexo) para o par z11 + drop, o par
+   z13 K24 + drop e `FIDESLIB_BTS_SPARSE_B_K=16`. Depois, o A/B do pacote contra o recorde 4.
 
 ## Arquivos
 

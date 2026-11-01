@@ -12,11 +12,13 @@ que o `pc-shadow` do upstream gera para cada série e aos 114 refreshes do plano
 | 1 | **EvalMod par z11 + 4 DA nas rotas densas, com 1 raise drop** (pouso = recorde) (caps. 3 e 8) | modelo calibrado | **−37,8 ms (−2,2 %)** | implementar + `pc-bench bts` |
 | 2 | SparseB par z13 + 4 DA (K=24) com 1 raise drop, no lugar da tabela d27 da opção A (cap. 3) | modelo calibrado | **−22,6 ms (−1,3 %)**; o d27 dá −9,4 | junto com o item 1 |
 | 3 | GELU par em z = 2x² − 1 (caps. 3 e 4) | contado (este doc) | −30 produtos ct×ct, ~−4 ms (0,2 %) | só dentro de um pacote |
-| 4 | exp da softmax com bandas da cadeia de quadraturas (caps. 8 e 10, LP) | **fechada** | ≤ 1 produto/camada além do `smrel` (já medido) | — |
+| 2b | **SparseB com a tabela K16 já existente** (`FIDESLIB_BTS_SPARSE_B_K=16`, achado do teste de sanidade) | modelo calibrado | **−31,2 ms** sem código novo; com o par z11 K16 + drop nas densas e no SparseB, −98,2 ms no total | `bts-prec` + KL |
+| 4 | exp da softmax com bandas da cadeia de quadraturas (caps. 8 e 10, LP) | **em aberto** | o alvo da busca foi estrito demais (ver seção 4) | refazer com o erro real do recorde |
 | — | caps. 23–27 (racionais), f∘arcsin (RBOOT), T1/Newton na LN, CGF | **descartados** | 0 | não repetir |
 
 Os itens 1 + 2 juntos dão **−60,3 ms (−3,6 %)** no modelo, sem mudar a contagem, o posicionamento nem os pousos dos
-refreshes. Somados à opção C do `tmodel` (1/√ da LN a 1e-3, −19,4 ms, parte do ×1,019 medido), chegam a ~−80 ms
+refreshes. O teste de sanidade independente (`subagent/sanity3/relatorio.md`, Opus xhigh) deu **GO condicional**: confirmou o
+pré-passo, as listas de ops, a reconstrução dos sítios e os números do modelo, com as ressalvas da seção 1. Somados à opção C do `tmodel` (1/√ da LN a 1e-3, −19,4 ms, parte do ×1,019 medido), chegam a ~−80 ms
 (~−4,7 %), contra a margem de 1 % da regra 5.
 
 ## 1. EvalMod par nas rotas densas, gastando o nível livre num raise drop
@@ -72,9 +74,37 @@ a 6, a mesma variante que o `sbd27.py` acrescenta.
 Limites do modelo: erro de ±6–15 % por etapa, mas as **razões entre séries** são confiáveis (shipped e d27 erram os
 dois +8 %). O SPRU fica fixo em 8 ms e não muda nos cenários.
 
+### Ressalvas do teste de sanidade (`subagent/sanity3/relatorio.md`)
+
+- **~25 % do ganho E vem do drop** (−9,4 dos −37,8 ms), com o raise e a CtS 2 limbs mais baixos. Esse efeito só foi
+  validado no SparseB (opção A); nas densas é modelo.
+- **Desvio conservador no `tokplan`:** o EvalMod do SparseB é precificado 1 nível abaixo do runtime
+  (`sparse_b.rs::tops` usa topo 50 − 2d). Com o nível certo, o A' daria ~−27 ms em vez de −22,6.
+- **Requisitos que faltavam na lista de passos:**
+  - a implementação fica sobre o branch `tmodel-gpu` (34e8db7), que tem `EvalMod` e `shift_evalmod`; o d97a6f7 não
+    tem nenhum dos dois;
+  - `levels() = 9` no re-pouso do Shadow;
+  - `FIDESLIB_BTS_RAISE_DROP=0:1,512:2`. Sem isso, os 12 deliberados K/V por token não acham rota densa com o pouso
+    capturado;
+  - +1 nos `raise_drop` densos e 512 dos placements, nunca nos SPRU, e a variante 6 em `FIDESLIB_BTS_RAISE_DROPS`;
+  - o flag do pré-passo em todos os `build_evalmod`/`program`/`table_bytes` (`dense.rs`, `sparse_b.rs`,
+    `sparse_classic.rs`, `pc-tools`).
+- **Riscos que o modelo não vê:**
+  - a memória das tabelas (o d27 subiu `bts.work` em 1,5 GB no n32);
+  - o drop 4 na StC-first, que nunca rodou;
+  - a precisão no modo complexo do `bts-prec`, que depende da tabela.
+- **Achado do teste: SparseB com K=16.** `FIDESLIB_BTS_SPARSE_B_K=16` já existe no upstream, e o recorde de Prefill 3
+  já o usa, declarado como "approximation change". No mesmo modelo:
+  - a tabela K16 enviada no SparseB, sem drop e sem código, dá **−31,2 ms**;
+  - o par z11 K16 com +1 drop no SparseB dá −60,4 ms;
+  - com as densas também em z11 + drop, o total chega a **−98,2 ms (−5,8 %)**, com uma tabela só.
+
+  O risco é a precisão: o K16 no SparseB fica com 27,4 bits, abaixo dos 35,2 do recorde K24. Precisa de `bts-prec` e
+  de KL.
+
 ### Precisão
 
-O par z11 + 4 DA dá 34–35 bits contra 27,4 do recorde (`IDEIA-evalmod-par.md`). O raise drop não mexe na
+O par z11 + 4 DA dá **33,7–34,2 bits** (emulador float64 do teste de sanidade, com o PS real) contra 27,4 do recorde. O raise drop não mexe na
 aproximação: só tira um primo que o EvalMod de 9 níveis não usa.
 
 ### Negativo desta revisão (não repetir)
@@ -133,7 +163,7 @@ Config do recorde 4 (`gpt2_base_n32_kc16r_cm`), produtos ct×ct por GELU:
   cortava 62 → 60 e subia o KL (2,7e-6 → 4,1e-6). Só vale se esse nível virar refresh a menos. No recorde 4 o
   `subagent/r4/relatorio.md` diz que o gelubs "não compensa".
 
-## 4. Softmax: com a métrica certa, as bandas recaem no `smrel`
+## 4. Softmax: bandas com a métrica certa (em aberto)
 
 `IDEIA-softmax-ponderada.md` (reescrita) ajusta a semente P do exp por LP, com bandas que já levam em conta a cadeia de
 quadraturas. A métrica certa depende da camada:
@@ -156,8 +186,14 @@ LP relativo na faixa do recorde 4 (camada 0), com contagem pelo BSGS do upstream
 | (9, 2) | 1,4e-5 | 6 | 7 |
 | (13 ou 14, 1) = `smrel` | ≤ 8e-6 | 5 | 6 |
 
-(Tabela acima: erro relativo puro, o critério das camadas sem referência.) O ponto ótimo nos dois critérios é a
-vizinhança do `smrel`, medido no recorde 4 com 0 refreshes a menos. **Linha fechada.** O Goldschmidt também
+(Tabela acima: erro relativo puro, o critério das camadas sem referência.) Com o alvo usado, o ponto ótimo nos dois
+critérios é a vizinhança do `smrel`, medido no recorde 4 com 0 refreshes a menos.
+
+**Ressalva do teste de sanidade:** o alvo da busca foi o erro de *forma* da cadeia simulada. A cadeia simulada bate
+com o `softmax_ref` do upstream até 2e-15 depois de renormalizar as linhas, mas o `softmax_ref` cru erra 8,2e-4 na
+camada 0 e 4,3e-4 na camada 5. Esse é um fator por linha, que vem do Goldschmidt, e é 35 a 185× maior que o alvo. A
+busca exigiu muito mais que o erro que o recorde já tem, então "linha fechada" afirmava demais. **Em aberto:** refazer a
+busca com o erro real do recorde como alvo e checar o KL. O Goldschmidt também
 está no piso: ele já é o minimax relativo de 1/x (`tmodel`, seção 5), e o recorde 4 usa 6–7 iterações, não 8.
 
 ## 5. O que o livro NÃO dá (já medido ou descartado)

@@ -16,11 +16,14 @@ Desafio: https://github.com/gladia-research-group/perseus/tree/speedrun. Recorde
   - EvalMod d27 nas rotas densas: ×0,956. O EvalMod fica 27 % mais caro e o pouso mais alto encarece as ops.
   - d27 só no SparseB, sem drop: empate.
   - smrel, faixas da softmax e LN adiada sobre o recorde 4: 0 refreshes a menos.
-  - Semente CGF, T1/Newton na LN, f∘arcsin (RBOOT), GELU par (−30 produtos/token, ~0,2 %), semente do exp por
-    bandas (recai no smrel).
+  - Semente CGF, T1/Newton na LN, f∘arcsin (RBOOT), GELU par (−30 produtos/token, ~0,2 %).
 - **Próximas ideias, por ganho estimado:**
   - EvalMod par z11 nas rotas densas com +1 raise drop, mais o par z13 no SparseB: −60,3 ms/token (−3,6 %) no modelo
-    calibrado, sem replanejar (`ATAP-ganhos.md`, `tmodel/even_sites.py`);
+    calibrado, sem replanejar (`ATAP-ganhos.md`, `tmodel/even_sites.py`). O teste de sanidade
+    (`subagent/sanity3/relatorio.md`) deu GO condicional e listou os requisitos de implementação;
+  - SparseB com a tabela K16 que já existe (`FIDESLIB_BTS_SPARSE_B_K=16`): −31,2 ms sem código novo; com o par z11 K16
+    + drop nas densas e no SparseB, −98,2 ms (−5,8 %). O risco é a precisão (27,4 bits no SparseB);
+  - semente do exp sem quadratura nas camadas centradas: em aberto (`IDEIA-softmax-ponderada.md`);
   - hoisting das rotações baby (opção D do `tmodel`): −10 a −19 ms;
   - ILP com objetivo em ms (opção B): −7,6 ms.
 
@@ -34,6 +37,7 @@ Desafio: https://github.com/gladia-research-group/perseus/tree/speedrun. Recorde
 | `IDEIA-evalmod-par.md` | EvalMod par: matemática, tabelas de precisão e custo, como implementar |
 | `IDEIA-gelu-par.md` | GELU par: contagem real (ganho pequeno) |
 | `IDEIA-softmax-ponderada.md` | semente do exp por bandas da cadeia de quadraturas: fechada (recai no smrel) |
+| `subagent/sanity3/relatorio.md` | teste de sanidade (Opus xhigh) das ideias do ATAP: GO condicional, requisitos |
 | `subagent/audit/auditoria.md`, `subagent/sanity*/relatorio.md`, `subagent/r4/relatorio.md` | auditorias e testes de sanidade |
 | `subagent/ganhos-rapidos.md` | smrel, gelubs, normalização adiada (recorde 3) |
 
@@ -386,7 +390,7 @@ Relatório completo: `tmodel/RELATORIO-2026-10-30.md`. Resumo:
 |---|---|---|---|---|
 | recorde d14+5DA (10 níveis) | 27,4 | 10 | 18 | 428 / 700 / 522 |
 | d27+4DA (em9, medido +27 % no EvalMod) | 43,5 | 12 | 23 | 514 / 902 / 916 |
-| **par z11+4DA** | **34,1–35,3** | 9 | 15 | **400 / 582 / 410** |
+| **par z11+4DA** | **34,1–35,3** (emulador com o PS real: 33,7–34,2) | 9 | 15 | **400 / 582 / 410** |
 | par z13+4DA | 44,4 | 11 | 23 | 472 / 896 / 304 |
 
 ⇒ par z11 tem EvalMod MENOR que o recorde (previsão −10…−17 % só no EvalMod) e precisão maior. Ele deve ser usado com
@@ -409,12 +413,14 @@ Detalhes em `ATAP-ganhos.md`. Nada rodou em GPU.
   - resultado: par z11 nas densas + 1 drop **−37,8 ms**; par z13 no SparseB + 1 drop −22,6 ms (o d27 dá −9,4);
     os dois juntos **−60,3 ms (−3,6 %)**.
 - `tmodel/gelu_count.py` tinha dois bugs: o eps de corte padrão no lugar do `cheb_eps` da config (205 produtos em vez de
-  210) e a profundidade perdida no `inplace_add` (grau 62 lido como 6 níveis). Corrigido; com o `poly.py` real, agora
-  bate com `scripts/gelu_bsgs_count.py`.
+  210) e a profundidade perdida no `inplace_add` (grau 62 lido como 6 níveis). Corrigido; com o `poly.py` real dá 210
+  produtos atuais, como `scripts/gelu_bsgs_count.py`. Na forma par dá 179 contra 180, porque o baby step padrão perde
+  1 nível na camada 7.
 - **Softmax por bandas:** nas camadas centradas do recorde 4 basta erro absoluto para u ≤ 0, porque a referência
-  está na linha. Mesmo assim, uma semente sem quadratura não alcança o erro real do recorde na cadeia simulada
-  (`scripts/sm_seed_*.py`). Com uma quadratura a menos, o critério misto dá grau 10–13 contra 14 do smrel (≤ 1 produto
-  por camada). O (d=3, k=3) da proposta tem erro relativo 8,9e-2. Linha fechada. `IDEIA-softmax-ponderada.md` foi
+  está na linha. Com o erro de forma da cadeia simulada como alvo (`scripts/sm_seed_*.py`), uma semente sem
+  quadratura não alcança o recorde; com uma quadratura a menos, o critério misto dá grau 10–13 contra 14 do smrel.
+  O (d=3, k=3) da proposta tem erro relativo 8,9e-2. O teste de sanidade mostrou que esse alvo é 35 a 185× mais estrito
+  que o erro real do recorde (fator por linha do Goldschmidt): **em aberto**. `IDEIA-softmax-ponderada.md` foi
   reescrita.
 - Removidos por obsoletos:
   - `HANDOFF.md` (recorde 3, tarefas feitas);
@@ -424,3 +430,21 @@ Detalhes em `ATAP-ganhos.md`. Nada rodou em GPU.
   - `scripts/sm_split_v1.py` (não aplicava o topo do recorde).
 
   As seções do recorde 3 com números invalidados viraram o resumo acima. Tudo isso continua no histórico do git.
+
+### 2026-11-01 — teste de sanidade (subagente Opus xhigh): GO condicional
+Relatório: `subagent/sanity3/relatorio.md`.
+- **Confirmados:** pré-passo par (entrada u/K, c0 na convenção do `PsPlan`); listas de ops idênticas às do `tmodel/em`
+  em todos os topos; reconstrução dos 114 sítios (bate com o compilador e os grafos do upstream); números do modelo
+  (−37,8 / −22,6 / −60,3; A = −9,4); GELU 210 → 180.
+- **Correções:**
+  - o par z11 dá 33,7–34,2 bits, não 34–35;
+  - ~25 % do ganho E vem do drop, validado só no SparseB;
+  - o `tokplan` precifica o EvalMod do SparseB 1 nível abaixo do runtime (A' ~−27 ms em vez de −22,6);
+  - a softmax volta a ficar em aberto: o alvo da busca era 35 a 185× mais estrito que o erro real do recorde.
+- **Requisitos de implementação:** base `tmodel-gpu`, `levels() = 9`, `FIDESLIB_BTS_RAISE_DROP=0:1,512:2`, +1 nos
+  `raise_drop` densos e 512 (nunca nos SPRU), variante 6, e o flag do pré-passo em todos os builders. Lista completa em
+  `ATAP-ganhos.md`, seção 1.
+- **Achado:** `FIDESLIB_BTS_SPARSE_B_K=16` já existe (usado no Prefill recorde 3) e dá −31,2 ms no SparseB sem código
+  novo; com o par z11 K16 + drop nas densas e no SparseB, −98,2 ms (−5,8 %). Precisa de `bts-prec` e KL (27,4 bits).
+- **Ordem sugerida na GPU:** `pc-bench bts` (ms e `bts-prec` real/complexo) para par z11 + drop, par z13 K24 + drop e
+  SparseB K16; só depois o A/B do pacote.

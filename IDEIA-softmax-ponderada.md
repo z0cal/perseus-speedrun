@@ -1,7 +1,8 @@
 # Ideia: semente do exp da softmax ajustada à cadeia de quadraturas (bandas)
 
-Data: 2026-11-01. Status: **fechada. Com o critério certo, a melhor semente cai na vizinhança do `smrel` (uma
-quadratura a menos), que já foi medido.** O ganho sobre o smrel é ≤ 1 produto por camada. Nada rodou em GPU.
+Data: 2026-11-01. Status: **em aberto.** Com o alvo usado (o erro de forma da cadeia simulada), a melhor semente cai
+na vizinhança do `smrel`, com ≤ 1 produto por camada a mais de ganho. Só que esse alvo é 35 a 185× mais estrito que o
+erro que o recorde já tem (seção "Conclusão"). Nada rodou em GPU.
 
 ## Contexto
 
@@ -87,8 +88,19 @@ A proposta original sugeria cortar `gs_iters` de 8 para 6 graças a "denominador
 
 ## Conclusão
 
-Nada a implementar além do `smrel`, que já existe. Se ele entrar num pacote, use o grau 13 ou 14 (4 níveis no BSGS).
-O grau 16 custaria 5 níveis e 10 produtos.
+Com o alvo usado aqui, nada a implementar além do `smrel`, que já existe. Se ele entrar num pacote, use o grau 13 ou
+14 (4 níveis no BSGS); o grau 16 custaria 5 níveis e 10 produtos.
+
+**Ressalva do teste de sanidade** (`subagent/sanity3/relatorio.md`):
+- a cadeia simulada (`sm_seed_sim.chain`) é igual ao `softmax_ref` do upstream (com `SM_CHEB_GS=1`) até 2e-15 depois de
+  renormalizar as linhas;
+- mas o `softmax_ref` cru erra 8,2e-4 (camada 0) e 4,3e-4 (camada 5): um fator por linha, que vem do Goldschmidt e é
+  35 a 185× maior que o erro de forma usado como alvo da busca.
+
+Ou seja, a busca exigiu da semente muito mais que o erro que o recorde já tem, e a conclusão "sem quadratura não dá"
+vale para esse alvo estrito. **Próximo passo:** refazer `sm_seed_search.py` com o erro real do recorde (o `softmax_ref`
+cru) como alvo e medir o KL no gêmeo. Se uma semente sem quadratura (4 níveis, 5 produtos contra 6 e 8) passar,
+são −2 níveis por camada centrada.
 
 Reproduzir a tabela: LP relativo de `e^y` em `[−h, h]` (2000 pontos de Chebyshev, `scipy.optimize.linprog`, HiGHS) e
 contagem por `scripts/gelu_bsgs_count.bsgs([1.0]*(d+1))`.
