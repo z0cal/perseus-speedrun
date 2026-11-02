@@ -1,0 +1,736 @@
+From 886295596805cf259ae9b80f0db6198fee657ea6 Mon Sep 17 00:00:00 2001
+From: z0cal <gabriel_zocal@hotmail.com>
+Date: Mon, 2 Nov 2026 13:58:17 +0000
+Subject: [PATCH 1/3] EvalMod: the even series behind PC_EM_EVEN (bts.em_even):
+ degree 7 in z = 2 (y - 1/64)^2 - 1, then the 5 double angles
+
+The shipped target (2 pi)^(-1/32) cos(2 pi (16 y - 0.25) / 32) is even in w = y - 1/64, so it is a Chebyshev series
+of half the degree in z = 2 w^2 - 1: a constant add, one square (its x2 and -1 in the relinearization's epilogue),
+a degree-7 series (PS k = 3, m = 2) and the shipped double angles. Depth 1 + PS(7) + 5 = 10 = PS(14) + 5: the
+same output level, degree and scale bit for bit on n32, n32a4 and n32sp at every input top the shipped series
+builds at, so no landing, plan or key changes.
+
+- pc-core: EVALMOD_EVEN_CHEB (minimax of the final, double-angled error on |I| <= 15, |delta| <= 2^-4,
+  sequential LP; perseus-speedrun scripts/em_even7.py) and EVALMOD_EVEN_SHIFT.
+- pc-shadow: PsPlan::even_shift (serde default None), PsPlan::evalmod_even / evalmod_k16, build_even_prestep in
+  build_evalmod_opts. Tests: plan shape, landing equality on three chains (lean and FIDESlib builders), op census,
+  and an exact RNS interpreter of the program on constant polynomials: shipped 27.40 bits (reproduced), even 29.53.
+- pc-gpu: BtsSetup::evalmod_even (+ evalmod_ps), SparseBCfg::em_even (K = 16 only); dense / StC-first / SparseB
+  build from it. pc-py session: cfg.bts.em_even. pc-bench bts / bts --all / stcf-prec: PC_EM_EVEN=1.
+- pc-config: field bts.em_even (PC_EM_EVEN, kernel switch); field counts 270 / 362.
+
+n32sp, top 50, lean builder, fused program: products 11 -> 10, rescales 16 -> 14, weighted-sum terms 14 -> 7
+(limbs 447 / 692 / 592 -> 400 / 596 / 295). Not measured on a GPU.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01DeXwbmKVCB5pC9bN2KVgvB
+---
+ crates/pc-config/src/fields.rs       |   3 +
+ crates/pc-config/tests/legacy.rs     |   8 +-
+ crates/pc-config/tools/gen_fields.py |   4 +
+ crates/pc-core/src/bts_setup.rs      |  21 ++
+ crates/pc-gpu/src/bts/dense.rs       |   2 +-
+ crates/pc-gpu/src/bts/evalmod.rs     |   2 +-
+ crates/pc-gpu/src/bts/mod.rs         |  17 ++
+ crates/pc-gpu/src/bts/sparse_b.rs    |  11 +-
+ crates/pc-py/src/session.rs          |   6 +
+ crates/pc-shadow/src/evalmod.rs      | 319 ++++++++++++++++++++++++++-
+ crates/pc-shadow/tests/d3_oracle.rs  |   1 +
+ crates/pc-tools/src/bin/pc-bench.rs  |   3 +-
+ crates/pc-tools/src/bts_all.rs       |   4 +
+ crates/pc-tools/src/bts_stc_first.rs |   2 +
+ crates/pc-tools/src/check_bts.rs     |   2 +-
+ python/tests/test_fake_shadow.py     |   4 +-
+ 16 files changed, 395 insertions(+), 14 deletions(-)
+
+diff --git a/crates/pc-config/src/fields.rs b/crates/pc-config/src/fields.rs
+index 96cb7e9..3caf2a0 100644
+--- a/crates/pc-config/src/fields.rs
++++ b/crates/pc-config/src/fields.rs
+@@ -46,6 +46,9 @@ section! {
+         #[doc = "`FIDESLIB_CTS_ALT_BUDGET`. Default (unset). Read at RawCiphertext.cu: alternative CtS level budget (0 = off)."]
+         #[doc = "Shipped plans: runtime= llama128."]
+         cts_alt_budget: Int = "FIDESLIB_CTS_ALT_BUDGET", "(unset)";
++        #[doc = "EvalMod: the even series (pc-core `EVALMOD_EVEN_CHEB`, degree 7 in z = 2 (y - 1/64)^2 - 1, then the 5 double angles) on every K = 16 route (dense, StC-first, SparseB at K = 16): the shipped series' depth, levels and scale, fewer products, rescales and weighted sums (pc-gpu `BtsSetup::evalmod_even`; default off = the shipped degree-14 series)."]
++        #[doc = "Runtime switch `PC_EM_EVEN` [kernel]: binds no plan and no key bundle."]
++        em_even: Flag = "PC_EM_EVEN", "(unset)";
+         #[doc = "EvalMod: a Regen relinearization and the rescale after it as one exact conversion (pc-gpu `BtsSetup::em_fuse_rescale`; default off = relinearize, then rescale)."]
+         #[doc = "Runtime switch `PC_EM_FUSE_RESCALE` [kernel]: binds no plan and no key bundle."]
+         em_fuse_rescale: Flag = "PC_EM_FUSE_RESCALE", "(unset)";
+diff --git a/crates/pc-config/tests/legacy.rs b/crates/pc-config/tests/legacy.rs
+index 12e4883..191ff01 100644
+--- a/crates/pc-config/tests/legacy.rs
++++ b/crates/pc-config/tests/legacy.rs
+@@ -41,8 +41,8 @@ fn field_table() {
+     // inventory sections 1-2, 5a/5b, 6a/6b + exec.use_graphs, exec.trace_alloc, host.n_in_flight, bts.em_fuse_rescale,
+     // bts.lt_tails, bts.pair, bts.sparse_b_k, model.prefill.{last_query,qkv_pack,attn_bsgs,sm_hpack}, chain.preset
+     // + bts.merge_s2d, bts.stc_ps, bts.em_level_keys (key-set switches); model.pcmm_raise_out, model.kv_push_raise;
+-    // model.prefill.attn_wrot, bts.pair_window, bts.pair_loose, bts.pair_cf_max, exec.mult_sum
+-    assert_eq!(cf.len(), 269);
++    // model.prefill.attn_wrot, bts.pair_window, bts.pair_loose, bts.pair_cf_max, exec.mult_sum; bts.em_even
++    assert_eq!(cf.len(), 270);
+     // + section 7a: plan.kv_entry_level, plan.kv_entry_deg, plan.keep_placements; 8a: plan.stc_first_reroute, plan.site_cf;
+     // plan.fallback_cf, plan.argmax_mincut, plan.ilp_tiebreak, plan.raise_drop_base, plan.raise_drop_search, plan.pack_cf,
+     // plan.keep_placements_exact, plan.mag_safety_steps, plan.resume
+@@ -61,8 +61,8 @@ fn field_table() {
+     // PF_SM_HPACK, PLAN_FALLBACK_CF, PLAN_ARGMAX_MINCUT, PLAN_ILP_TIEBREAK, PLAN_RAISE_DROP_BASE, PLAN_RAISE_SEARCH,
+     // PLAN_PACK_CF, PLAN_KEEP_PLACEMENTS_EXACT, PLAN_MAG_SAFETY_STEPS, PLAN_RESUME, FIDESLIB_BTS_SPARSE_B_K, CHAIN_PRESET
+     // + PC_BTS_MERGE_S2D, PC_BTS_STC_PS, PC_EM_LEVEL_KEYS + PF_PCMM_RAISE_OUT, KV_PUSH_RAISE
+-    // + PF_ATTN_WROT, PC_BTS_PAIR_WINDOW, PC_BTS_PAIR_LOOSE, PC_BTS_PAIR_CF_MAX, PC_MULT_SUM
+-    assert_eq!(envs.len(), 361);
++    // + PF_ATTN_WROT, PC_BTS_PAIR_WINDOW, PC_BTS_PAIR_LOOSE, PC_BTS_PAIR_CF_MAX, PC_MULT_SUM; PC_EM_EVEN
++    assert_eq!(envs.len(), 362);
+ }
+ 
+ #[test]
+diff --git a/crates/pc-config/tools/gen_fields.py b/crates/pc-config/tools/gen_fields.py
+index 5627c36..afcb0b9 100644
+--- a/crates/pc-config/tools/gen_fields.py
++++ b/crates/pc-config/tools/gen_fields.py
+@@ -62,6 +62,10 @@ EXTRA = [
+     ("quirks", "fake_bts_out", "Int", "The numpy fake's refresh landing level (perseus `FakeFhe(bts_out=34)` argument; "
+      "every route lands there realized, quirk `FakeBootstrapRealized`)."),
+     ("bts", "k_max", "Int", "Ciphertexts per batched bootstrap launch (PLAN.md Program: K-batching; 8)."),
++    ("bts", "em_even", "Flag", "EvalMod: the even series (pc-core `EVALMOD_EVEN_CHEB`, degree 7 in z = 2 (y - 1/64)^2 - 1, "
++     "then the 5 double angles) on every K = 16 route (dense, StC-first, SparseB at K = 16): the shipped series' depth, levels "
++     "and scale, fewer products, rescales and weighted sums (pc-gpu `BtsSetup::evalmod_even`; default off = the shipped "
++     "degree-14 series).", "PC_EM_EVEN"),
+     ("bts", "em_fuse_rescale", "Flag", "EvalMod: a Regen relinearization and the rescale after it as one exact conversion "
+      "(pc-gpu `BtsSetup::em_fuse_rescale`; default off = relinearize, then rescale).", "PC_EM_FUSE_RESCALE"),
+     ("bts", "lt_tails", "Flag", "Resident key `a` tails for the CtS baby keys of packed key sets (pc-gpu "
+diff --git a/crates/pc-core/src/bts_setup.rs b/crates/pc-core/src/bts_setup.rs
+index 7dc8f8e..b98097f 100644
+--- a/crates/pc-core/src/bts_setup.rs
++++ b/crates/pc-core/src/bts_setup.rs
+@@ -110,6 +110,27 @@ pub fn evalmod_coeffs() -> &'static [f64] {
+     &EVALMOD_CHEB
+ }
+ 
++/// The even EvalMod series (`PsPlan::even_shift`, switch `bts.em_even` / `PC_EM_EVEN`): the shipped target
++/// (2 pi)^(-1/32) cos(2 pi (16 y - 0.25) / 32) is even in w = y - 1/64, so it is a Chebyshev series of HALF the
++/// degree in z = 2 w^2 - 1: w by a constant add, z by one square whose x2 and -1 ride its relinearization's epilogue,
++/// then this degree-7 series in z and the shipped 5 double angles. Depth 1 + PS(7) + 5 = 10, the shipped series'
++/// PS(14) + 5: the same output level and scale, so every landing and plan stays. Minimax on |I| <= 15, |delta| <=
++/// 2^-4 of the final (double-angled) error, sequential LP: 29.5 bits at every |delta| <= 2^-2 (the shipped table
++/// 27.4). OpenFHE evaluator convention (c0 not halved). Provenance: perseus-speedrun `scripts/em_even7.py`
++/// (`fits/even_k16_z7_r5.json`).
++pub const EVALMOD_EVEN_CHEB: [f64; 8] = [
++    -5.745215136010838e-01,
++    -9.166784164869499e-01,
++    2.8594548617538085e-01,
++    -2.74681541640594e-02,
++    1.3145350266008343e-03,
++    -3.794693262449959e-05,
++    7.347911536358684e-07,
++    -1.0315035956695626e-08,
++];
++/// The even series' shift in y (= 0.25 / K): w = y - EVALMOD_EVEN_SHIFT.
++pub const EVALMOD_EVEN_SHIFT: f64 = 0.25 / EVALMOD_K;
++
+ /// SparseB's EvalMod series for K = 24: (2 pi)^(-1/32) cos(2 pi (24 y - 0.25) / 32), Chebyshev degree 20 (same PS
+ /// depth as degree 14), 5 double angles. Provenance: FIDESlib `SparseB.cu::sparseBChebyshevK24`.
+ pub const SPARSE_B_CHEB_K24: [f64; 21] = [
+diff --git a/crates/pc-gpu/src/bts/dense.rs b/crates/pc-gpu/src/bts/dense.rs
+index e24ceaa..d228912 100644
+--- a/crates/pc-gpu/src/bts/dense.rs
++++ b/crates/pc-gpu/src/bts/dense.rs
+@@ -88,7 +88,7 @@ impl DensePlan {
+         let shp = sh.cfg.chain;
+         let d = chain.level_unit;
+         let n = chain.n;
+-        let ps = PsPlan::from_coeffs(&setup.evalmod_coeffs)?;
++        let ps = setup.evalmod_ps()?;
+         let mut qd = chain.q[0] as f64;
+         for j in 1..d {
+             qd *= chain.q[j] as f64;
+diff --git a/crates/pc-gpu/src/bts/evalmod.rs b/crates/pc-gpu/src/bts/evalmod.rs
+index 3c04f33..86117c2 100644
+--- a/crates/pc-gpu/src/bts/evalmod.rs
++++ b/crates/pc-gpu/src/bts/evalmod.rs
+@@ -1890,7 +1890,7 @@ mod tests {
+         let plan = crate::bts::dense::DensePlan::new(&chain, &setup).expect("dense plan");
+         let st = pc_core::scale::ScaleTables::precompute(&chain).expect("tables");
+         let v = &plan.variants[0];
+-        let ps = PsPlan::from_coeffs(&setup.evalmod_coeffs).expect("ps");
++        let ps = setup.evalmod_ps().expect("ps");
+         let (prog, _) = build_evalmod_opts(&st, v.em_in, &ps, setup.evalmod_da_its as i32, true).expect("program");
+         let fused = prog.fused();
+         let before = slots_of(&fused);
+diff --git a/crates/pc-gpu/src/bts/mod.rs b/crates/pc-gpu/src/bts/mod.rs
+index 6e7e21f..671f2ea 100644
+--- a/crates/pc-gpu/src/bts/mod.rs
++++ b/crates/pc-gpu/src/bts/mod.rs
+@@ -15,6 +15,7 @@ use crate::mem::MemPlan;
+ use crate::ops::Ops;
+ use crate::poly::{CtBuf, Layout};
+ use pc_cuda::{Arena, Compute};
++use pc_shadow::evalmod::PsPlan;
+ use pc_shadow::{CtMeta, Route, Shadow};
+ 
+ pub mod cts;
+@@ -118,6 +119,10 @@ pub struct BtsSetup {
+     pub evalmod_coeffs: Vec<f64>,
+     pub evalmod_da_its: u32,
+     pub boot_k: f64,
++    /// EvalMod: the even series in place of the shipped K = 16 table (`PsPlan::evalmod_even`, config `bts.em_even`):
++    /// the same depth, landing and scale, fewer products, rescales and weighted sums. Needs the frozen K = 16 table in
++    /// `evalmod_coeffs`.
++    pub evalmod_even: bool,
+     /// Build the real-payload variants (FIDESLIB_BTS_REAL: StC stage 0 for `Route::real`).
+     pub real: bool,
+     /// Ciphertexts per launch the work buffers are sized for (`cfg.bts.k_max`, <= `MemCfg::k_max`).
+@@ -150,6 +155,17 @@ pub struct BtsSetup {
+ }
+ 
+ impl BtsSetup {
++    /// The EvalMod series' Paterson-Stockmeyer plan: `evalmod_coeffs`, or the even series (`evalmod_even`).
++    pub fn evalmod_ps(&self) -> Result<PsPlan> {
++        if !self.evalmod_even {
++            return Ok(PsPlan::from_coeffs(&self.evalmod_coeffs)?);
++        }
++        if self.evalmod_coeffs.as_slice() != pc_core::bts_setup::evalmod_coeffs() || self.evalmod_da_its != pc_core::bts_setup::EVALMOD_DA_ITS {
++            return Err(shape("bts", "evalmod_even replaces the frozen K = 16 table (degree 14, 5 double angles) only"));
++        }
++        Ok(PsPlan::evalmod_even())
++    }
++
+     /// The shipped n32 configuration of the dense route (LEVEL_BUDGET 4:3, CF 6 in 2..20, SHIFT_T 12, EvalMod deg 14
+     /// K 16 with 5 double angles, real payload on, raise drop 0).
+     pub fn n32_shipped() -> BtsSetup {
+@@ -164,6 +180,7 @@ impl BtsSetup {
+             evalmod_coeffs: pc_core::bts_setup::evalmod_coeffs().to_vec(),
+             evalmod_da_its: pc_core::bts_setup::EVALMOD_DA_ITS,
+             boot_k: pc_core::bts_setup::EVALMOD_K,
++            evalmod_even: false,
+             real: true,
+             k_max: 8,
+             ks_source: KskSource::Regen,
+diff --git a/crates/pc-gpu/src/bts/sparse_b.rs b/crates/pc-gpu/src/bts/sparse_b.rs
+index 3672c59..12624c9 100644
+--- a/crates/pc-gpu/src/bts/sparse_b.rs
++++ b/crates/pc-gpu/src/bts/sparse_b.rs
+@@ -44,6 +44,9 @@ pub struct SparseBCfg {
+     pub evalmod_k: f64,
+     /// An EvalMod series replacing the K = 16 table (same K, double angles and depth; empty = the frozen table).
+     pub em_coeffs: Vec<f64>,
++    /// The even series in place of the K = 16 table (`BtsSetup::evalmod_even`, config `bts.em_even`; with the frozen
++    /// table only, so not with `em_coeffs`).
++    pub em_even: bool,
+     /// The raise's sparse -> dense switch folded into the fold's first round (`BtsSetup::merge_s2d`): its hoisted
+     /// group is the sparse -> dense key and `SparseRot` keys of the round's steps, summed with no add of the input.
+     pub merge_s2d: bool,
+@@ -51,15 +54,17 @@ pub struct SparseBCfg {
+ 
+ impl SparseBCfg {
+     pub fn n32(slots: u32, raise_drop: u32) -> Self {
+-        SparseBCfg { slots, raise_drop, cts0_t: 12, raise_k: pc_core::bts_setup::EVALMOD_K, acc_bstep: 4, b_step: 0, k_max: 8, ks_source: KskSource::Regen, lt_tails: true, em_fuse_rescale: false, evalmod_k: pc_core::bts_setup::SPARSE_B_K, em_coeffs: Vec::new(), merge_s2d: false }
++        SparseBCfg { slots, raise_drop, cts0_t: 12, raise_k: pc_core::bts_setup::EVALMOD_K, acc_bstep: 4, b_step: 0, k_max: 8, ks_source: KskSource::Regen, lt_tails: true, em_fuse_rescale: false, evalmod_k: pc_core::bts_setup::SPARSE_B_K, em_coeffs: Vec::new(), em_even: false, merge_s2d: false }
+     }
+ 
+     /// The EvalMod series' Paterson-Stockmeyer plan for `evalmod_k`.
+     pub fn em_series(&self) -> Result<PsPlan> {
+-        if self.evalmod_k == pc_core::bts_setup::EVALMOD_K && !self.em_coeffs.is_empty() {
++        if self.em_even && (self.evalmod_k != pc_core::bts_setup::EVALMOD_K || !self.em_coeffs.is_empty()) {
++            Err(shape("sparse_b", format!("em_even replaces the frozen K = 16 table only (K = {}, {} custom coefficients)", self.evalmod_k, self.em_coeffs.len())))
++        } else if self.evalmod_k == pc_core::bts_setup::EVALMOD_K && !self.em_coeffs.is_empty() {
+             Ok(PsPlan::from_coeffs(&self.em_coeffs)?)
+         } else if self.evalmod_k == pc_core::bts_setup::EVALMOD_K {
+-            Ok(PsPlan::from_coeffs(pc_core::bts_setup::evalmod_coeffs())?)
++            Ok(PsPlan::evalmod_k16(self.em_even))
+         } else if self.evalmod_k == pc_core::bts_setup::SPARSE_B_K {
+             ps_k24()
+         } else {
+diff --git a/crates/pc-py/src/session.rs b/crates/pc-py/src/session.rs
+index 5f435cf..ec0e02b 100644
+--- a/crates/pc-py/src/session.rs
++++ b/crates/pc-py/src/session.rs
+@@ -665,6 +665,8 @@ fn key_needs(cfg: &pc_config::Config, ks: &PyKeySource, chain: &Chain, plan: &Op
+         let (lt_tails, em_fuse) = (cfg.bts.lt_tails.unwrap_or(true), cfg.bts.em_fuse_rescale.unwrap_or(false));
+         // PC_BTS_MERGE_S2D / PC_BTS_STC_PS (default off): key-set switches (pc-gpu BtsSetup::merge_s2d / stc_ps)
+         let (merge_s2d, stc_ps) = (cfg.bts.merge_s2d.unwrap_or(false), knob(cfg.bts.stc_ps, 0, "bts.stc_ps")? as usize);
++        // PC_EM_EVEN (default off): the even EvalMod series on every K = 16 route (pc-gpu BtsSetup::evalmod_even)
++        let em_even = cfg.bts.em_even.unwrap_or(false);
+         for p in &ps.programs {
+             steps.extend(prog_steps(p, half));
+         }
+@@ -678,6 +680,7 @@ fn key_needs(cfg: &pc_config::Config, ks: &PyKeySource, chain: &Chain, plan: &Op
+             setup.cts_alt_budget = cts_alt;
+             (setup.lt_tails, setup.em_fuse_rescale) = (lt_tails, em_fuse);
+             (setup.merge_s2d, setup.stc_ps) = (merge_s2d, stc_ps);
++            setup.evalmod_even = em_even;
+             let mut sfs = StcFirstSetup::n32_shipped();
+             sfs.cache_slots = ps.stc_cache.max(1);
+             if pcmm.is_some() {
+@@ -727,6 +730,7 @@ fn key_needs(cfg: &pc_config::Config, ks: &PyKeySource, chain: &Chain, plan: &Op
+             setup.real = rn.plain_real;
+             setup.cts_alt_budget = cts_alt;
+             (setup.lt_tails, setup.em_fuse_rescale) = (lt_tails, em_fuse);
++            setup.evalmod_even = em_even;
+             setup.k_max = 1;
+             let dp = pc_gpu::bts::dense::DensePlan::new(chain, &setup).map_err(e)?;
+             let geoms: Vec<_> = dp.variants.iter().flat_map(|v| v.cts.iter().chain(&v.stc).chain(v.stc_real0.iter())).map(|h| h.geom).collect();
+@@ -740,6 +744,8 @@ fn key_needs(cfg: &pc_config::Config, ks: &PyKeySource, chain: &Chain, plan: &Op
+                 (c.lt_tails, c.em_fuse_rescale) = (lt_tails, em_fuse);
+                 c.merge_s2d = merge_s2d;
+                 c.evalmod_k = knob(cfg.bts.sparse_b_k, pc_core::bts_setup::SPARSE_B_K as i64, "bts.sparse_b_k")? as f64;
++                // the even series replaces the K = 16 table only (K = 24 keeps FIDESlib's degree-20 one)
++                c.em_even = em_even && c.evalmod_k == pc_core::bts_setup::EVALMOD_K;
+                 extra.sparse_rots.extend(pc_gpu::bts::sparse_b::sparse_rot_steps(n, &c).map_err(e)?.into_iter().map(|st| (st, KskShape::full(chain))));
+                 full.extend(pc_gpu::bts::sparse_b::rot_steps(n, &c).map_err(e)?.into_iter().map(|k| k.rem_euclid(half)));
+                 sb_cfgs.push(c);
+diff --git a/crates/pc-shadow/src/evalmod.rs b/crates/pc-shadow/src/evalmod.rs
+index ca0218b..5e10aaa 100644
+--- a/crates/pc-shadow/src/evalmod.rs
++++ b/crates/pc-shadow/src/evalmod.rs
+@@ -55,19 +55,48 @@ pub struct PsPlan {
+     /// The series itself (needed by the general m > 2 / recursive shape; empty for dumped single-level plans).
+     #[serde(default)]
+     pub coeffs: Vec<f64>,
++    /// An even series (`build_even_prestep`): the series is in z = 2 (y - s)^2 - 1, not in the input y. None: the
++    /// series is in y (every table but `pc_core::bts_setup::EVALMOD_EVEN_CHEB`).
++    #[serde(default)]
++    pub even_shift: Option<f64>,
+ }
+ 
+ impl PsPlan {
+     /// The plan for a Chebyshev coefficient table, computed by OpenFHE's long divisions (`pc_core::cheb`).
+     pub fn from_coeffs(coefficients: &[f64]) -> pc_core::error::Result<Self> {
+         let p = pc_core::cheb::PsPlan::new(coefficients)?;
+-        Ok(PsPlan { k: p.k, m: p.m, divqr_q: p.divqr.q.clone(), divcs_q: p.divcs.q.clone(), s2: p.s2.clone(), coeffs: coefficients.to_vec() })
++        Ok(PsPlan {
++            k: p.k,
++            m: p.m,
++            divqr_q: p.divqr.q.clone(),
++            divcs_q: p.divcs.q.clone(),
++            s2: p.s2.clone(),
++            coeffs: coefficients.to_vec(),
++            even_shift: None,
++        })
+     }
+ 
+     /// The EvalMod plan of the shipped bootstrap (degree 14, K=16 table).
+     pub fn evalmod() -> Self {
+         Self::from_coeffs(pc_core::bts_setup::evalmod_coeffs()).expect("frozen EvalMod table has a PS plan")
+     }
++
++    /// The even EvalMod plan (`pc_core::bts_setup::EVALMOD_EVEN_CHEB`, K = 16): degree 7 in z = 2 (y - 1/64)^2 - 1,
++    /// the shipped series' depth, level and scale.
++    pub fn evalmod_even() -> Self {
++        let mut p = Self::from_coeffs(&pc_core::bts_setup::EVALMOD_EVEN_CHEB).expect("frozen even EvalMod table has a PS plan");
++        p.even_shift = Some(pc_core::bts_setup::EVALMOD_EVEN_SHIFT);
++        p
++    }
++
++    /// The K = 16 EvalMod plan: the even one when `even`, else the shipped one.
++    pub fn evalmod_k16(even: bool) -> Self {
++        if even {
++            Self::evalmod_even()
++        } else {
++            Self::evalmod()
++        }
++    }
+ }
+ 
+ /// Metadata replay + op recording (one chain).
+@@ -851,11 +880,24 @@ pub fn build_evalmod(st: &ScaleTables, input: FMeta, ps: &PsPlan, double_angle_i
+     build_evalmod_opts(st, input, ps, double_angle_its, false)
+ }
+ 
++/// The even series' argument in place: x <- 2 (x - s)^2 - 1 (a constant add, one square, and the x2 and -1 that
++/// `EmProgram::fused` folds into the square's relinearization epilogue): one level, so a series of degree n in z
++/// costs the depth of PS(n) + 1 where the series of degree 2n in y costs PS(2n).
++pub fn build_even_prestep(b: &mut Builder, x: usize, shift: f64) -> Result<()> {
++    b.add_scalar(x, -shift)?;
++    b.square(x)?;
++    b.add(x, x)?;
++    b.add_scalar(x, -1.0)
++}
++
+ /// `build_evalmod` with `Builder::lean`.
+ pub fn build_evalmod_opts(st: &ScaleTables, input: FMeta, ps: &PsPlan, double_angle_its: i32, lean: bool) -> Result<(EmProgram, FMeta)> {
+     let mut b = Builder::new(st);
+     b.lean = lean;
+     let x = b.input(input);
++    if let Some(s) = ps.even_shift {
++        build_even_prestep(&mut b, x, s)?;
++    }
+     build_chebyshev(&mut b, x, ps)?;
+     build_double_angle(&mut b, x, double_angle_its)?;
+     let out = b.metas[x];
+@@ -967,3 +1009,278 @@ mod general_ps_tests {
+         println!("K24 EvalMod: {} ops, out {:?}", prog.ops.len(), out);
+     }
+ }
++
++#[cfg(test)]
++mod even_series_tests {
++    use super::*;
++    use pc_core::modmul::{invmod, mulmod};
++    use pc_core::params::{Chain, ChainSpec};
++
++    fn tables(spec: ChainSpec) -> ScaleTables {
++        ScaleTables::precompute(&Chain::generate(&spec).expect("chain")).expect("tables")
++    }
++
++    fn specs() -> Vec<(&'static str, ChainSpec)> {
++        vec![("n32", ChainSpec::n32()), ("n32a4", ChainSpec::n32a4()), ("n32sp", ChainSpec::n32sp())]
++    }
++
++    /// The program of the whole chain with a trailing rescale when the output is still degree 2 (so that the
++    /// interpreter decodes at a single scale), and its output metadata.
++    fn program(st: &ScaleTables, input: FMeta, ps: &PsPlan, lean: bool, finish: bool) -> Result<(EmProgram, FMeta)> {
++        let mut b = Builder::new(st);
++        b.lean = lean;
++        let x = b.input(input);
++        if let Some(s) = ps.even_shift {
++            build_even_prestep(&mut b, x, s)?;
++        }
++        build_chebyshev(&mut b, x, ps)?;
++        build_double_angle(&mut b, x, 5)?;
++        if finish && b.metas[x].nl == 2 {
++            b.rescale(x)?;
++        }
++        Ok((b.prog, b.metas[x]))
++    }
++
++    /// The even plan: degree 7, OpenFHE's ComputeDegreesPS(7) = (3, 2), the single-level m = 2 shape.
++    #[test]
++    fn even_plan_shape() {
++        let ps = PsPlan::evalmod_even();
++        assert_eq!((ps.k, ps.m), (3, 2));
++        assert_eq!(ps.even_shift, Some(1.0 / 64.0));
++        assert_eq!(PsPlan::evalmod().even_shift, None);
++        assert_eq!(PsPlan::evalmod_k16(false), PsPlan::evalmod());
++        assert_eq!(PsPlan::evalmod_k16(true), ps);
++    }
++
++    /// On every chain the runtime builds and at every input top and degree where the shipped series builds, the even
++    /// series builds too and ends at the shipped output's level, degree and scale (bit for bit): no landing changes.
++    #[test]
++    fn even_lands_as_shipped() {
++        let (sh, ev) = (PsPlan::evalmod(), PsPlan::evalmod_even());
++        for (name, spec) in specs() {
++            let st = tables(spec);
++            let mut n = 0;
++            for top in 0..=st.l as i32 {
++                if st.drop[top as usize] == 0 {
++                    continue;
++                }
++                let sf = st.sf(top).unwrap();
++                for (nl, nf) in [(1, sf), (2, sf * sf)] {
++                    let input = FMeta { top, nl, nf };
++                    for lean in [false, true] {
++                        let Ok((_, a)) = build_evalmod_opts(&st, input, &sh, 5, lean) else { continue };
++                        let (_, e) = build_evalmod_opts(&st, input, &ev, 5, lean)
++                            .unwrap_or_else(|err| panic!("{name} top {top} nl {nl} lean {lean}: even fails: {err}"));
++                        assert_eq!((a.top, a.nl, a.nf.to_bits()), (e.top, e.nl, e.nf.to_bits()), "{name} top {top} nl {nl} lean {lean}");
++                        n += 1;
++                    }
++                }
++            }
++            assert!(n > 0, "{name}: no input top builds");
++            println!("[even] {name}: {n} (top, degree, lean) inputs land as the shipped series");
++        }
++    }
++
++    /// Op census: the even program does fewer products, rescales and weighted-sum terms than the shipped one.
++    #[test]
++    fn even_is_cheaper() {
++        let st = tables(ChainSpec::n32sp());
++        let top = (0..=st.l as i32).rev().find(|&t| st.drop[t as usize] > 0 && {
++            let sf = st.sf(t).unwrap();
++            build_evalmod_opts(&st, FMeta { top: t, nl: 2, nf: sf * sf }, &PsPlan::evalmod(), 5, true).is_ok()
++        }).unwrap();
++        let sf = st.sf(top).unwrap();
++        let input = FMeta { top, nl: 2, nf: sf * sf };
++        let census = |ps: &PsPlan| {
++            let (p, _) = build_evalmod_opts(&st, input, ps, 5, true).unwrap();
++            let ops = p.fused();
++            let (mut mult, mut resc, mut wsum, mut limbs) = (0, 0, 0, [0usize; 3]);
++            for o in &ops {
++                match o {
++                    EmOp::Mult { n, .. } | EmOp::MultAcc { n, .. } => {
++                        mult += 1;
++                        limbs[0] += n;
++                    }
++                    EmOp::Rescale { n, .. } => {
++                        resc += 1;
++                        limbs[1] += n;
++                    }
++                    EmOp::WSum { n, srcs, .. } => {
++                        wsum += srcs.len();
++                        limbs[2] += n * srcs.len();
++                    }
++                    _ => {}
++                }
++            }
++            (mult, resc, wsum, limbs)
++        };
++        let (a, e) = (census(&PsPlan::evalmod()), census(&PsPlan::evalmod_even()));
++        println!("[even] n32sp top {top}: shipped mult/rescale/wsum terms {:?}, limbs {:?}; even {:?}, limbs {:?}", (a.0, a.1, a.2), a.3, (e.0, e.1, e.2), e.3);
++        assert!(e.0 <= a.0 && e.1 <= a.1 && e.2 < a.2, "even not cheaper: {a:?} vs {e:?}");
++        assert!(e.3.iter().sum::<usize>() < a.3.iter().sum::<usize>());
++    }
++
++    // ---- an exact interpreter of the program on constant polynomials (a trivial ciphertext's c0: every ring product
++    // is the product of the constant terms, the slots all hold c / scale), residue by residue as the device does
++
++    fn center(v: u64, q: u64) -> i128 {
++        if v > q / 2 {
++            v as i128 - q as i128
++        } else {
++            v as i128
++        }
++    }
++
++    fn run(st: &ScaleTables, prog: &EmProgram, input_top: i32, x: Vec<u64>) -> Vec<Vec<u64>> {
++        let nq = st.q.len();
++        let mut bufs: Vec<Vec<u64>> = vec![vec![0; nq]; 1];
++        bufs[0] = x;
++        let q = &st.q;
++        let fx = Fx { d: st.d as i32, st: Some(st) };
++        let get = |bufs: &mut Vec<Vec<u64>>, i: usize| {
++            if bufs.len() <= i {
++                bufs.resize(i + 1, vec![0; nq]);
++            }
++        };
++        let _ = input_top;
++        for op in &prog.ops {
++            match op {
++                EmOp::Copy { dst, src, n } => {
++                    get(&mut bufs, (*dst).max(*src));
++                    let s = bufs[*src].clone();
++                    bufs[*dst][..*n].copy_from_slice(&s[..*n]);
++                }
++                EmOp::Add { dst, a, b, n, sub } => {
++                    get(&mut bufs, (*dst).max(*a).max(*b));
++                    for i in 0..*n {
++                        let (va, vb) = (bufs[*a][i], bufs[*b][i] % q[i]);
++                        bufs[*dst][i] = if *sub { (va + q[i] - vb) % q[i] } else { (va + vb) % q[i] };
++                    }
++                }
++                EmOp::MulConst { x, n, k } => {
++                    for i in 0..*n {
++                        bufs[*x][i] = mulmod(bufs[*x][i], prog.consts[*k][i] % q[i], q[i]);
++                    }
++                }
++                EmOp::AddConst { x, n, k } => {
++                    for i in 0..*n {
++                        bufs[*x][i] = (bufs[*x][i] + prog.consts[*k][i] % q[i]) % q[i];
++                    }
++                }
++                EmOp::Rescale { x, n, k } => {
++                    if let Some(k) = k {
++                        for i in 0..*n {
++                            bufs[*x][i] = mulmod(bufs[*x][i], prog.consts[*k][i] % q[i], q[i]);
++                        }
++                    }
++                    let top = *n as i32 - 1;
++                    let new = fx.down(top);
++                    let mut t = top;
++                    while t > new {
++                        let p = q[t as usize];
++                        let r = center(bufs[*x][t as usize], p);
++                        for i in 0..t as usize {
++                            let rm = r.rem_euclid(q[i] as i128) as u64;
++                            let d = (bufs[*x][i] + q[i] - rm) % q[i];
++                            bufs[*x][i] = mulmod(d, invmod(p % q[i], q[i]), q[i]);
++                        }
++                        t -= 1;
++                    }
++                }
++                EmOp::Mult { dst, a, b, n, epi } => {
++                    get(&mut bufs, (*dst).max(*a).max(*b));
++                    for i in 0..*n {
++                        let mut v = mulmod(bufs[*a][i], bufs[*b][i], q[i]);
++                        if epi.dbl {
++                            v = (v + v) % q[i];
++                        }
++                        if let Some(k) = epi.k {
++                            v = (v + prog.consts[k][i] % q[i]) % q[i];
++                        }
++                        bufs[*dst][i] = v;
++                    }
++                }
++                EmOp::MultAcc { dst, pairs, n, epi } => {
++                    let mx = pairs.iter().map(|&(a, b)| a.max(b)).max().unwrap_or(0).max(*dst);
++                    get(&mut bufs, mx);
++                    for i in 0..*n {
++                        let mut v = bufs[*dst][i];
++                        for &(a, b) in pairs {
++                            v = (v + mulmod(bufs[a][i], bufs[b][i], q[i])) % q[i];
++                        }
++                        if epi.dbl {
++                            v = (v + v) % q[i];
++                        }
++                        if let Some(k) = epi.k {
++                            v = (v + prog.consts[k][i] % q[i]) % q[i];
++                        }
++                        bufs[*dst][i] = v;
++                    }
++                }
++                EmOp::WSum { dst, srcs, n, k } => {
++                    let mx = srcs.iter().copied().max().unwrap_or(0).max(*dst);
++                    get(&mut bufs, mx);
++                    for i in 0..*n {
++                        let mut v = 0u64;
++                        for (j, &s) in srcs.iter().enumerate() {
++                            v = (v + mulmod(bufs[s][i], prog.consts[*k][j * nq + i] % q[i], q[i])) % q[i];
++                        }
++                        bufs[*dst][i] = v;
++                    }
++                }
++            }
++        }
++        bufs
++    }
++
++    /// Garner on the bottom three primes: the centred value of a residue vector whose integer is below their product / 2.
++    fn decode3(v: &[u64], q: &[u64]) -> f64 {
++        let (q0, q1, q2) = (q[0] as i128, q[1] as i128, q[2] as i128);
++        let a0 = v[0] as i128;
++        let a1 = ((v[1] as i128 - a0).rem_euclid(q1) * invmod(q[0] % q[1], q[1]) as i128).rem_euclid(q1);
++        let t = (a0 + a1 * q0).rem_euclid(q2);
++        let a2 = ((v[2] as i128 - t).rem_euclid(q2) * invmod(((q[0] as u128 * q[1] as u128) % q[2] as u128) as u64, q[2]) as i128).rem_euclid(q2);
++        let m = q0 * q1 * q2;
++        let mut x = a0 + a1 * q0 + a2 * q0 * q1;
++        if x > m / 2 {
++            x -= m;
++        }
++        x as f64
++    }
++
++    /// The executed program (shipped and even, FIDESlib's and the lean builder) against sin(2 pi u) / (2 pi): the
++    /// shipped table's 27.4 bits are reproduced by the interpreter, and the even series reaches >= 29 bits.
++    #[test]
++    fn even_series_value() {
++        for (name, spec) in [("n32", ChainSpec::n32()), ("n32sp", ChainSpec::n32sp())] {
++            let st = tables(spec);
++            let top = (0..=st.l as i32).rev().find(|&t| st.drop[t as usize] > 0 && {
++                let sf = st.sf(t).unwrap();
++                build_evalmod_opts(&st, FMeta { top: t, nl: 2, nf: sf * sf }, &PsPlan::evalmod(), 5, true).is_ok()
++            }).unwrap();
++            let sf = st.sf(top).unwrap();
++            let input = FMeta { top, nl: 2, nf: sf * sf };
++            for (tab, ps, min_bits) in [("shipped", PsPlan::evalmod(), 27.0), ("even", PsPlan::evalmod_even(), 29.0)] {
++                for lean in [false, true] {
++                    let (prog, out) = program(&st, input, &ps, lean, true).unwrap();
++                    let mut worst = 0.0f64;
++                    for ii in -15..=15 {
++                        for dj in -8..=8 {
++                            let u = ii as f64 + dj as f64 / 8.0 * 0.0625;
++                            let y = u / 16.0;
++                            let c = (y * input.nf).round() as i128;
++                            let x: Vec<u64> = (0..st.q.len()).map(|i| if i as i32 <= top { c.rem_euclid(st.q[i] as i128) as u64 } else { 0 }).collect();
++                            let bufs = run(&st, &prog, top, x);
++                            let got = decode3(&bufs[0], &st.q) / out.nf;
++                            let want = (2.0 * std::f64::consts::PI * u).sin() / (2.0 * std::f64::consts::PI);
++                            worst = worst.max((got - want).abs());
++                        }
++                    }
++                    let bits = -worst.log2();
++                    println!("[even] {name} top {top} {tab} lean {lean}: {bits:.2} bits (out top {} nl {})", out.top, out.nl);
++                    assert!(bits >= min_bits, "{name} {tab} lean {lean}: {bits:.2} bits");
++                }
++            }
++        }
++    }
++}
+diff --git a/crates/pc-shadow/tests/d3_oracle.rs b/crates/pc-shadow/tests/d3_oracle.rs
+index 315df5b..115a11d 100644
+--- a/crates/pc-shadow/tests/d3_oracle.rs
++++ b/crates/pc-shadow/tests/d3_oracle.rs
+@@ -60,6 +60,7 @@ fn evalmod_memo_gate() {
+         divcs_q: f64v(&ps_j["divcs_q"]),
+         s2: f64v(&ps_j["s2"]),
+         coeffs: pc_core::bts_setup::evalmod_coeffs().to_vec(),
++        even_shift: None,
+     };
+     // the computed plan (pc_core::cheb long divisions) must equal the dump's, field for field
+     assert_eq!(PsPlan::evalmod(), ps, "pc_core::cheb PS plan != d3 cheb_ps");
+diff --git a/crates/pc-tools/src/bin/pc-bench.rs b/crates/pc-tools/src/bin/pc-bench.rs
+index be76eac..4f348d0 100644
+--- a/crates/pc-tools/src/bin/pc-bench.rs
++++ b/crates/pc-tools/src/bin/pc-bench.rs
+@@ -205,7 +205,8 @@ fn old_err(doc: &Option<serde_json::Value>, cf: u32, amp: f64) -> Option<f64> {
+ 
+ fn run(a: Args) -> Res<()> {
+     match a.chain.as_str() {
+-        "n32" => run_t::<W, M>(a, ChainSpec::n32(), BtsSetup::n32_shipped()),
++        // PC_EM_EVEN=1: the even EvalMod series (the dense route's bts / bts-prec)
++        "n32" => run_t::<W, M>(a, ChainSpec::n32(), BtsSetup { evalmod_even: std::env::var("PC_EM_EVEN").is_ok_and(|v| v == "1"), ..BtsSetup::n32_shipped() }),
+         "n64" => run_t::<u64, Barrett64>(a, ChainSpec::n64(), BtsSetup::n64()),
+         c => Err(format!("--chain {c}: n32 | n64").into()),
+     }
+diff --git a/crates/pc-tools/src/bts_all.rs b/crates/pc-tools/src/bts_all.rs
+index c0ffbb7..2b9be45 100644
+--- a/crates/pc-tools/src/bts_all.rs
++++ b/crates/pc-tools/src/bts_all.rs
+@@ -292,12 +292,15 @@ fn bench_k(o: &Opts, kb: usize, out_rows: &mut Vec<Row>, mem_rows: &mut Vec<(Str
+     // round (`SparseRot` keys); PC_BENCH_STC_PS=1: the StC-first input stages over P' (`KskShape::stc_ps` keys)
+     let merge = std::env::var("PC_BENCH_MERGE").is_ok_and(|v| v == "1");
+     let stc_ps: usize = std::env::var("PC_BENCH_STC_PS").ok().and_then(|v| v.parse().ok()).unwrap_or(0);
++    // PC_EM_EVEN=1: the even EvalMod series on the dense / StC-first routes and on SparseB at K = 16 (default off)
++    let em_even = std::env::var("PC_EM_EVEN").is_ok_and(|v| v == "1");
+     let mut setup = BtsSetup::n32_shipped();
+     setup.k_max = kb;
+     setup.real = true;
+     setup.em_fuse_rescale = em_fuse;
+     setup.merge_s2d = merge;
+     setup.stc_ps = stc_ps;
++    setup.evalmod_even = em_even;
+     let mut sf = StcFirstSetup::n32_shipped();
+     sf.cache_slots = 4;
+     // --pair-members: pairs up to the members' largest CF (above the reference CF: the pair's last stage at CF + 1)
+@@ -321,6 +324,7 @@ fn bench_k(o: &Opts, kb: usize, out_rows: &mut Vec<Row>, mem_rows: &mut Vec<(Str
+             let mut c = SparseBCfg::n32(s, sparse_drop);
+             c.k_max = kb;
+             c.evalmod_k = sparse_k;
++            c.em_even = em_even && sparse_k == pc_core::bts_setup::EVALMOD_K;
+             c.em_fuse_rescale = em_fuse;
+             c.merge_s2d = merge;
+             c
+diff --git a/crates/pc-tools/src/bts_stc_first.rs b/crates/pc-tools/src/bts_stc_first.rs
+index b2d0a9e..602d6b1 100644
+--- a/crates/pc-tools/src/bts_stc_first.rs
++++ b/crates/pc-tools/src/bts_stc_first.rs
+@@ -816,6 +816,8 @@ pub fn bench(args: &[String]) -> Res<bool> {
+     setup.real = true;
+     // PC_EM_FUSE_RESCALE=1: the EvalMod relinearization-rescale fusion (stcf-prec compares the two forms' errors)
+     setup.em_fuse_rescale = std::env::var("PC_EM_FUSE_RESCALE").is_ok_and(|v| v == "1");
++    // PC_EM_EVEN=1: the even EvalMod series (stcf-prec compares its error with the shipped series')
++    setup.evalmod_even = std::env::var("PC_EM_EVEN").is_ok_and(|v| v == "1");
+     let mut sf = StcFirstSetup::n32_shipped();
+     sf.cache_slots = 4;
+     let high_shapes = vec![StcHighShape { out_level: 50, skip_mask: 1 }, StcHighShape { out_level: 30, skip_mask: 6 }, StcHighShape { out_level: 40, skip_mask: 0 }];
+diff --git a/crates/pc-tools/src/check_bts.rs b/crates/pc-tools/src/check_bts.rs
+index c8389eb..c628688 100644
+--- a/crates/pc-tools/src/check_bts.rs
++++ b/crates/pc-tools/src/check_bts.rs
+@@ -112,7 +112,7 @@ fn fmeta(d: &Dump, name: &str) -> FMeta {
+ pub fn ps_plan(pj: &Value) -> PsPlan {
+     let ps = &pj["cheb_ps"];
+     let f = |k: &str| crate::dump::as_f64v(&ps[k]);
+-    PsPlan { k: ps["k"].as_u64().unwrap_or(0) as usize, m: ps["m"].as_u64().unwrap_or(0) as usize, divqr_q: f("divqr_q"), divcs_q: f("divcs_q"), s2: f("s2"), coeffs: vec![] }
++    PsPlan { k: ps["k"].as_u64().unwrap_or(0) as usize, m: ps["m"].as_u64().unwrap_or(0) as usize, divqr_q: f("divqr_q"), divcs_q: f("divcs_q"), s2: f("s2"), coeffs: vec![], even_shift: None }
+ }
+ 
+ /// A dumped stage's geometry and plaintexts (`<prefix><k>.pt<j>.{q,p}.bin` with `pts[j]` metadata).
+diff --git a/python/tests/test_fake_shadow.py b/python/tests/test_fake_shadow.py
+index 9b6d8d5..da5507d 100644
+--- a/python/tests/test_fake_shadow.py
++++ b/python/tests/test_fake_shadow.py
+@@ -29,8 +29,8 @@ def test_config_fields_and_presets():
+     # plan.fallback_cf,
+     # plan.argmax_mincut, plan.ilp_tiebreak, plan.raise_drop_base, plan.raise_drop_search, plan.pack_cf,
+     # plan.keep_placements_exact, plan.mag_safety_steps, plan.resume; chain.preset
+-    # + bts.merge_s2d, bts.stc_ps, bts.em_level_keys
+-    assert len(_pc.Config.fields()) == 269 and len(_pc.PlanConfig.fields()) == 98
++    # + bts.merge_s2d, bts.stc_ps, bts.em_level_keys; bts.em_even
++    assert len(_pc.Config.fields()) == 270 and len(_pc.PlanConfig.fields()) == 98
+     assert all(f["env"] == "" or f"`{f['env']}`" in f["doc"] for f in _pc.Config.fields())
+     assert set(config.PRESETS) == {"n32_gpt2_decode", "n32_gpt2_prefill", "n32_llama_decode", "n32_llama_prefill"}
+     c = config.preset("n32_gpt2_decode")
+-- 
+2.43.0
+

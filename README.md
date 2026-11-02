@@ -434,3 +434,54 @@ Resultados em `gpu/results-2026-10-30-runpod/` (23 run.json, score_*.txt, logs d
 ⇒ par z11 pousa igual ao em9 (mesmos planos) com EvalMod MENOR que o recorde (previsão −10…−17 % só no EvalMod),
 precisão > recorde. SparseB K=24: par z13+4DA 9 níveis = 30–33 bits (d27 geral: 28,2; recorde 35,2). Falta: o pré-passo
 em `build_evalmod` + variante `EvalMod`, KL e `pc-bench bts` na GPU (o time_model errou no d27: medir antes).
+
+## 2026-11-02 — porte para o recorde 7 (`origin/speedrun` = e805f8d, 0,968 s/token): EvalMod par e GELU par
+
+Recordes novos desde o 4: 5 LeanKeySwitch (1,213), 6 AlternatingChain (1,199, cadeia `n32sp`), 7
+FlippingToTokenPerSecond (0,968; GELU grau 60/222 e exp grau 6 com peso, máscaras dentro das séries, `gs_num`). O
+EvalMod continua grau 14 + 5 DA, e a SparseB do decode agora usa essa mesma tabela K = 16. Código: branch
+`em-gelu-even` sobre e805f8d, `r7/perseus-r7-even.bundle` (`git fetch r7/perseus-r7-even.bundle
+em-gelu-even:em-gelu-even` num clone do `speedrun`) e `r7/0001-*.patch` (só o EvalMod). Nada medido em GPU.
+
+### EvalMod par de MESMA profundidade: z7 + 5 DA (`PC_EM_EVEN=1`, campo `bts.em_even`)
+- w = y − 1/64 (AddConst), z = 2w² − 1 (1 quadrado; o ×2 e o −1 vão no epílogo da relinearização), Chebyshev grau 7
+  em z, os 5 ângulos duplos de sempre. 1 + PS(7) + 5 = 10 níveis = PS(14) + 5. Só L = K serve: L ≠ K pede o escalar
+  (K/L)², que custa um nível (L = 17,25 daria 29,2 bits, mas exigiria dobrar K/L no CtS de todas as rotas).
+- Ajuste (`scripts/em_even7.py`, `fits/even_k16_z7_r5.json`): LP ponderado e depois LP sequencial sobre o erro
+  FINAL (pipeline linearizado, região de confiança), |δ| ≤ 2⁻⁴. **29,53 bits para todo |δ| ≤ 2⁻²** (recorde 27,4;
+  em 2⁻¹: 24,0 contra 25,4, fora da faixa real).
+- Pouso: igual ao da série do recorde, bit a bit (nível, grau e escala), em n32, n32a4 e n32sp, em toda entrada em que
+  a série do recorde monta (70/66/62 casos, builder lean e FIDESlib) ⇒ nenhum plano, pouso ou chave muda.
+- Interpretador RNS exato do programa (polinômios constantes, resíduo a resíduo, como o device) em
+  `pc-shadow::evalmod::even_series_tests`: reproduz os 27,40 bits do recorde e dá 29,53 para a par (n32 e n32sp).
+- Custo (n32sp, topo 50, programa lean fundido): produtos 11 → 10, rescales 16 → 14, termos de WSum 14 → 7; limbs
+  447/692/592 → 400/596/295 (−11 % / −14 % / −50 %). Na GPU o EvalMod é ~45 % de um refresh dense: medir.
+- Ligado em dense, StC-first e SparseB K = 16 (`BtsSetup::evalmod_even`, `SparseBCfg::em_even`, sessão pc-py,
+  pc-bench `bts`/`bts --all`/`stcf-prec` com `PC_EM_EVEN=1`). Plano `gpt2_decode_python_n32sp_kc16r_gnabd7_ee` =
+  `_gnabd7` + `PC_EM_EVEN=1` na linha runtime= (o server.py segue servindo `_gnabd7`).
+- Testes: pc-core/pc-shadow/pc-program iguais ao upstream (as 7 falhas são os `oracle_*` / d3 do dump privado, falham
+  igual sem o patch); pc-config 4/5 (`shipped_stamps_round_trip` já falha no upstream: `PLAN_PCMM_PREDIV_CAP`);
+  `cargo check` de pc-gpu/pc-tools/pc-py com um nvcc falso (sem CUDA aqui).
+
+### GELU par (`GeluCfg.even`, configs `_ge` e `_ge48`)
+- `poly.eval_chebyshev_even`: c₁t + Σ c₂ⱼ Tⱼ(z), z = 2t² − 1, com METADE dos babies da série cheia (parâmetro
+  `babies` novo em `eval_chebyshev_bsgs` / `eval_chebyshev_masked`): a recursão é a da série cheia sem os termos
+  ímpares, então profundidade, divisões e folhas são as mesmas. Com m cheio em z a profundidade sobe 1 (7 contra 6):
+  foi o erro da contagem antiga. Com máscara (mask_fold 2), a parte par leva a máscara na própria profundidade e
+  c₁t vira 1 produto de máscara.
+- **Ganho real bem menor que o previsto**, porque o `IMPL_DEAD_OPS` do recorde já pula os babies ímpares mortos. Grau 60:
+  14 → 13 produtos ct×ct; grau 222: 27 → 24. Nos blocos 0-3 e 9-11, o ajuste ponderado do recorde 7 deixa ímpares
+  pequenos e diferentes de zero; só ZERÁ-LOS já tira 2 produtos (16 → 14, ou 31 → 27 no grau 222). Total por token: 212 → 178 com `_ge`.
+- `_ge48`: par só nos blocos 4-8 (ímpares já 0): mesma função, 70 → 65 produtos. `_ge`: todos os blocos, ímpares
+  zerados (variação máx. 1,2e-5 a 5,5e-3 em unidades de GELU; o erro máximo contra a GELU exata em [−1, 1] CAI em
+  todos, ex. bloco 1 1,1e-2 → 7,8e-3), mas é outra função: medir o KL.
+- `scripts/utils/gelu_even_cfg.py` gera as configs; `python/tests/test_gelu_even_cpu.py` (25 testes, sem `_pc`).
+- NÃO planejado: o fluxo de ops da GELU muda ⇒ precisa de captura + decisões carregadas (`map_plan_decisions.py`;
+  nenhum refresh fica dentro da GELU, `FORBID_STEPS=.gelu`). A captura pede a `_pc` compilada (CUDA) e o oráculo.
+  Estimativa: 34 relinearizações a menos por token ≈ poucos ms de 968 ⇒ abaixo de 1 % sozinha.
+
+### Para a GPU (nesta ordem)
+1. `pc-bench bts --all` com e sem `PC_EM_EVEN=1` (e `PC_BENCH_SPARSE_B_K=16` para a SparseB do decode): ms por
+   etapa e precisão. Critério: EvalMod mais barato e precisão ≥ a do recorde.
+2. Se passar: A/B do decode com `_gnabd7_ee` (trocar `DECODE_PLAN` no `speedrun/server.py`) contra `_gnabd7`.
+3. GELU: capturar com `_ge` (ou `_ge48`), carregar as decisões do `_gnabd7`, KL, depois A/B.

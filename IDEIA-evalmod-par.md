@@ -1,5 +1,9 @@
 # Ideia: EvalMod com série PAR (Trefethen, *Approximation Theory and Approximation Practice*)
 
+> **2026-11-02, portado para o recorde 7 (ver o fim do README):** a variante de mesma profundidade z7 + 5 DA
+> (10 níveis, L = K) dá 29,53 bits (recorde 27,4), com o mesmo pouso bit a bit, atrás de `PC_EM_EVEN=1`. A z11 + 4 DA
+> (9 níveis) não encaixa na `n32sp` sem redesenhar a cadeia.
+
 Data: 2026-10-30. Status: **só modelo e contagem de operações; nada medido na GPU.**
 
 ## Resumo

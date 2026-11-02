@@ -1,5 +1,9 @@
 # Ideia: GELU com série PAR (Trefethen, *Approximation Theory and Approximation Practice*, Caps. 3–4)
 
+> **2026-11-02, portado para o recorde 7 (ver o fim do README):** a contagem abaixo está superada. O recorde já pula
+> os babies ímpares mortos (`IMPL_DEAD_OPS`), e a forma em z só mantém a profundidade com metade dos babies. Real: grau 60
+> 14 → 13 produtos, grau 222 27 → 24; 212 → 178 por token com os ímpares pequenos zerados (`_ge`). Não planejado ainda.
+
 Data: 2026-11-01. Status: **Proposta técnica analisada e validada pelo agente Sonnet; pronta para prototipagem.**
 
 ## 1. Resumo
