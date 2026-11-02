@@ -485,3 +485,30 @@ em-gelu-even:em-gelu-even` num clone do `speedrun`) e `r7/0001-*.patch` (só o E
    etapa e precisão. Critério: EvalMod mais barato e precisão ≥ a do recorde.
 2. Se passar: A/B do decode com `_gnabd7_ee` (trocar `DECODE_PLAN` no `speedrun/server.py`) contra `_gnabd7`.
 3. GELU: capturar com `_ge` (ou `_ge48`), carregar as decisões do `_gnabd7`, KL, depois A/B.
+
+### 2026-11-02 — estimativa pelo modelo de tempo (`tmodel/r7_estimate.py`, log `tmodel/r7_estimate.log`)
+O seu modelo (`units.py` + `calib.json`) aplicado ao recorde 7, sem GPU:
+- Os 14 programas do `_gnabd7` foram compilados com `tmodel/rs/save_progs.rs` (exemplo do pc-program: o
+  `saveprogs.py` sem a `_pc`): 0 erros, 87 refreshes (34 SPRU, 26 + 2 StC-first, 24 SparseB-256, 1 SparseB-512),
+  como o README do recorde. Níveis da grade da `n32sp` → limbs por `tmodel/levels_n32sp.json` (`rs/level_limbs.rs`).
+- EvalMod: o topo de entrada de cada refresh sai do pouso; o custo das duas séries vem do censo do builder lean
+  (`em/n32sp_r7.jsonl`, `rs/emcost_r7.rs`). GELU: as duas formas avaliadas com ops que seguem a profundidade, a
+  partir do nível de entrada planejado (o total de produtos ct×ct bate com o programa compilado; o histograma por nível difere um pouco).
+- Absoluto: o modelo dá 1207 ms/token para o recorde 7 (medido 968). O modelo é do runtime do recorde 4, então
+  superestima o de hoje: fator 0,80.
+
+| mudança | modelo bruto | escalado (×0,80) |
+|---|---|---|
+| EvalMod par (`_gnabd7_ee`) | −28,0 ms (−2,9 %) | −22,4 ms (−2,3 %) |
+| EvalMod par, só relin + WSum (rescales já fundidos) | −19,6 ms (−2,0 %) | −15,7 ms (−1,6 %) |
+| GELU `_ge` | −16,8 ms (−1,7 %) | −13,5 ms (−1,4 %) |
+| …dos quais só zerar os ímpares, sem a forma em z | −14,3 ms (−1,5 %) | −11,4 ms (−1,2 %) |
+| GELU `_ge48` (função idêntica) | −0,8 ms (−0,1 %) | −0,7 ms (−0,1 %) |
+| **EvalMod par + GELU `_ge`** | **−44,8 ms (−4,6 %)** | **−35,9 ms (−3,7 %)** |
+| EvalMod par + GELU `_ge48` | −28,8 ms (−3,0 %) | −23,1 ms (−2,4 %) |
+
+Leitura: o EvalMod par sozinho já passa da regra 5 (≥ 1 %) em todas as variantes do modelo. Ele tem o mesmo
+plano, a mesma chave e mais precisão, então é o candidato a A/B. Na GELU, quase todo o ganho vem de zerar os ímpares
+pequenos dos ajustes ponderados (outra função: precisa de KL e de plano), e não da forma par (+2,5 ms além disso).
+Ressalvas: o modelo errou para baixo o custo do d27 até ser recalibrado (as razões entre séries agora conferem ±8 %),
+não vê as fusões do recorde 5+ (chaves de nível, relin + rescale fundidos), e nada disso foi medido em GPU.
