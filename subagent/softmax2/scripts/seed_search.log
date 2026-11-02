@@ -1,0 +1,60 @@
+== camada 1: recorde d8 k1=2 delta2=2 custo (6, 8): maxdp 5.49e-05 tv 5.49e-05 dout 6.40e-05 shape 4.86e-07 fac 5.49e-05
+   d 6 k1=0 lp     custo (3, 3) eps 6.7e-02 sum|c| 0.97: maxdp 4.67e-01 tv 9.34e-01 dout 5.85e-01 shape 4.67e-01 fac 5.49e-05  | razao maxdp 8509.55 tv 17011.01 dout 9137.62
+   d14 k1=0 lp     custo (4, 5) eps 6.6e-08 sum|c| 1.00: maxdp 5.53e-05 tv 5.61e-05 dout 6.45e-05 shape 2.07e-06 fac 5.49e-05  | razao maxdp 1.01 tv 1.02 dout 1.01
+   d 6 k1=1 lp     custo (4, 4) eps 4.9e-04 sum|c| 1.00: maxdp 5.97e-03 tv 1.20e-02 dout 7.50e-03 shape 6.00e-03 fac 5.49e-05  | razao maxdp 108.81 tv 218.08 dout 117.17
+   d14 k1=1 lp     custo (5, 6) eps 1.0e-12 sum|c| 1.00: maxdp 5.49e-05 tv 5.49e-05 dout 6.40e-05 shape 2.39e-06 fac 5.49e-05  | razao maxdp 1.00 tv 1.00 dout 1.00
+   d 6 k1=2 lp     custo (5, 5) eps 1.8e-06 sum|c| 1.00: maxdp 7.53e-05 tv 9.63e-05 dout 8.91e-05 shape 2.51e-05 fac 5.49e-05  | razao maxdp 1.37 tv 1.75 dout 1.39
+== camada 2: recorde d8 k1=2 delta2=2 custo (6, 8): maxdp 8.16e-04 tv 8.16e-04 dout 9.61e-04 shape 1.06e-05 fac 8.16e-04
+   d 6 k1=0 lp     custo (3, 3) eps 3.1e-01 sum|c| 0.83: maxdp 8.46e-01 tv 1.69e+00 dout 1.07e+00 shape 8.47e-01 fac 8.16e-04  | razao maxdp 1036.82 tv 2073.86 dout 1114.51
+   d14 k1=0 lp     custo (4, 5) eps 7.3e-06 sum|c| 1.00: maxdp 9.02e-04 tv 9.96e-04 dout 1.01e-03 shape 1.02e-04 fac 8.16e-04  | razao maxdp 1.10 tv 1.22 dout 1.05
+   d 6 k1=1 lp     custo (4, 4) eps 3.7e-03 sum|c| 1.00: maxdp 4.88e-02 tv 9.84e-02 dout 6.15e-02 shape 4.96e-02 fac 8.16e-04  | razao maxdp 59.80 tv 120.54 dout 64.02
+   d14 k1=1 lp     custo (5, 6) eps 1.0e-12 sum|c| 1.00: maxdp 8.16e-04 tv 8.16e-04 dout 9.61e-04 shape 1.11e-06 fac 8.16e-04  | razao maxdp 1.00 tv 1.00 dout 1.00
+   d 6 k1=2 lp     custo (5, 5) eps 1.1e-05 sum|c| 1.00: maxdp 9.43e-04 tv 1.07e-03 dout 1.11e-03 shape 1.48e-04 fac 8.16e-04  | razao maxdp 1.16 tv 1.32 dout 1.15
+== camada 3: recorde d8 k1=2 delta2=2 custo (6, 8): maxdp 5.54e-05 tv 5.67e-05 dout 6.47e-05 shape 1.51e-05 fac 5.49e-05
+   d 6 k1=0 lp     custo (3, 3) eps 4.1e-01 sum|c| 0.77: maxdp 8.96e-01 tv 1.79e+00 dout 1.14e+00 shape 8.96e-01 fac 5.49e-05  | razao maxdp 16151.93 tv 31608.90 dout 17588.78
+   d14 k1=0 lp     custo (4, 5) eps 1.5e-05 sum|c| 1.00: maxdp 2.18e-04 tv 4.11e-04 dout 2.49e-04 shape 2.18e-04 fac 5.49e-05  | razao maxdp 3.94 tv 7.26 dout 3.84
+   d 6 k1=1 lp     custo (4, 4) eps 6.1e-03 sum|c| 1.00: maxdp 7.43e-02 tv 1.49e-01 dout 9.34e-02 shape 7.44e-02 fac 5.49e-05  | razao maxdp 1340.66 tv 2624.51 dout 1442.39
+   d14 k1=1 lp     custo (5, 6) eps 1.0e-12 sum|c| 1.00: maxdp 5.49e-05 tv 5.49e-05 dout 6.47e-05 shape 2.73e-06 fac 5.49e-05  | razao maxdp 0.99 tv 0.97 dout 1.00
+   d 6 k1=2 lp     custo (5, 5) eps 1.9e-05 sum|c| 1.00: maxdp 2.87e-04 tv 5.19e-04 dout 3.16e-04 shape 2.39e-04 fac 5.49e-05  | razao maxdp 5.17 tv 9.16 dout 4.89
+== camada 4: recorde d8 k1=2 delta2=8 custo (6, 8): maxdp 4.25e-04 tv 4.25e-04 dout 4.95e-04 shape 1.14e-05 fac 4.25e-04
+   d 6 k1=0 lp     custo (3, 3) eps 2.4e-01 sum|c| 0.97: maxdp 7.35e-01 tv 1.47e+00 dout 9.22e-01 shape 7.35e-01 fac 4.25e-04  | razao maxdp 1729.98 tv 3459.02 dout 1861.23
+   d14 k1=0 lp     custo (4, 5) eps 1.0e-12 sum|c| 1.00: maxdp 4.25e-04 tv 4.25e-04 dout 4.95e-04 shape 9.58e-07 fac 4.25e-04  | razao maxdp 1.00 tv 1.00 dout 1.00
+   d 6 k1=1 lp     custo (4, 4) eps 5.1e-04 sum|c| 1.03: maxdp 5.98e-03 tv 1.19e-02 dout 7.49e-03 shape 5.92e-03 fac 4.25e-04  | razao maxdp 14.08 tv 28.01 dout 15.11
+   d14 k1=1 lp     custo (5, 6) eps 1.0e-12 sum|c| 1.00: maxdp 4.25e-04 tv 4.25e-04 dout 4.95e-04 shape 1.11e-06 fac 4.25e-04  | razao maxdp 1.00 tv 1.00 dout 1.00
+   d 6 k1=2 lp     custo (5, 5) eps 3.9e-07 sum|c| 1.00: maxdp 4.25e-04 tv 4.25e-04 dout 4.95e-04 shape 4.83e-06 fac 4.25e-04  | razao maxdp 1.00 tv 1.00 dout 1.00
+== camada 5: recorde d8 k1=3 delta2=2 custo (7, 9): maxdp 4.25e-04 tv 4.25e-04 dout 4.95e-04 shape 2.49e-06 fac 4.25e-04
+   d 6 k1=0 lp     custo (3, 3) eps 8.8e-01 sum|c| 0.34: maxdp 9.18e-01 tv 1.84e+00 dout 1.16e+00 shape 9.18e-01 fac 4.25e-04  | razao maxdp 2159.79 tv 4319.57 dout 2351.37
+   d14 k1=0 lp     custo (4, 5) eps 1.6e-03 sum|c| 1.00: maxdp 2.09e-02 tv 4.15e-02 dout 2.66e-02 shape 2.06e-02 fac 4.25e-04  | razao maxdp 49.17 tv 97.55 dout 53.77
+   d 6 k1=1 lp     custo (4, 4) eps 8.0e-02 sum|c| 0.98: maxdp 5.27e-01 tv 1.05e+00 dout 6.64e-01 shape 5.27e-01 fac 4.25e-04  | razao maxdp 1241.36 tv 2481.21 dout 1341.90
+   d14 k1=1 lp     custo (5, 6) eps 9.0e-11 sum|c| 1.00: maxdp 4.25e-04 tv 4.25e-04 dout 4.95e-04 shape 5.03e-07 fac 4.25e-04  | razao maxdp 1.00 tv 1.00 dout 1.00
+   d 6 k1=2 lp     custo (5, 5) eps 2.4e-04 sum|c| 1.00: maxdp 2.92e-03 tv 5.84e-03 dout 3.66e-03 shape 2.92e-03 fac 4.25e-04  | razao maxdp 6.86 tv 13.73 dout 7.39
+   d14 k1=2 lp     custo (6, 7) eps 1.0e-12 sum|c| 1.00: maxdp 4.25e-04 tv 4.25e-04 dout 4.95e-04 shape 6.82e-08 fac 4.25e-04  | razao maxdp 1.00 tv 1.00 dout 1.00
+   d 6 k1=3 lp     custo (6, 6) eps 1.3e-08 sum|c| 1.00: maxdp 4.25e-04 tv 4.25e-04 dout 4.95e-04 shape 7.81e-07 fac 4.25e-04  | razao maxdp 1.00 tv 1.00 dout 1.00
+== camada 6: recorde d8 k1=3 delta2=2 custo (7, 9): maxdp 8.16e-04 tv 8.16e-04 dout 9.70e-04 shape 4.42e-06 fac 8.16e-04
+   d 6 k1=0 lp     custo (3, 3) eps 8.3e-01 sum|c| 0.42: maxdp 8.85e-01 tv 1.77e+00 dout 1.12e+00 shape 8.85e-01 fac 8.16e-04  | razao maxdp 1084.19 tv 2168.09 dout 1151.51
+   d14 k1=0 lp     custo (4, 5) eps 1.5e-03 sum|c| 1.00: maxdp 1.94e-02 tv 3.90e-02 dout 2.46e-02 shape 1.96e-02 fac 8.16e-04  | razao maxdp 23.79 tv 47.80 dout 25.35
+   d 6 k1=1 lp     custo (4, 4) eps 6.1e-02 sum|c| 0.98: maxdp 4.71e-01 tv 9.41e-01 dout 5.92e-01 shape 4.70e-01 fac 8.16e-04  | razao maxdp 576.30 tv 1152.19 dout 610.58
+   d14 k1=1 lp     custo (5, 6) eps 1.7e-10 sum|c| 1.00: maxdp 8.16e-04 tv 8.16e-04 dout 9.70e-04 shape 1.26e-06 fac 8.16e-04  | razao maxdp 1.00 tv 1.00 dout 1.00
+   d 6 k1=2 lp     custo (5, 5) eps 1.4e-04 sum|c| 1.02: maxdp 2.47e-03 tv 4.13e-03 dout 3.01e-03 shape 1.66e-03 fac 8.16e-04  | razao maxdp 3.03 tv 5.06 dout 3.11
+   d14 k1=2 lp     custo (6, 7) eps 1.0e-12 sum|c| 1.00: maxdp 8.16e-04 tv 8.16e-04 dout 9.70e-04 shape 3.29e-06 fac 8.16e-04  | razao maxdp 1.00 tv 1.00 dout 1.00
+   d 6 k1=3 lp     custo (6, 6) eps 1.0e-07 sum|c| 1.00: maxdp 8.16e-04 tv 8.16e-04 dout 9.70e-04 shape 1.60e-06 fac 8.16e-04  | razao maxdp 1.00 tv 1.00 dout 1.00
+== camada 7: recorde d8 k1=3 delta2=2 custo (7, 9): maxdp 5.49e-05 tv 5.49e-05 dout 6.49e-05 shape 9.54e-07 fac 5.49e-05
+   d 6 k1=0 lp     custo (3, 3) eps 7.8e-01 sum|c| 0.47: maxdp 9.51e-01 tv 1.90e+00 dout 1.22e+00 shape 9.51e-01 fac 5.49e-05  | razao maxdp 17324.52 tv 34644.69 dout 18801.68
+   d14 k1=0 lp     custo (4, 5) eps 5.2e-04 sum|c| 1.00: maxdp 7.39e-03 tv 1.48e-02 dout 8.62e-03 shape 7.41e-03 fac 5.49e-05  | razao maxdp 134.64 tv 269.19 dout 132.84
+   d 6 k1=1 lp     custo (4, 4) eps 4.8e-02 sum|c| 0.99: maxdp 3.94e-01 tv 7.88e-01 dout 4.98e-01 shape 3.94e-01 fac 5.49e-05  | razao maxdp 7174.58 tv 14347.66 dout 7675.40
+   d14 k1=1 lp     custo (5, 6) eps 1.1e-12 sum|c| 1.00: maxdp 5.49e-05 tv 5.49e-05 dout 6.49e-05 shape 3.59e-06 fac 5.49e-05  | razao maxdp 1.00 tv 1.00 dout 1.00
+   d 6 k1=2 lp     custo (5, 5) eps 1.6e-04 sum|c| 1.00: maxdp 1.93e-03 tv 3.90e-03 dout 2.43e-03 shape 1.97e-03 fac 5.49e-05  | razao maxdp 35.15 tv 71.00 dout 37.38
+   d14 k1=2 lp     custo (6, 7) eps 1.0e-12 sum|c| 1.00: maxdp 5.49e-05 tv 5.49e-05 dout 6.49e-05 shape 9.49e-08 fac 5.49e-05  | razao maxdp 1.00 tv 1.00 dout 1.00
+   d 6 k1=3 lp     custo (6, 6) eps 1.3e-09 sum|c| 1.00: maxdp 5.49e-05 tv 5.50e-05 dout 6.49e-05 shape 1.87e-06 fac 5.49e-05  | razao maxdp 1.00 tv 1.00 dout 1.00
+== camada 9: recorde d8 k1=2 delta2=2 custo (6, 8): maxdp 8.16e-04 tv 8.16e-04 dout 9.64e-04 shape 6.49e-06 fac 8.16e-04
+   d 6 k1=0 lp     custo (3, 3) eps 2.9e-01 sum|c| 0.84: maxdp 8.20e-01 tv 1.64e+00 dout 1.03e+00 shape 8.20e-01 fac 8.16e-04  | razao maxdp 1004.13 tv 2008.89 dout 1072.81
+   d14 k1=0 lp     custo (4, 5) eps 5.1e-06 sum|c| 1.00: maxdp 8.58e-04 tv 9.11e-04 dout 1.00e-03 shape 6.62e-05 fac 8.16e-04  | razao maxdp 1.05 tv 1.12 dout 1.04
+   d 6 k1=1 lp     custo (4, 4) eps 3.0e-03 sum|c| 1.00: maxdp 4.18e-02 tv 8.41e-02 dout 5.26e-02 shape 4.22e-02 fac 8.16e-04  | razao maxdp 51.25 tv 102.95 dout 54.49
+   d14 k1=1 lp     custo (5, 6) eps 1.0e-12 sum|c| 1.00: maxdp 8.16e-04 tv 8.16e-04 dout 9.64e-04 shape 4.83e-06 fac 8.16e-04  | razao maxdp 1.00 tv 1.00 dout 1.00
+   d 6 k1=2 lp     custo (5, 5) eps 1.0e-05 sum|c| 1.00: maxdp 9.32e-04 tv 1.05e-03 dout 1.09e-03 shape 1.38e-04 fac 8.16e-04  | razao maxdp 1.14 tv 1.29 dout 1.13
+== camada 10: recorde d8 k1=2 delta2=2 custo (6, 8): maxdp 4.25e-04 tv 4.25e-04 dout 4.94e-04 shape 6.76e-06 fac 4.25e-04
+   d 6 k1=0 lp     custo (3, 3) eps 3.8e-01 sum|c| 0.78: maxdp 8.59e-01 tv 1.72e+00 dout 1.09e+00 shape 8.59e-01 fac 4.25e-04  | razao maxdp 2021.77 tv 4043.75 dout 2198.88
+   d14 k1=0 lp     custo (4, 5) eps 1.0e-05 sum|c| 1.00: maxdp 5.30e-04 tv 6.48e-04 dout 6.27e-04 shape 1.27e-04 fac 4.25e-04  | razao maxdp 1.25 tv 1.52 dout 1.27
+   d 6 k1=1 lp     custo (4, 4) eps 4.7e-03 sum|c| 1.00: maxdp 6.52e-02 tv 1.31e-01 dout 8.18e-02 shape 6.54e-02 fac 4.25e-04  | razao maxdp 153.35 tv 307.25 dout 165.66
+   d14 k1=1 lp     custo (5, 6) eps 1.0e-12 sum|c| 1.00: maxdp 4.25e-04 tv 4.25e-04 dout 4.94e-04 shape 1.14e-05 fac 4.25e-04  | razao maxdp 1.00 tv 1.00 dout 1.00
+   d 6 k1=2 lp     custo (5, 5) eps 1.8e-05 sum|c| 1.00: maxdp 5.96e-04 tv 7.75e-04 dout 6.37e-04 shape 2.40e-04 fac 4.25e-04  | razao maxdp 1.40 tv 1.82 dout 1.29

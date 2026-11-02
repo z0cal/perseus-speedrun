@@ -1,7 +1,7 @@
 """Audit: round-0 Goldschmidt band headroom of the final config on windows the search never saw.
 
 Exact float64 GPT-2 (batched, causal) on 16-token windows; per layer, per position t (kc = t + 1 keys) and head, the
-round-0 divisor d = mean_k exp((S_k - mid) / 2^l2) as scripts/headroom_split.py computes it (mid = (clip_hi + clip_lo)
+round-0 divisor d = mean_k exp((S_k - mid) / 2^l2) as scripts/headroom_split.py (removed 2026-11-01, see git history) computed it (mid = (clip_hi + clip_lo)
 / 2 of the layer's softmax config, l2 = log2(delta2)). Reports per layer min(d)/lo and hi/max(d) (< 1 = outside the
 band, where the Chebyshev-scaled Goldschmidt diverges), and the same for the record's config.
 

@@ -1,0 +1,52 @@
+   (14,0) guarda  19.4 abaixo de lo: shape 1.6e-02 maxdp 1.5e-02 dout 1.4e-02 sum|c| 1.00 | abaixo de lo: -2:1.5e-04 -5:2.3e-04 -10:1.2e-02 -20:2.7e-01
+== camada 1 (W 22.8, lo -15.2); recorde abaixo de lo: -2:2.2e-05 -5:2.0e-05 -10:1.9e-05 -20:1.4e-04
+   (14,0) guarda   0.0 abaixo de lo: shape 2.1e-06 maxdp 5.5e-05 dout 6.4e-05 sum|c| 1.00 | abaixo de lo: -2:1.4e-03 -5:9.4e-01 -10:inf -20:inf
+   (14,0) guarda   2.9 abaixo de lo: shape 2.4e-05 maxdp 6.3e-05 dout 7.0e-05 sum|c| 1.00 | abaixo de lo: -2:7.1e-03 -5:1.9e+246 -10:inf -20:inf
+   (14,0) guarda   5.7 abaixo de lo: shape 1.6e-05 maxdp 6.5e-05 dout 7.0e-05 sum|c| 1.00 | abaixo de lo: -2:2.8e-03 -5:1.5e+186 -10:inf -20:inf
+   (14,0) guarda  11.4 abaixo de lo: shape 8.6e-05 maxdp 1.4e-04 dout 1.6e-04 sum|c| 1.00 | abaixo de lo: -2:2.3e-04 -5:6.8e+79 -10:inf -20:inf
+== camada 2 (W 32.4, lo -23.2); recorde abaixo de lo: -2:7.5e-04 -5:7.5e-04 -10:7.5e-04 -20:1.8e-02
+   (14,0) guarda   0.0 abaixo de lo: shape 1.0e-04 maxdp 8.9e-04 dout 9.9e-04 sum|c| 1.00 | abaixo de lo: -2:6.3e-01 -5:1.0e+00 -10:inf -20:inf
+   (14,0) guarda   4.0 abaixo de lo: shape 3.0e-04 maxdp 1.0e-03 dout 1.1e-03 sum|c| 1.00 | abaixo de lo: -2:7.6e-05 -5:1.3e-01 -10:1.0e+00 -20:inf
+   (14,0) guarda   8.1 abaixo de lo: shape 8.3e-04 maxdp 1.5e-03 dout 1.7e-03 sum|c| 1.00 | abaixo de lo: -2:2.6e-04 -5:3.2e-04 -10:9.0e-01 -20:inf
+   (14,0) guarda  16.2 abaixo de lo: shape 4.5e-03 maxdp 4.9e-03 dout 5.6e-03 sum|c| 1.00 | abaixo de lo: -2:4.8e-04 -5:1.4e-03 -10:7.5e-04 -20:1.0e+00
+== camada 9 (W 30.7, lo -21.2); recorde abaixo de lo: -2:8.1e-04 -5:8.1e-04 -10:8.1e-04 -20:1.4e-02
+   (14,0) guarda   0.0 abaixo de lo: shape 6.7e-05 maxdp 8.5e-04 dout 9.6e-04 sum|c| 1.00 | abaixo de lo: -2:6.5e-01 -5:1.0e+00 -10:inf -20:inf
+   (14,0) guarda   3.8 abaixo de lo: shape 1.9e-04 maxdp 9.9e-04 dout 1.1e-03 sum|c| 1.00 | abaixo de lo: -2:2.8e-04 -5:2.4e-01 -10:1.0e+00 -20:inf
+   (14,0) guarda   7.7 abaixo de lo: shape 5.9e-04 maxdp 1.3e-03 dout 1.5e-03 sum|c| 1.00 | abaixo de lo: -2:8.8e-04 -5:1.3e-04 -10:9.7e-01 -20:inf
+   (14,0) guarda  15.4 abaixo de lo: shape 3.3e-03 maxdp 4.1e-03 dout 4.6e-03 sum|c| 1.00 | abaixo de lo: -2:8.0e-04 -5:2.2e-03 -10:6.4e-04 -20:1.0e+00
+== camada 10 (W 31.1, lo -20.3); recorde abaixo de lo: -2:4.2e-04 -5:4.2e-04 -10:4.2e-04 -20:5.9e-02
+   (14,0) guarda   0.0 abaixo de lo: shape 1.3e-04 maxdp 5.1e-04 dout 5.7e-04 sum|c| 1.00 | abaixo de lo: -2:7.1e-01 -5:1.0e+00 -10:inf -20:inf
+   (14,0) guarda   3.9 abaixo de lo: shape 4.2e-04 maxdp 6.2e-04 dout 7.0e-04 sum|c| 1.00 | abaixo de lo: -2:6.4e-04 -5:3.4e-01 -10:1.0e+00 -20:inf
+   (14,0) guarda   7.8 abaixo de lo: shape 1.1e-03 maxdp 1.3e-03 dout 1.5e-03 sum|c| 1.00 | abaixo de lo: -2:5.6e-04 -5:6.7e-04 -10:9.8e-01 -20:inf
+   (14,0) guarda  15.5 abaixo de lo: shape 6.0e-03 maxdp 6.1e-03 dout 7.0e-03 sum|c| 1.00 | abaixo de lo: -2:4.4e-04 -5:1.3e-03 -10:4.4e-04 -20:1.0e+00
+== camada 4 (W 126.1, lo -102.9); recorde abaixo de lo: -2:1.8e-05 -5:3.0e-05 -10:4.3e-05 -20:5.3e-05
+   (14,0) guarda   0.0 abaixo de lo: shape 9.6e-07 maxdp 4.2e-04 dout 5.0e-04 sum|c| 1.00 | abaixo de lo: -2:2.0e-04 -5:2.3e-03 -10:1.0e+00 -20:inf
+   (14,0) guarda  15.8 abaixo de lo: shape 1.5e-06 maxdp 4.3e-04 dout 5.0e-04 sum|c| 1.00 | abaixo de lo: -2:2.8e-04 -5:3.8e-04 -10:4.2e-04 -20:1.0e+00
+   (14,0) guarda  31.5 abaixo de lo: shape 2.3e-06 maxdp 4.2e-04 dout 5.0e-04 sum|c| 1.00 | abaixo de lo: -2:4.2e-04 -5:3.8e-04 -10:2.7e-04 -20:4.0e-04
+   (14,0) guarda  63.0 abaixo de lo: shape 6.4e-05 maxdp 4.7e-04 dout 5.0e-04 sum|c| 1.00 | abaixo de lo: -2:4.2e-04 -5:4.2e-04 -10:1.7e-04 -20:1.8e-04
+== camada 3 (W 33.8, lo -23.7); recorde abaixo de lo: -2:5.5e-05 -5:5.5e-05 -10:5.5e-05 -20:7.1e-02
+   (14,0) guarda   0.0 abaixo de lo: shape 2.2e-04 maxdp 2.1e-04 dout 2.4e-04 sum|c| 1.00 | abaixo de lo: -2:8.8e-01 -5:1.0e+00 -10:inf -20:inf
+   (14,0) guarda   4.2 abaixo de lo: shape 6.6e-04 maxdp 6.9e-04 dout 7.9e-04 sum|c| 1.00 | abaixo de lo: -2:6.8e-04 -5:1.2e-01 -10:1.0e+00 -20:inf
+   (14,0) guarda   8.4 abaixo de lo: shape 1.5e-03 maxdp 1.6e-03 dout 1.6e-03 sum|c| 1.00 | abaixo de lo: -2:8.4e-04 -5:2.2e-04 -10:8.5e-01 -20:inf
+   (14,0) guarda  16.9 abaixo de lo: shape 8.7e-03 maxdp 8.7e-03 dout 1.0e-02 sum|c| 1.00 | abaixo de lo: -2:4.2e-05 -5:1.0e-03 -10:1.6e-03 -20:1.0e+00
+   (14,1) guarda   0.0 abaixo de lo: shape 2.7e-06 maxdp 5.5e-05 dout 6.5e-05 sum|c| 1.00 | abaixo de lo: -2:5.5e-05 -5:5.5e-05 -10:1.2e-01 -20:inf
+   (14,1) guarda   4.2 abaixo de lo: shape 4.4e-06 maxdp 5.5e-05 dout 6.5e-05 sum|c| 1.00 | abaixo de lo: -2:5.5e-05 -5:5.5e-05 -10:2.5e-01 -20:inf
+   (14,1) guarda   8.4 abaixo de lo: shape 2.9e-06 maxdp 5.5e-05 dout 6.5e-05 sum|c| 1.00 | abaixo de lo: -2:5.5e-05 -5:5.5e-05 -10:5.8e-02 -20:inf
+   (14,1) guarda  16.9 abaixo de lo: shape 4.2e-06 maxdp 5.5e-05 dout 6.5e-05 sum|c| 1.00 | abaixo de lo: -2:5.5e-05 -5:5.4e-05 -10:4.3e-01 -20:inf
+== camada 5 (W 55.2, lo -44.6); recorde abaixo de lo: -2:1.6e-04 -5:1.6e-04 -10:1.6e-04 -20:1.6e-04
+   (14,1) guarda   0.0 abaixo de lo: shape 4.8e-07 maxdp 4.2e-04 dout 5.0e-04 sum|c| 1.00 | abaixo de lo: -2:2.2e-04 -5:2.9e-01 -10:1.0e+00 -20:inf
+   (14,1) guarda   6.9 abaixo de lo: shape 8.9e-07 maxdp 4.2e-04 dout 5.0e-04 sum|c| 1.00 | abaixo de lo: -2:1.8e-04 -5:1.6e-04 -10:8.0e-01 -20:inf
+   (14,1) guarda  13.8 abaixo de lo: shape 2.6e-06 maxdp 4.3e-04 dout 5.0e-04 sum|c| 1.00 | abaixo de lo: -2:1.6e-04 -5:1.6e-04 -10:2.0e-04 -20:1.0e+00
+   (14,1) guarda  27.6 abaixo de lo: shape 3.3e-05 maxdp 4.4e-04 dout 5.0e-04 sum|c| 1.00 | abaixo de lo: -2:1.7e-04 -5:2.2e-04 -10:3.0e-04 -20:2.0e-04
+== camada 6 (W 59.6, lo -50.8); recorde abaixo de lo: -2:6.8e-04 -5:6.8e-04 -10:6.8e-04 -20:6.8e-04
+   (14,1) guarda   0.0 abaixo de lo: shape 3.1e-07 maxdp 8.2e-04 dout 9.6e-04 sum|c| 1.00 | abaixo de lo: -2:1.3e-04 -5:8.8e-01 -10:inf -20:inf
+   (14,1) guarda   7.5 abaixo de lo: shape 6.8e-07 maxdp 8.2e-04 dout 9.6e-04 sum|c| 1.00 | abaixo de lo: -2:7.9e-04 -5:7.2e-04 -10:2.9e-01 -20:inf
+   (14,1) guarda  14.9 abaixo de lo: shape 2.1e-06 maxdp 8.2e-04 dout 9.6e-04 sum|c| 1.00 | abaixo de lo: -2:7.2e-04 -5:6.8e-04 -10:8.1e-04 -20:1.0e+00
+   (14,1) guarda  29.8 abaixo de lo: shape 2.8e-05 maxdp 8.3e-04 dout 9.6e-04 sum|c| 1.00 | abaixo de lo: -2:6.9e-04 -5:8.1e-04 -10:8.3e-06 -20:7.0e-04
+== camada 7 (W 48.6, lo -38.2); recorde abaixo de lo: -2:4.0e-05 -5:4.0e-05 -10:4.0e-05 -20:4.0e-05
+   (14,1) guarda   0.0 abaixo de lo: shape 3.6e-06 maxdp 5.5e-05 dout 6.5e-05 sum|c| 1.00 | abaixo de lo: -2:4.8e-05 -5:1.0e-01 -10:1.0e+00 -20:inf
+   (14,1) guarda   6.1 abaixo de lo: shape 2.9e-07 maxdp 5.5e-05 dout 6.5e-05 sum|c| 1.00 | abaixo de lo: -2:4.1e-05 -5:4.0e-05 -10:8.7e-01 -20:inf
+   (14,1) guarda  12.1 abaixo de lo: shape 4.1e-07 maxdp 5.5e-05 dout 6.5e-05 sum|c| 1.00 | abaixo de lo: -2:4.0e-05 -5:4.0e-05 -10:4.0e-05 -20:1.0e+00
+   (14,1) guarda  24.3 abaixo de lo: shape 8.2e-06 maxdp 5.5e-05 dout 6.5e-05 sum|c| 1.00 | abaixo de lo: -2:4.0e-05 -5:4.0e-05 -10:1.7e-01 -20:inf
+
+[exited with code 0]

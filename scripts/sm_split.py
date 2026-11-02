@@ -1,4 +1,4 @@
-"""Softmax level split per layer, with the record's round-0 band rule (v2, 2026-10-28; v1 = sm_split_v1.py).
+"""Softmax level split per layer, with the record's round-0 band rule (v2, 2026-10-28; v1 removed, see git history).
 
 With l1 + l2 fixed (the exp series' input scale 2^-(l1+l2) unchanged), choose l1 squarings vs l2 normalise-and-square
 rounds. Round 0's band for each (layer, l2) is the record's rule (scripts/utils/fit_gpt2_decode16.py::fit_softmax):
@@ -7,7 +7,7 @@ widened x SAFE at both ends, and its top at least 1.05 x the divisor of a query 
 exp((clip_hi - mid) / 2^l2): every query inside the score range converges, whatever the data. That structural top is
 what makes l2 = 0 expensive where the range is wide (it does not shrink with the data). The counts are
 impl.smcheb.design's (kc 1..16, last target TGT). Levels: l1 - r + sum(counts) + l2, r = min(1, l1) the squaring
-smrel=0 (subagent/search2.py) removes afterwards, so the split is chosen for the config it ends in.
+smrel=0 (subagent/ganhos-rapidos/search2.py) removes afterwards, so the split is chosen for the config it ends in.
 
 Calibration: owt_windows "calib" (document starts + random offsets of pool [0, 1M), >= 16384 windows, the audit's
 stress windows out); never the dev prompts.

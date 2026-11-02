@@ -1,6 +1,6 @@
 #!/bin/bash
 # run_gpu_r7.sh: the A/B of the even EvalMod entry against Decode-8 record 7 (FlippingToTokenPerSecond, speedrun
-# e805f8d, 0.968 s/token) on a rented RTX PRO 6000. The entry = r7/perseus-r7-even.bundle, branch em-gelu-even: record 7
+# e805f8d, 0.968 s/token) on a rented RTX PRO 6000. The entry = artefatos/r7/perseus-r7-even.bundle, branch em-gelu-even: record 7
 # + the even EvalMod series (PC_EM_EVEN=1) + plan _gnabd7_ee served by speedrun/server.py (same placements, landings
 # and keys as record 7). Both arms run with record 6's client (perseus_spchain_client.py pinned to ea62bcc), as record 7
 # does. Everything lands in $OUT; nothing is pushed anywhere. Run it inside tmux.
