@@ -1,0 +1,84 @@
+1. custo por refresh no modelo R7 (ms, bruto; x0.89 = escalado)
+   1c      drop 0: n= 7    6.50 ms ( 5.79 escalado)
+   1c      drop 1: n= 3    6.50 ms ( 5.79 escalado)
+   1c      drop 2: n= 1    6.50 ms ( 5.79 escalado)
+   1c      drop 7: n=23    6.50 ms ( 5.79 escalado)
+   256c    drop 1: n=13    7.78 ms ( 6.94 escalado)
+   256c    drop 2: n= 8    7.42 ms ( 6.61 escalado)
+   256c    drop 3: n= 3    6.69 ms ( 5.96 escalado)
+   512c    drop 2: n= 1    7.42 ms ( 6.61 escalado)
+   stcfc   drop 0: n= 2   14.69 ms (13.09 escalado)
+   stcfr   drop 0: n=16   11.52 ms (10.27 escalado)
+   stcfr   drop 1: n=10   11.06 ms ( 9.86 escalado)
+   total refreshes 733 ms/token
+
+2. +1 raise drop num SparseB-256 (bruto): refresh / ops do trecho seguinte 1 nível mais fundo / soma
+   bloco  0 v_366   drop 1->2: refresh -0.36  ops (71 ops) -0.28  = -0.64 ms
+   bloco  0 v_436   drop 1->2: refresh -0.36  ops (330 ops) -0.78  = -1.14 ms
+   bloco  1 v_422   drop 1->2: refresh -0.36  ops (284 ops) -0.72  = -1.08 ms
+   bloco  2 v_401   drop 1->2: refresh -0.36  ops (135 ops) -0.37  = -0.73 ms
+   bloco  3 v_338   drop 2->3: refresh -0.73  ops (63 ops) -0.26  = -0.99 ms
+   bloco  3 v_400   drop 2->3: refresh -0.73  ops (282 ops) -0.53  = -1.26 ms
+   bloco  4 v_372   drop 1->2: refresh -0.36  ops (73 ops) -0.38  = -0.74 ms
+   bloco  4 v_444   drop 1->2: refresh -0.36  ops (295 ops) -0.59  = -0.95 ms
+   bloco  5 v_344   drop 1->2: refresh -0.36  ops (64 ops) -0.27  = -0.63 ms
+   bloco  5 v_407   drop 2->3: refresh -0.73  ops (292 ops) -0.59  = -1.32 ms
+   bloco  6 v_344   drop 2->3: refresh -0.73  ops (53 ops) -0.16  = -0.89 ms
+   bloco  6 v_396   drop 1->2: refresh -0.36  ops (301 ops) -0.62  = -0.98 ms
+   bloco  7 v_344   drop 1->2: refresh -0.36  ops (64 ops) -0.27  = -0.63 ms
+   bloco  7 v_407   drop 2->3: refresh -0.73  ops (282 ops) -0.53  = -1.26 ms
+   bloco  8 v_342   drop 1->2: refresh -0.36  ops (70 ops) -0.31  = -0.67 ms
+   bloco  8 v_411   drop 2->3: refresh -0.73  ops (290 ops) -0.58  = -1.31 ms
+   bloco  9 v_395   drop 1->2: refresh -0.36  ops (302 ops) -0.62  = -0.98 ms
+   bloco 10 v_338   drop 2->3: refresh -0.73  ops (63 ops) -0.26  = -0.99 ms
+   bloco 10 v_400   drop 2->3: refresh -0.73  ops (282 ops) -0.53  = -1.26 ms
+   bloco 11 v_402   drop 1->2: refresh -0.36  ops (80 ops) -0.40  = -0.76 ms
+   bloco 11 v_481   drop 1->2: refresh -0.36  ops (147 ops) -0.35  = -0.71 ms
+   média por drop: -0.95 ms bruto (-0.84 escalado); todos os 21 SB-256 com drop < 3: -19.9 ms
+
+3. economia de 1 nível NÃO monetizada (ops a jusante 1 nível mais raso), por trecho e passo de origem (bruto)
+   LN adiada: ln_1 (ops depois do produto)                      +1.7 ms/token bruto ( +1.5 escalado)
+   LN adiada: ln_2 (ops depois do produto)                      +2.0 ms/token bruto ( +1.8 escalado)
+   normalização adiada: ops depois da saída da softmax          +5.8 ms/token bruto ( +5.1 escalado)
+   smrel: trecho C inteiro 1 nível mais raso (sem drop)         +3.7 ms/token bruto ( +3.3 escalado)
+
+4. um produto ct x ct (relin + rescale fundidos) por nível da grade (bruto, ms)
+   nível 28 (23 limbs): produto 0.144 ms, rotação 0.137 ms
+   nível 32 (20 limbs): produto 0.130 ms, rotação 0.125 ms
+   nível 36 (17 limbs): produto 0.117 ms, rotação 0.112 ms
+   nível 40 (14 limbs): produto 0.104 ms, rotação 0.100 ms
+   nível 44 (11 limbs): produto 0.069 ms, rotação 0.065 ms
+   nível 48 (8 limbs): produto 0.058 ms, rotação 0.056 ms
+   nível 52 (5 limbs): produto 0.047 ms, rotação 0.046 ms
+
+5. folga que o plano do recorde 7 já tem e não monetiza (drop extra que os tetos de nível permitem; bruto)
+   bloco  0 SB#2 v_436  drop 1->3 (folga D 3 níveis): -2.47 ms
+   bloco  1 SB#2 v_422  drop 1->3 (folga D 2 níveis): -2.35 ms
+   bloco  2 SB#2 v_401  drop 1->3 (folga D 4 níveis): -1.94 ms
+   bloco  3 SB#2 v_400  drop 2->3 (folga D 2 níveis): -1.26 ms
+   bloco  4 SB#2 v_444  drop 1->3 (folga D 2 níveis): -2.24 ms
+   bloco  5 SB#2 v_407  drop 2->3 (folga D 1 níveis): -1.32 ms
+   bloco  6 SB#2 v_396  drop 1->3 (folga D 2 níveis): -2.30 ms
+   bloco  7 SB#2 v_407  drop 2->3 (folga D 2 níveis): -1.26 ms
+   bloco  8 SB#2 v_411  drop 2->3 (folga D 2 níveis): -1.31 ms
+   bloco  9 SB#2 v_395  drop 1->3 (folga D 2 níveis): -2.31 ms
+   bloco 10 SB#2 v_400  drop 2->3 (folga D 2 níveis): -1.26 ms
+   total: -20.0 ms/token bruto (-17.8 escalado) — sem nenhuma das 4 ideias
+
+6. smrel no recorde 7, por bloco (bruto): SB#1 +1 drop onde dá, senão o trecho C 1 nível mais raso; +2 produtos no B, -1 quadratura no C
+   bloco  0: +2 produtos +0.21, -1 quadratura -0.20, SB#1 drop 1->2 -0.36 -> -0.35 ms (sem drop: +0.66)
+   bloco  1: +2 produtos +0.22, -1 quadratura -0.14, SB#1 já em drop 3: C mais raso +0.25 -> +0.32 ms (sem drop: +0.32)
+   bloco  2: +2 produtos +0.22, -1 quadratura -0.14, SB#1 já em drop 3: C mais raso +0.23 -> +0.31 ms (sem drop: +0.31)
+   bloco  3: +2 produtos +0.22, -1 quadratura -0.15, SB#1 drop 2->3 -0.73 -> -0.67 ms (sem drop: +0.30)
+   bloco  4: +2 produtos +0.12, -1 quadratura -0.20, SB#1 drop 1->2 -0.36 -> -0.44 ms (sem drop: +0.23)
+   bloco  5: +2 produtos +0.22, -1 quadratura -0.20, SB#1 drop 1->2 -0.36 -> -0.34 ms (sem drop: +0.26)
+   bloco  6: +2 produtos +0.22, -1 quadratura -0.15, SB#1 drop 2->3 -0.73 -> -0.67 ms (sem drop: +0.30)
+   bloco  7: +2 produtos +0.22, -1 quadratura -0.20, SB#1 drop 1->2 -0.36 -> -0.34 ms (sem drop: +0.26)
+   bloco  8: +2 produtos +0.22, -1 quadratura -0.20, SB#1 drop 1->2 -0.36 -> -0.34 ms (sem drop: +0.50)
+   bloco  9: +2 produtos +0.22, -1 quadratura -0.14, SB#1 já em drop 3: C mais raso +0.23 -> +0.31 ms (sem drop: +0.31)
+   bloco 10: +2 produtos +0.22, -1 quadratura -0.15, SB#1 drop 2->3 -0.73 -> -0.67 ms (sem drop: +0.30)
+   bloco 11: +2 produtos +0.10, -1 quadratura -0.20, SB#1 drop 1->2 -0.36 -> -0.46 ms (sem drop: +0.27)
+   total: melhor caso -3.3 ms bruto (-3.0 escalado); se o drop search não usar a folga: +4.0 ms (+3.6)
+
+7. normalização adiada no recorde 7: produtos e rotação a mais por camada (bruto)
+   +3.8 ms/token bruto (+3.4 escalado)

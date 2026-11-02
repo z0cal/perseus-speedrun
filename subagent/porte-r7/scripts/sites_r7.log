@@ -1,0 +1,116 @@
+== bloco 0: 6 refreshes
+   v_67                   blk0.ln_1          SPRU    Hint       in 42 -> pouso 28 drop 7 cf 12
+   v_231                  blk0.kv_push       StCfR   Deliberate in 38 -> pouso 26 drop 0 cf None
+   v_366                  blk0.softmax       SB256   Placement  in 42 -> pouso 24 drop 1 cf 2
+   v_436                  blk0.softmax       SB256   Placement  in 52 -> pouso 24 drop 1 cf 10
+   v_640                  blk0.ln_2          SPRU    Hint       in 52 -> pouso 28 drop 7 cf 13
+   v_798                  blk0.up            StCfR   Placement  in 46 -> pouso 26 drop 0 cf 5
+   níveis por passo: ln_1 26-42, qkv 36-38, kv_push 26-38, qkt 28-32, softmax 26-50, softmax_v 28-32, out_proj 32-36, blk0 36-42, ln_2 30-52, up 28-46, gelu 28-38, down 38-42
+== bloco 1: 6 refreshes
+   v_15                   blk1.ln_1          SPRU    Placement  in 46 -> pouso 28 drop 7 cf 10
+   v_231                  blk1.kv_push       StCfR   Deliberate in 48 -> pouso 26 drop 0 cf None
+   v_364                  blk1.softmax       SB256   Placement  in 40 -> pouso 28 drop 3 cf 8
+   v_422                  blk1.softmax       SB256   Placement  in 52 -> pouso 24 drop 1 cf 10
+   v_578                  blk1.ln_2          SPRU    Hint       in 44 -> pouso 28 drop 7 cf 5
+   v_790                  blk1.up            StCfR   Placement  in 48 -> pouso 26 drop 0 cf 7
+   níveis por passo: ln_1 30-46, qkv 46-48, kv_push 26-48, qkt 28-32, softmax 26-50, softmax_v 28-38, out_proj 38-42, blk1 42-42, ln_2 30-46, up 28-46, gelu 28-38, down 38-42
+== bloco 2: 7 refreshes
+   v_9                    blk2.ln_1          SPRU    Hint       in 44 -> pouso 28 drop 7 cf 5
+   v_225                  blk2.kv_push       StCfR   Deliberate in 48 -> pouso 26 drop 0 cf None
+   v_350                  blk2.softmax       SB256   Placement  in 40 -> pouso 28 drop 3 cf 8
+   v_401                  blk2.softmax       SB256   Placement  in 52 -> pouso 24 drop 1 cf 9
+   v_562                  blk2.ln_2          StCfR   Placement  in 44 -> pouso 28 drop 1 cf 10
+   v_568                  blk2.ln_2          SPRU    Hint       in 46 -> pouso 18 drop 2 cf 5
+   v_1288                 blk2.down          StCfR   Hint       in 50 -> pouso 28 drop 1 cf 13
+   níveis por passo: ln_1 30-46, qkv 46-48, kv_push 26-48, qkt 28-32, softmax 26-50, softmax_v 28-40, out_proj 40-44, blk2 44-44, ln_2 20-46, up 34-36, gelu 36-50, down 30-32
+== bloco 3: 6 refreshes
+   v_9                    blk3.ln_1          SPRU    Hint       in 46 -> pouso 28 drop 7 cf 5
+   v_225                  blk3.kv_push       StCfR   Deliberate in 50 -> pouso 26 drop 0 cf None
+   v_338                  blk3.softmax       SB256   Placement  in 40 -> pouso 26 drop 2 cf 7
+   v_400                  blk3.softmax       SB256   Placement  in 52 -> pouso 26 drop 2 cf 10
+   v_556                  blk3.ln_2          SPRU    Hint       in 46 -> pouso 28 drop 7 cf 5
+   v_766                  blk3.up            StCfR   Placement  in 48 -> pouso 28 drop 1 cf 7
+   níveis por passo: ln_1 30-48, qkv 48-50, kv_push 26-50, qkt 28-32, softmax 28-50, softmax_v 28-40, out_proj 40-44, blk3 44-44, ln_2 30-48, up 30-48, gelu 30-40, down 40-44
+== bloco 4: 6 refreshes
+   v_9                    blk4.ln_1          SPRU    Hint       in 46 -> pouso 28 drop 7 cf 5
+   v_225                  blk4.kv_push       StCfR   Deliberate in 50 -> pouso 26 drop 0 cf None
+   v_372                  blk4.softmax       SB256   Placement  in 50 -> pouso 24 drop 1 cf 5
+   v_444                  blk4.softmax       SB256   Placement  in 52 -> pouso 24 drop 1 cf 10
+   v_610                  blk4.ln_2          SPRU    Placement  in 48 -> pouso 28 drop 7 cf 10
+   v_821                  blk4.up            StCfR   Placement  in 48 -> pouso 28 drop 1 cf 6
+   níveis por passo: ln_1 30-48, qkv 48-50, kv_push 26-50, qkt 28-32, softmax 26-50, softmax_v 28-40, out_proj 40-44, blk4 44-44, ln_2 30-48, up 30-48, gelu 30-40, down 40-44
+== bloco 5: 6 refreshes
+   v_15                   blk5.ln_1          SPRU    Placement  in 48 -> pouso 28 drop 7 cf 10
+   v_231                  blk5.kv_push       StCfR   Deliberate in 50 -> pouso 26 drop 0 cf None
+   v_344                  blk5.softmax       SB256   Placement  in 40 -> pouso 24 drop 1 cf 9
+   v_407                  blk5.softmax       SB256   Placement  in 52 -> pouso 26 drop 2 cf 11
+   v_569                  blk5.ln_2          SPRU    Placement  in 48 -> pouso 28 drop 7 cf 10
+   v_781                  blk5.up            StCfR   Placement  in 50 -> pouso 28 drop 1 cf 7
+   níveis por passo: ln_1 30-48, qkv 48-50, kv_push 26-50, qkt 28-32, softmax 26-50, softmax_v 28-40, out_proj 40-44, blk5 44-44, ln_2 30-48, up 30-48, gelu 30-40, down 40-44
+== bloco 6: 6 refreshes
+   v_15                   blk6.ln_1          SPRU    Placement  in 48 -> pouso 28 drop 7 cf 10
+   v_231                  blk6.kv_push       StCfR   Deliberate in 50 -> pouso 26 drop 0 cf None
+   v_344                  blk6.softmax       SB256   Placement  in 40 -> pouso 26 drop 2 cf 9
+   v_396                  blk6.softmax       SB256   Placement  in 52 -> pouso 24 drop 1 cf 9
+   v_569                  blk6.ln_2          SPRU    Placement  in 48 -> pouso 28 drop 7 cf 10
+   v_779                  blk6.up            StCfR   Placement  in 48 -> pouso 28 drop 1 cf 6
+   níveis por passo: ln_1 30-48, qkv 48-50, kv_push 26-50, qkt 28-32, softmax 26-50, softmax_v 28-40, out_proj 40-44, blk6 44-44, ln_2 30-48, up 30-48, gelu 30-40, down 40-44
+== bloco 7: 6 refreshes
+   v_15                   blk7.ln_1          SPRU    Placement  in 48 -> pouso 28 drop 7 cf 10
+   v_231                  blk7.kv_push       StCfR   Deliberate in 50 -> pouso 26 drop 0 cf None
+   v_344                  blk7.softmax       SB256   Placement  in 40 -> pouso 24 drop 1 cf 9
+   v_407                  blk7.softmax       SB256   Placement  in 52 -> pouso 26 drop 2 cf 11
+   v_563                  blk7.ln_2          SPRU    Hint       in 46 -> pouso 28 drop 7 cf 5
+   v_773                  blk7.up            StCfR   Placement  in 48 -> pouso 28 drop 1 cf 6
+   níveis por passo: ln_1 30-48, qkv 48-50, kv_push 26-50, qkt 28-32, softmax 26-50, softmax_v 28-40, out_proj 40-44, blk7 44-44, ln_2 30-48, up 30-48, gelu 30-40, down 40-44
+== bloco 8: 6 refreshes
+   v_15                   blk8.ln_1          SPRU    Placement  in 48 -> pouso 28 drop 7 cf 10
+   v_231                  blk8.kv_push       StCfR   Deliberate in 50 -> pouso 26 drop 0 cf None
+   v_342                  blk8.softmax       SB256   Placement  in 40 -> pouso 24 drop 1 cf 8
+   v_411                  blk8.softmax       SB256   Placement  in 52 -> pouso 26 drop 2 cf 10
+   v_573                  blk8.ln_2          SPRU    Placement  in 48 -> pouso 28 drop 7 cf 10
+   v_783                  blk8.up            StCfR   Placement  in 48 -> pouso 28 drop 1 cf 6
+   níveis por passo: ln_1 30-48, qkv 48-50, kv_push 26-50, qkt 28-32, softmax 26-50, softmax_v 28-40, out_proj 40-44, blk8 44-44, ln_2 30-48, up 30-48, gelu 30-40, down 40-44
+== bloco 9: 6 refreshes
+   v_15                   blk9.ln_1          SPRU    Placement  in 48 -> pouso 28 drop 7 cf 10
+   v_231                  blk9.kv_push       StCfR   Deliberate in 50 -> pouso 26 drop 0 cf None
+   v_344                  blk9.softmax       SB256   Placement  in 40 -> pouso 28 drop 3 cf 7
+   v_395                  blk9.softmax       SB256   Placement  in 52 -> pouso 24 drop 1 cf 9
+   v_568                  blk9.ln_2          SPRU    Placement  in 48 -> pouso 28 drop 7 cf 10
+   v_779                  blk9.up            StCfR   Placement  in 48 -> pouso 28 drop 1 cf 6
+   níveis por passo: ln_1 30-48, qkv 48-50, kv_push 26-50, qkt 28-32, softmax 26-50, softmax_v 28-40, out_proj 40-44, blk9 44-44, ln_2 30-48, up 30-48, gelu 30-40, down 40-44
+== bloco 10: 6 refreshes
+   v_9                    blk10.ln_1         SPRU    Hint       in 46 -> pouso 28 drop 7 cf 5
+   v_225                  blk10.kv_push      StCfR   Deliberate in 50 -> pouso 26 drop 0 cf None
+   v_338                  blk10.softmax      SB256   Placement  in 40 -> pouso 26 drop 2 cf 7
+   v_400                  blk10.softmax      SB256   Placement  in 52 -> pouso 26 drop 2 cf 11
+   v_556                  blk10.ln_2         SPRU    Hint       in 46 -> pouso 28 drop 7 cf 6
+   v_766                  blk10.up           StCfR   Placement  in 48 -> pouso 28 drop 1 cf 6
+   níveis por passo: ln_1 30-48, qkv 48-50, kv_push 26-50, qkt 28-32, softmax 28-50, softmax_v 28-40, out_proj 40-44, blk10 44-44, ln_2 30-48, up 30-48, gelu 30-40, down 40-44
+== bloco 11: 7 refreshes
+   v_9                    blk11.ln_1         SPRU    Hint       in 46 -> pouso 28 drop 7 cf 5
+   v_251                  blk11.kv_push      StCfR   Deliberate in 50 -> pouso 26 drop 0 cf None
+   v_337                  blk11.qkt          SB512   Placement  in 32 -> pouso 26 drop 2 cf 3
+   v_402                  blk11.softmax      SB256   Placement  in 52 -> pouso 24 drop 1 cf 10
+   v_481                  blk11.softmax      SB256   Placement  in 52 -> pouso 24 drop 1 cf 11
+   v_655                  blk11.ln_2         SPRU    Placement  in 52 -> pouso 28 drop 7 cf 10
+   v_744                  blk11.ln_2         StCfR   Placement  in 52 -> pouso 26 drop 0 cf 10
+   níveis por passo: ln_1 30-48, qkv 48-50, kv_push 26-50, qkt 28-32, softmax 26-50, softmax_v 28-44, out_proj 44-48, blk11 48-48, ln_2 28-52, up 28-30, gelu 30-44, down 44-48
+== bloco 12: 2 refreshes
+   v_3                    tail               StCfR   Placement  in 48 -> pouso 26 drop 0 cf 11
+   v_16                   tail               SPRU    Placement  in 30 -> pouso 14 drop 0 cf 20
+   níveis por passo: tail 16-48
+== bloco 13: 11 refreshes
+   v_23                   cutmax             SPRU    Deliberate in 48 -> pouso 14 drop 0 cf None
+   v_50                   cutmax             StCfC   Placement  in 50 -> pouso 26 drop 0 cf 9
+   v_79                   cutmax             SPRU    Deliberate in 40 -> pouso 14 drop 0 cf None
+   v_84                   cutmax             SPRU    Placement  in 18 -> pouso 16 drop 1 cf 10
+   v_148                  cutmax             SPRU    Deliberate in 52 -> pouso 14 drop 0 cf None
+   v_192                  cutmax             StCfC   Placement  in 52 -> pouso 26 drop 0 cf 9
+   v_217                  cutmax             SPRU    Deliberate in 36 -> pouso 14 drop 0 cf None
+   v_235                  cutmax             SPRU    Placement  in 26 -> pouso 16 drop 1 cf 17
+   v_286                  cutmax             SPRU    Deliberate in 44 -> pouso 14 drop 0 cf None
+   v_291                  cutmax             SPRU    Placement  in 18 -> pouso 16 drop 1 cf 11
+   v_349                  cutmax             SPRU    Deliberate in 52 -> pouso 14 drop 0 cf None
+   níveis por passo: cutmax 14-52
+{'SPRU': 34, 'StCfR': 26, 'SB256': 24, 'SB512': 1, 'StCfC': 2} 87

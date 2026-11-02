@@ -1,0 +1,12 @@
+camada  0: servido [7, 4] (alvo intermediário 0.01) fator final 8.2e-04 | melhor de mesma soma [5, 6] (alvo 0.4) 2.9e-06  = 278x menor
+camada  1: servido [5, 5] (alvo intermediário 0.2) fator final 5.5e-05 | melhor de mesma soma [5, 5] (alvo 0.2) 5.5e-05  = 1x menor
+camada  2: servido [7, 4] (alvo intermediário 0.01) fator final 8.2e-04 | melhor de mesma soma [5, 6] (alvo 0.4) 2.9e-06  = 278x menor
+camada  3: servido [6, 5] (alvo intermediário 0.2) fator final 5.5e-05 | melhor de mesma soma [6, 5] (alvo 0.2) 5.5e-05  = 1x menor
+camada  4: [7, 2, 6] alvos [0.07, 0.35, 0.001]: fator final 5.5e-07 (3+ rodadas, não varrido)
+camada  5: servido [6, 5] (alvo intermediário 0.3) fator final 4.2e-04 | melhor de mesma soma [6, 5] (alvo 0.3) 4.2e-04  = 1x menor
+camada  6: servido [7, 4] (alvo intermediário 0.01) fator final 8.2e-04 | melhor de mesma soma [5, 6] (alvo 0.4) 2.9e-06  = 278x menor
+camada  7: servido [6, 5] (alvo intermediário 0.2) fator final 5.5e-05 | melhor de mesma soma [6, 5] (alvo 0.2) 5.5e-05  = 1x menor
+camada  8: servido [8, 5] (alvo intermediário 0.2) fator final 5.5e-05 | melhor de mesma soma [8, 5] (alvo 0.2) 5.5e-05  = 1x menor
+camada  9: servido [7, 4] (alvo intermediário 0.01) fator final 8.2e-04 | melhor de mesma soma [6, 5] (alvo 0.15) 1.7e-05  = 48x menor
+camada 10: servido [6, 5] (alvo intermediário 0.3) fator final 4.2e-04 | melhor de mesma soma [6, 5] (alvo 0.3) 4.2e-04  = 1x menor
+camada 11: [7, 2, 2, 8] alvos [0.17, 0.47, 0.8, 0.001]: fator final 1.9e-06 (3+ rodadas, não varrido)
