@@ -18,6 +18,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import units as U  # noqa: E402
+# modelo R7: units_r7.py (relin + rescale fundidos, chaves de nível do EvalMod) e em/n32sp_r7_gpu.jsonl (rs/em_prog.rs)
 
 H = os.path.dirname(os.path.abspath(__file__))
 C = json.load(open(f"{H}/calib.json"))
@@ -41,6 +42,12 @@ for line in open(f"{H}/em/n32sp_r7.jsonl"):
     j = json.loads(line)
     EM[j["name"]][j["top"]] = j
 OUT2IN = {j["out_top"]: t for t, j in EM["Shipped_K16"].items()}
+import units_r7 as R  # noqa: E402
+EMR = collections.defaultdict(dict)      # the programs pc-gpu runs (EvalModPlan::program, rs/em_prog.rs)
+for line in open(f"{H}/em/n32sp_r7_gpu.jsonl"):
+    j = json.loads(line)
+    EMR[j["name"]][j["top"]] = j
+SPRU_R7 = 6.5   # record 5's pc-bench SPRU (lean chain, fused EvalMod), README of LeanKeySwitch
 
 
 def em_units(series, top, only=None):
@@ -72,6 +79,20 @@ def em_top(s):
     return OUT2IN[out_top]
 
 
+def em_delta_r7(ss, level_keys=True):
+    tot, ship = 0.0, 0.0
+    for s in ss:
+        top = em_top(s)
+        if top is None:
+            continue
+        chains = 1 if (s["real"] or s["route"] != "stcf") else 2
+        a = ms(R.evalmod(EMR["Shipped_K16"][top]["oplist"], level_keys))
+        e = ms(R.evalmod(EMR["Even_K16"][top]["oplist"], level_keys))
+        tot += chains * (e - a)
+        ship += chains * a
+    return tot, ship
+
+
 def em_delta(ss, only=None):
     tot, by = 0.0, collections.defaultdict(float)
     for s in ss:
@@ -98,8 +119,8 @@ class CostOps:
     realize_shared = cheb_align = False
     gelu_fold = True
 
-    def __init__(self, L0):
-        self.L0, self.u, self.ctct, self.lv = L0, U.z(), 0, collections.Counter()
+    def __init__(self, L0, fused=False):
+        self.L0, self.u, self.ctct, self.lv, self.fused = L0, U.z(), 0, collections.Counter(), fused
 
     def n(self, d):
         return limbs(self.L0 + 2 * d)
@@ -108,10 +129,14 @@ class CostOps:
         if isinstance(b, _V):
             d = max(a.d, b.d)
             n = self.n(d)
-            U.add(self.u, U.ks(n, CH))
-            U.add(self.u, [0, 0, 4 * n])
             self.ctct += 1
             self.lv[self.L0 + 2 * d] += 1
+            if self.fused:      # record 5-7: the product's rescale inside its ModDown (MultRescale)
+                drop = n - self.n(d + 1)
+                U.add(self.u, R.relin(n, fused=True, drop=drop))
+                return _V(d + 1)
+            U.add(self.u, U.ks(n, CH))
+            U.add(self.u, [0, 0, 4 * n])
         else:
             d = a.d
             n = self.n(d)
@@ -144,10 +169,10 @@ class CostOps:
         return _V(ct.d)
 
 
-def gelu_cost(root, cfgj, L0, even):
+def gelu_cost(root, cfgj, L0, even, fused=False):
     sys.path.insert(0, f"{root}/python")
     from perseus.impl.poly import eval_chebyshev_even, eval_chebyshev_masked
-    o = CostOps(L0)
+    o = CostOps(L0, fused)
     c = [cfgj["xmax"] * float(v) for v in cfgj["cheb_coeffs"]]
     f = eval_chebyshev_even if even else eval_chebyshev_masked
     out = f(o, _V(0), c, cfgj["cheb_a"], cfgj["cheb_b"], cfgj["cheb_eps"], o.mask, o.add_mask, leaf_terms="budget")
@@ -210,15 +235,75 @@ def absolute(progs, ss):
     return ops, ref
 
 
+def absolute_r7(progs, ss):
+    import tokplan as T
+    T.NQ = NQ
+    acc = {c: U.z() for c in ("ks", "rescale", "ew", "launch")}
+    fused = [0, 0]
+    for b in range(14):
+        d = json.load(open(f"{progs}/block_{b}.json"))
+        V = d["vars"]
+        lv = lambda i: DROP[V[i]["meta"]["level"]]  # noqa: E731
+
+        def one(o):
+            k = T.kind(o)
+            if k == "Batched":
+                for x in o["kind"]["Batched"]:
+                    one(x)
+                return
+            if k == "MultRescale":
+                ins = [lv(i) for i in o["ins"]]
+                outs = [lv(i) for i in o["outs"]]
+                n = NQ - max(ins)
+                drop = max(outs) - max(ins)
+                for pk in o["pre"]:
+                    if (next(iter(pk)) if isinstance(pk, dict) else pk) == "Rescale":
+                        U.add(acc["rescale"], U.rescale(n + 2))
+                if len(o["ins"]) == 2 or k == "Square":
+                    U.add(acc["ks"], R.relin(n, fused=True, drop=max(drop, 1)))
+                else:   # a plaintext / scalar product fused with its rescale
+                    U.add(acc["ew"], [0, 0, 3 * n])
+                    U.add(acc["rescale"], U.rescale(n))
+                fused[0] += 1
+                return
+            if k in ("Mult", "Square"):
+                fused[1] += 1
+            T.op_units(o, lv, acc)
+        for o in d["ops"]:
+            one(o)
+    ops = sum(ms(acc[c]) for c in ("ks", "rescale", "ew"))
+    ref = 0.0
+    for x in ss:
+        if x["route"] == "1":
+            ref += SPRU_R7
+            continue
+        site = dict(x, route="512" if x["route"] == "256" else x["route"])
+        # site_units' raise / CtS / StC units (as `absolute`), its EvalMod replaced by the record-7 program
+        T.em_list = lambda top, series, k24: []
+        u = T.site_units(site, "shipped", "shipped")
+        chains = 1 if (x["real"] or x["route"] != "stcf") else 2
+        U.add(u, R.evalmod(EMR["Shipped_K16"][em_top(x)]["oplist"]), chains)
+        ref += ms(u)
+    return ops, ref, fused
+
+
 def main():
     progs, gdir, root = sys.argv[1:4]
     ss = sites(progs)
     mix = collections.Counter(s["route"] + ("r" if s["real"] else "c") for s in ss)
     print(f"refreshes/token {len(ss)}: {dict(mix)}")
     ops, ref = absolute(progs, ss)
-    scale = RECORD_MS / (ops + ref)
-    print(f"modelo do recorde 7: ops {ops:.0f} + refreshes {ref:.0f} = {ops + ref:.0f} ms/token (medido {RECORD_MS:.0f}): "
-          f"fator {scale:.2f} (o modelo é do runtime do recorde 4)")
+    scale_old = RECORD_MS / (ops + ref)
+    print(f"modelo ANTIGO (runtime do recorde 4) no recorde 7: ops {ops:.0f} + refreshes {ref:.0f} = {ops + ref:.0f} ms/token "
+          f"(medido {RECORD_MS:.0f}): fator {scale_old:.2f}")
+    ops7, ref7, fz = absolute_r7(progs, ss)
+    scale = RECORD_MS / (ops7 + ref7)
+    print(f"modelo R7 (relin+rescale fundidos, chaves de nível no EvalMod, SPRU {SPRU_R7} ms): ops {ops7:.0f} + refreshes "
+          f"{ref7:.0f} = {ops7 + ref7:.0f} ms/token: fator {scale:.2f}; produtos fundidos {fz[0]}, não fundidos {fz[1]}")
+    emr, shipr = em_delta_r7(ss)
+    emr_nolk, _ = em_delta_r7(ss, level_keys=False)
+    print(f"\nEvalMod, modelo R7: recorde {shipr:.1f} ms/token em EvalMod; par {shipr + emr:.1f}; delta {emr:+.1f} ms "
+          f"({100 * emr / RECORD_MS:+.2f} %); sem chaves de nível {emr_nolk:+.1f} ms")
     em, by = em_delta(ss)
     em_relin, _ = em_delta(ss, only=("mult", "multacc", "wsum"))
     ship = sum((1 if (s['real'] or s['route'] != 'stcf') else 2) * ms(em_units("Shipped_K16", em_top(s)))
@@ -241,6 +326,20 @@ def main():
         t += ms(gelu_cost(root, ev[key], L0, False)[0].u) - ms(gelu_cost(root, base[key], L0, False)[0].u)
     tot["zero_odd"] = t
     print(f"   só zerar os ímpares (avaliador do recorde): {t:+.2f} ms/token ({100 * t / RECORD_MS:+.2f} %)")
+    tf = {}
+    for var in ("ge", "ge48", "zero_odd"):
+        evf = json.load(open(f"{root}/python/perseus/configs/model/approximation/gpt2_base_n32_kc16r_cmfl_lhs2_mflp_gn_ab_{'ge' if var == 'zero_odd' else var}/configs.json"))["softgelu"]
+        t = 0.0
+        for b in range(12):
+            key = f"transformer.h.{b}.mlp.act"
+            L0, _, _ = graph_gelu(gdir, progs, b)
+            ob, _ = gelu_cost(root, base[key], L0, False, fused=True)
+            ev_even = bool(evf[key].get("even")) and var != "zero_odd"
+            oe, _ = gelu_cost(root, evf[key], L0, ev_even, fused=True) if (evf[key].get("even") or var == "zero_odd") else (ob, 0)
+            t += ms(oe.u) - ms(ob.u)
+        tf[var] = t
+    print(f"   modelo R7 (produtos fundidos com o rescale): _ge {tf['ge']:+.2f} ms, _ge48 {tf['ge48']:+.2f} ms, "
+          f"só ímpares zerados {tf['zero_odd']:+.2f} ms")
     for var in ("ge", "ge48"):
         ev = json.load(open(f"{root}/python/perseus/configs/model/approximation/gpt2_base_n32_kc16r_cmfl_lhs2_mflp_gn_ab_{var}/configs.json"))["softgelu"]
         t = 0.0
@@ -261,7 +360,13 @@ def main():
                       f"({dm:+.2f}); níveis dos produtos do recorde {ok}")
         tot[var] = t
         print(f"   _{var}: delta {t:+.2f} ms/token ({100 * t / RECORD_MS:+.2f} %)")
-    print("\nTotal (% de 968 ms)            modelo bruto      escalado pelo fator")
+    print("\nMODELO R7 (% de 968 ms; EvalMod com chaves de nível; GELU com produtos fundidos)  bruto | escalado pelo fator R7")
+    for name, v in (("EvalMod par", emr), ("GELU _ge", tf["ge"]), ("GELU _ge48", tf["ge48"]),
+                    ("GELU só ímpares zerados", tf["zero_odd"]), ("EvalMod par + GELU _ge", emr + tf["ge"]),
+                    ("EvalMod par + GELU _ge48", emr + tf["ge48"])):
+        print(f"   {name:28s} {v:+7.1f} ms {100 * v / RECORD_MS:+6.2f} %   {v * scale:+7.1f} ms {100 * v * scale / RECORD_MS:+6.2f} %")
+    scale = scale_old
+    print("\nmodelo ANTIGO, para comparar (% de 968 ms)  bruto | escalado pelo fator antigo")
     for name, v in (("EvalMod par", em), ("EvalMod par, só relin+WSum", em_relin), ("GELU _ge", tot["ge"]),
                     ("GELU _ge48", tot["ge48"]), ("GELU só ímpares zerados", tot["zero_odd"]), ("EvalMod par + GELU _ge", em + tot["ge"]),
                     ("EvalMod par + GELU _ge48", em + tot["ge48"])):

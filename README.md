@@ -512,3 +512,31 @@ plano, a mesma chave e mais precisão, então é o candidato a A/B. Na GELU, qua
 pequenos dos ajustes ponderados (outra função: precisa de KL e de plano), e não da forma par (+2,5 ms além disso).
 Ressalvas: o modelo errou para baixo o custo do d27 até ser recalibrado (as razões entre séries agora conferem ±8 %),
 não vê as fusões do recorde 5+ (chaves de nível, relin + rescale fundidos), e nada disso foi medido em GPU.
+
+### 2026-11-02 — modelo com o runtime do recorde 7 + script de GPU para o A/B
+- O código já incorpora os recordes 5, 6 e 7: o branch `em-gelu-even` parte do speedrun e805f8d (recorde 7), e os
+  commits de registro dos recordes 5 (4a0062d), 6 (275c04f) e 7 (58bc612) estão no histórico dele. Entrada nova:
+  commit 2355560 (o `server.py` serve o `_gnabd7_ee`) e 83e8f99 (teste: `PC_EM_EVEN` é switch de kernel, então o
+  carimbo do plano não o amarra). `_gnabd7_ee` compila os 14 estágios com 0 erros e programas/refreshes IDÊNTICOS aos
+  do `_gnabd7`: só o EvalMod muda, no runtime. Bundle `r7/perseus-r7-even.bundle` atualizado (HEAD 83e8f99).
+- Modelo R7 (`tmodel/units_r7.py`): o EvalMod é o programa que o pc-gpu executa (`EvalModPlan::program`: fundido,
+  reescrito, relin→rescale reordenado; `tmodel/rs/em_prog.rs`, linkado com stubs de CUDA, `em/n32sp_r7_gpu.jsonl`).
+  Relinearização seguida do rescale = `RelinRescale` (ModDown já convertendo para n − 2, sem rescale separado). Chaves de
+  nível do EvalMod pela regra do pc-core (`level_relin_layout`, cap 14: topo 40 com 3 dígitos, topo 26 com 2, como
+  diz o README do recorde 5). `MultRescale` dos programas = produto fundido (inclusive de 1 primo). SPRU 6,5 ms (pc-bench do
+  recorde 5). Absoluto: **1086 ms/token** contra 968 medidos (o modelo antigo dava 1207).
+  - Série do recorde: 11 relin (10 fundidas), 6 rescales soltos. Par: 10 relin (9 fundidas), 5 rescales soltos.
+
+| modelo R7 (% de 968 ms) | bruto | escalado (×0,89) |
+|---|---|---|
+| **EvalMod par** | **−23,3 ms (−2,4 %)** | **−20,8 ms (−2,1 %)** |
+| GELU `_ge` | −15,8 ms (−1,6 %) | −14,1 ms (−1,5 %) |
+| GELU só ímpares zerados | −13,7 ms (−1,4 %) | −12,2 ms (−1,3 %) |
+| GELU `_ge48` | −0,7 ms (−0,1 %) | −0,6 ms (−0,1 %) |
+| EvalMod par + GELU `_ge` | −39,1 ms (−4,0 %) | −34,8 ms (−3,6 %) |
+
+- Medir na GPU: `gpu/run_gpu_r7.sh` (Runpod: `BUNDLE=…/perseus-r7-even.bundle NOSANDBOX=1 bash run_gpu_r7.sh all`).
+  Setup do recorde 7 (cliente do recorde 6 `ea62bcc`, `perseus-spchain`), `bts` = `pc-bench bts --all` na `n32sp`
+  com os switches servidos (fundido, merge, STC_PS 6, SparseB K16) com/sem `PC_EM_EVEN` + `bts-prec` dense (bits),
+  smoke, 6 pares decode recorde/entrada alternados + score.py, 2 pares prefill (precisa sair igual). O pc-bench
+  não liga as chaves de nível do EvalMod; o A/B do decode liga. NÃO testado em GPU (feito numa máquina só com CPU).
