@@ -1,0 +1,9 @@
+[2026-11-03 00:56:26] prefill pair 1/2: record (prompts 0..3)
+[2026-11-03 00:59:17] prefill pair 1/2: entry (prompts 0..3)
+[2026-11-03 01:01:09] prefill pair 2/2: entry (prompts 4..7)
+[2026-11-03 01:03:01] prefill pair 2/2: record (prompts 4..7)
+[2026-11-03 01:04:50] prefill peak GPU memory  58713 MiB
+quality: 8 requests, mean KL 4.89e-05 (bar 0.01, p 6.5e-20), argmax agreement 100.0%: PASS
+speed: 2 pairs, entry 6.517 s vs record 6.518 s, x1.000 (delta 1.0%, p 0.36): not a record
+[2026-11-03 01:04:50] score_prefill: does NOT beat the record / fails a check (score.py exit 1)
+[2026-11-03 01:04:50] step prefill done; results in /root/perseus-entry/out-ab

@@ -1,0 +1,103 @@
+[2026-11-02 23:03:39] preflight
+NVIDIA RTX PRO 6000 Blackwell Server Edition, 97887 MiB, 595.91.07
+[2026-11-02 23:03:39] preflight: NOSANDBOX=1, the A/B outside the harness's sandbox (gpu/ab/sandbox.sh): NOT harness runs
+[2026-11-02 23:03:39] preflight ok (A/B): NVIDIA RTX PRO 6000 Blackwell Server Edition, 97887 MiB, 595.91.07, nvcc 13.0
+[2026-11-02 23:03:39] setup in /root/perseus-entry
+info: downloading installer
+info: profile set to default
+info: default host tuple is x86_64-unknown-linux-gnu
+info: skipping toolchain installation
+
+
+Rust is installed now. Great!
+
+To get started you may need to restart your current shell.
+This would reload your PATH environment variable to include
+Cargo's bin directory ($HOME/.cargo/bin).
+
+To configure your current shell, you need to source the
+corresponding env file under $HOME/.cargo.
+
+Consider running the right command for your shell (note the leading DOT):
+. "$HOME/.cargo/env" # For sh/ash/dash/pdksh/bash
+cargo:rerun-if-env-changed=CC_x86_64-unknown-linux-gnu
+CC_x86_64-unknown-linux-gnu = None
+cargo:rerun-if-env-changed=CC_x86_64_unknown_linux_gnu
+CC_x86_64_unknown_linux_gnu = None
+cargo:rerun-if-env-changed=HOST_CC
+HOST_CC = None
+cargo:rerun-if-env-changed=CC
+CC = None
+cargo:rerun-if-env-changed=CC_ENABLE_DEBUG_OUTPUT
+cargo:rerun-if-env-changed=CRATE_CC_NO_DEFAULTS
+CRATE_CC_NO_DEFAULTS = None
+cargo:rerun-if-env-changed=CFLAGS
+CFLAGS = None
+cargo:rerun-if-env-changed=HOST_CFLAGS
+HOST_CFLAGS = None
+cargo:rerun-if-env-changed=CFLAGS_x86_64_unknown_linux_gnu
+CFLAGS_x86_64_unknown_linux_gnu = None
+cargo:rerun-if-env-changed=CFLAGS_x86_64-unknown-linux-gnu
+CFLAGS_x86_64-unknown-linux-gnu = None
+[2026-11-02 23:04:12] entry at bd10590e, on record 7
+[2026-11-02 23:04:22] build .
+[2026-11-02 23:05:41] build ../perseus-client
+[2026-11-02 23:06:24] build ../perseus-spchain-client
+[2026-11-02 23:07:28] build ../perseus-record
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/148 [00:00<?, ?it/s]Loading weights: 100%|██████████| 148/148 [00:00<00:00, 15755.25it/s]
+Zipped -> .cache/models/openai-community/gpt2/classic/weights.bin.zip (148 tensors)
+Wrote -> .cache/models/openai-community/gpt2/classic/client.npz
+[2026-11-02 23:09:22] A/B runner at /root/perseus-entry/ab/speedrun (sandbox stand-in, NOT the harness's isolation)
+[2026-11-02 23:09:22] setup done
+[2026-11-02 23:09:22] step setup done; results in /root/perseus-entry/out-ab
+warning: unused import: `PrimeConst`
+ --> crates/pc-kernels/src/ring.rs:3:55
+  |
+3 | use crate::args::{BconvArgs, EwArgs, Launch, NttArgs, PrimeConst};
+  |                                                       ^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `std::ffi::c_void`
+ --> crates/pc-kernels/src/ring.rs:5:5
+  |
+5 | use std::ffi::c_void;
+  |     ^^^^^^^^^^^^^^^^
+
+warning: unused import: `build_evalmod`
+  --> crates/pc-gpu/src/bts/evalmod.rs:19:26
+   |
+19 | use pc_shadow::evalmod::{build_evalmod, build_evalmod_opts, EmOp, EmProg...
+   |                          ^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `k`
+   --> crates/pc-gpu/src/ks.rs:420:40
+    |
+420 |     pub fn dot_sums<W: DevWord>(&self, k: usize, staged: bool) -> bool {
+    |                                        ^ help: if this is intentional, prefix it with an underscore: `_k`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `nq`
+   --> crates/pc-gpu/src/bts/raise.rs:530:9
+    |
+530 |     let nq = ctx.shape.n_q;
+    |         ^^ help: if this is intentional, prefix it with an underscore: `_nq`
+
+warning: unused variable: `unit`
+   --> crates/pc-tools/src/bin/../bts_stc_first.rs:517:9
+    |
+517 |     let unit = ctx.shape.unit;
+    |         ^^^^ help: if this is intentional, prefix it with an underscore: `_unit`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+[2026-11-02 23:09:47] pc-bench bts --all (n32sp, served switches), EvalMod shipped
+[2026-11-02 23:10:03] pc-bench bts-prec dense (n32), EvalMod shipped
+[2026-11-02 23:10:06] pc-bench bts --all (n32sp, served switches), EvalMod even
+[2026-11-02 23:10:19] pc-bench bts-prec dense (n32), EvalMod even
+[2026-11-02 23:10:24] bts done: compare /root/perseus-entry/out-ab/bts_all_n32sp_{shipped,even}.log (evalmod ms) and bts_prec_dense_{shipped,even}.log (bits)
+[2026-11-02 23:10:24] step bts done; results in /root/perseus-entry/out-ab

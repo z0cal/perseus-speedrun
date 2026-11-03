@@ -1,0 +1,5 @@
+request 0: score 0.9607 s/token, outputs WRONG, mean KL 1.52e-03
+request 1: score 0.9600 s/token, outputs WRONG, mean KL 2.57e+02
+request 2: score 0.9600 s/token, outputs WRONG, mean KL 6.01e+02
+request 3: score 0.9579 s/token, outputs WRONG, mean KL 1.70e-03
+run.json: /root/perseus-entry/out-ab/runs/20261102-231223-10017/run.json

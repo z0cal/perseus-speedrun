@@ -1,0 +1,12 @@
+[package]
+name = "kernelhost"
+version = "0.0.0"
+edition = "2021"
+build = "build.rs"
+[workspace]
+[dependencies]
+pc-client = { path = "/home/zocal/pesquisa/perseus-speedrun/work/perseus-z5/crates/pc-client" }
+pc-core = { path = "/home/zocal/pesquisa/perseus-speedrun/work/perseus-z5/crates/pc-core" }
+pc-gpu = { path = "/home/zocal/pesquisa/perseus-speedrun/work/perseus-z5/crates/pc-gpu" }
+pc-kernels = { path = "/home/zocal/pesquisa/perseus-speedrun/work/perseus-z5/crates/pc-kernels" }
+rayon = "1"

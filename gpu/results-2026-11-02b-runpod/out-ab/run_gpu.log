@@ -1,0 +1,27 @@
+[2026-11-02 23:03:39] preflight
+[2026-11-02 23:03:39] preflight: NOSANDBOX=1, the A/B outside the harness's sandbox (gpu/ab/sandbox.sh): NOT harness runs
+[2026-11-02 23:03:39] preflight ok (A/B): NVIDIA RTX PRO 6000 Blackwell Server Edition, 97887 MiB, 595.91.07, nvcc 13.0
+[2026-11-02 23:03:39] setup in /root/perseus-entry
+[2026-11-02 23:04:12] entry at bd10590e, on record 7
+[2026-11-02 23:04:22] build .
+[2026-11-02 23:05:41] build ../perseus-client
+[2026-11-02 23:06:24] build ../perseus-spchain-client
+[2026-11-02 23:07:28] build ../perseus-record
+[2026-11-02 23:09:22] A/B runner at /root/perseus-entry/ab/speedrun (sandbox stand-in, NOT the harness's isolation)
+[2026-11-02 23:09:22] setup done
+[2026-11-02 23:09:22] step setup done; results in /root/perseus-entry/out-ab
+GO_SETUP_EXIT=0
+[2026-11-02 23:09:47] pc-bench bts --all (n32sp, served switches), EvalMod shipped
+[2026-11-02 23:10:03] pc-bench bts-prec dense (n32), EvalMod shipped
+[2026-11-02 23:10:06] pc-bench bts --all (n32sp, served switches), EvalMod even
+[2026-11-02 23:10:19] pc-bench bts-prec dense (n32), EvalMod even
+[2026-11-02 23:10:24] bts done: compare /root/perseus-entry/out-ab/bts_all_n32sp_{shipped,even}.log (evalmod ms) and bts_prec_dense_{shipped,even}.log (bits)
+[2026-11-02 23:10:24] step bts done; results in /root/perseus-entry/out-ab
+GO_BTS_EXIT=0
+GO_STCF_PREC_0_EXIT=0
+GO_STCF_PREC_1_EXIT=0
+STAGE_A_DONE
+[2026-11-02 23:12:23] smoke: one Decode-8 entry run
+[2026-11-02 23:14:25] smoke ok: /root/perseus-entry/out-ab/runs/20261102-231223-10017/run.json
+[2026-11-02 23:14:25] step smoke done; results in /root/perseus-entry/out-ab
+GO_SMOKE_EXIT=0

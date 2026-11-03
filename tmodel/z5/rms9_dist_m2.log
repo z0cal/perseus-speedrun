@@ -1,0 +1,16 @@
+|delta| <= 2^-2, I pela distribuição real (33 uniformes): erro real por decriptação
+stcf_d0  recorde : topo 42 -> 24 (nf/recorde - 1 = +0.00e0), máx 3.895e-9 (27.94 bits), rms 7.476e-10 (30.32 bits), Im rms 32.46 bits, |Im| máx 3.006e-9
+stcf_d0  par z7  : topo 42 -> 24 (nf/recorde - 1 = +0.00e0), máx 2.679e-9 (28.48 bits), rms 2.619e-10 (31.83 bits), Im rms 32.43 bits, |Im| máx 2.764e-9
+stcf_d0  par z5  : topo 40 -> 24 (nf/recorde - 1 = +0.00e0), máx 5.602e-8 (24.09 bits), rms 1.324e-9 (29.49 bits), Im rms 32.24 bits, |Im| máx 3.437e-9
+stcf_d1  recorde : topo 40 -> 22 (nf/recorde - 1 = +0.00e0), máx 6.153e-9 (27.28 bits), rms 9.902e-10 (29.91 bits), Im rms 30.50 bits, |Im| máx 5.552e-9
+stcf_d1  par z7  : topo 40 -> 22 (nf/recorde - 1 = +0.00e0), máx 5.107e-9 (27.54 bits), rms 6.844e-10 (30.44 bits), Im rms 30.49 bits, |Im| máx 6.957e-9
+stcf_d1  par z5  : topo 38 -> 22 (nf/recorde - 1 = +0.00e0), máx 5.561e-8 (24.10 bits), rms 1.470e-9 (29.34 bits), Im rms 30.47 bits, |Im| máx 5.509e-9
+sb_d1    recorde : topo 48 -> 28 (nf/recorde - 1 = +0.00e0), máx 3.459e-9 (28.11 bits), rms 7.447e-10 (30.32 bits), Im rms 32.71 bits, |Im| máx 2.614e-9
+sb_d1    par z7  : topo 48 -> 28 (nf/recorde - 1 = +0.00e0), máx 2.047e-9 (28.86 bits), rms 2.456e-10 (31.92 bits), Im rms 32.65 bits, |Im| máx 3.059e-9
+sb_d1    par z5  : topo 46 -> 28 (nf/recorde - 1 = +0.00e0), máx 5.603e-8 (24.09 bits), rms 1.319e-9 (29.50 bits), Im rms 32.50 bits, |Im| máx 2.283e-9
+sb_d2    recorde : topo 46 -> 26 (nf/recorde - 1 = +0.00e0), máx 4.156e-9 (27.84 bits), rms 7.451e-10 (30.32 bits), Im rms 32.64 bits, |Im| máx 3.243e-9
+sb_d2    par z7  : topo 46 -> 26 (nf/recorde - 1 = +0.00e0), máx 2.938e-9 (28.34 bits), rms 2.502e-10 (31.90 bits), Im rms 32.58 bits, |Im| máx 2.557e-9
+sb_d2    par z5  : topo 44 -> 26 (nf/recorde - 1 = +0.00e0), máx 5.603e-8 (24.09 bits), rms 1.320e-9 (29.50 bits), Im rms 32.45 bits, |Im| máx 2.660e-9
+sb_d3    recorde : topo 44 -> 24 (nf/recorde - 1 = +0.00e0), máx 4.306e-9 (27.79 bits), rms 7.495e-10 (30.31 bits), Im rms 32.48 bits, |Im| máx 2.632e-9
+sb_d3    par z7  : topo 44 -> 24 (nf/recorde - 1 = +0.00e0), máx 2.746e-9 (28.44 bits), rms 2.617e-10 (31.83 bits), Im rms 32.45 bits, |Im| máx 3.408e-9
+sb_d3    par z5  : topo 42 -> 24 (nf/recorde - 1 = +0.00e0), máx 5.602e-8 (24.09 bits), rms 1.323e-9 (29.49 bits), Im rms 32.26 bits, |Im| máx 3.145e-9

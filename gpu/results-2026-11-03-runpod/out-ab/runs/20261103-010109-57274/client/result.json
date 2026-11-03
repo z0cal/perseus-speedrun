@@ -1,0 +1,72 @@
+{
+ "track": "prefill",
+ "backend": "perseus-spchain",
+ "requests": [
+  {
+   "warmup": false,
+   "times_s": [
+    6.531294732121751
+   ],
+   "score": 6.531294732121751,
+   "prompt": 4,
+   "kl": [
+    8.357783041327297e-06
+   ],
+   "kl_scored_mean": 8.357783041327297e-06,
+   "argmax_ok": [
+    true
+   ],
+   "outputs_ok": true
+  },
+  {
+   "warmup": false,
+   "times_s": [
+    6.512351098936051
+   ],
+   "score": 6.512351098936051,
+   "prompt": 5,
+   "kl": [
+    8.906296560881443e-05
+   ],
+   "kl_scored_mean": 8.906296560881443e-05,
+   "argmax_ok": [
+    true
+   ],
+   "outputs_ok": true
+  },
+  {
+   "warmup": false,
+   "times_s": [
+    6.510800368152559
+   ],
+   "score": 6.510800368152559,
+   "prompt": 6,
+   "kl": [
+    4.542435085419782e-05
+   ],
+   "kl_scored_mean": 4.542435085419782e-05,
+   "argmax_ok": [
+    true
+   ],
+   "outputs_ok": true
+  },
+  {
+   "warmup": false,
+   "times_s": [
+    6.513101487886161
+   ],
+   "score": 6.513101487886161,
+   "prompt": 7,
+   "kl": [
+    6.440295428723719e-05
+   ],
+   "kl_scored_mean": 6.440295428723719e-05,
+   "argmax_ok": [
+    true
+   ],
+   "outputs_ok": true
+  }
+ ],
+ "prompts_sha256": "ce446d42f61728288fc3191f5e697c7ff2fb2c77dd7e3802fb059109292ff5a2",
+ "manifest_sha256": "e422ba855b700e353ab83d7dbce48dac11ef0ed6f09430d35fc4ab87d78f5f01"
+}
